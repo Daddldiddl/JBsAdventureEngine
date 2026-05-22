@@ -5,14 +5,14 @@ Have fun to expand this yourself or build some adventures for it.
 
 Requires Java 21 or newer to run. Start with:
 
-java -jar jbs-adventure-engine.jar
+`java -jar jbs-adventure-engine.jar`
 
 to use an external data file use:
 
-java -jar jbs-adventure-engine.jar --data ./path/to/my/data.json
+`java -jar jbs-adventure-engine.jar --data ./path/to/my/data.json`
 
 to enable debug mode use:
 
-java -jar jbs-adventure-engine.jar --consoleDebug
+`java -jar jbs-adventure-engine.jar --consoleDebug`
 
 A log file will be written for each run, but you can disable that with the --nolog parameter.
