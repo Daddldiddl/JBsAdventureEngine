@@ -13,7 +13,7 @@
     <description>A text-based, data-driven adventure game engine</description>
 
     <properties>
-        <kotlin.version>1.9.23</kotlin.version>
+        <kotlin.version>2.1.20</kotlin.version>
         <dokka.version>1.9.20</dokka.version>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,7 +34,7 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <sourceDirectory>${project.basedir}/src/kotlin</sourceDirectory>
 
         <plugins>
             <!-- Kotlin compiler -->
@@ -93,7 +93,7 @@
             </plugin>
 
             <!-- KDoc documentation via Dokka -->
-            <plugin>
+            <!--<plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
                 <version>${dokka.version}</version>
@@ -108,7 +108,7 @@
                 <configuration>
                     <outputDir>${project.build.directory}/dokka</outputDir>
                 </configuration>
-            </plugin>
+            </plugin-->
         </plugins>
     </build>
 </project>
