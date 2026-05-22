@@ -35,7 +35,7 @@ Of course you can combine the command line parameters as you like.
 - allow item on item usage (currently you can only use an item in a room)
 - allow item usages to have multiple actions (e.g. change state and move the player, move some items around)
 - add an item usage action which will replace an item with another (e.g. using a 'blunt sword' on a grinding wheel will make it a 'sharp sword')
-- an an action adding/removing exits to rooms
+- add an action adding/removing exits to rooms
 - have state changes trigger actions
 - maybe separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
 
