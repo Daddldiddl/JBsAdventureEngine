@@ -34,7 +34,7 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${project.basedir}/src/kotlin</sourceDirectory>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
 
         <plugins>
             <!-- Kotlin compiler -->
