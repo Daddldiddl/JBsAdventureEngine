@@ -20,7 +20,7 @@ import kotlinx.serialization.encoding.Encoder
  * Used only by [GameDataSerializer] and never exposed outside this file.
  */
 @Serializable
-private data class GameDataSurrogate(
+data class GameDataSurrogate(
     val title: String? = null,
     val introductionMessage: String? = null,
     val exitMessage: String? = null,
@@ -33,7 +33,7 @@ private data class GameDataSurrogate(
  * Custom serializer for [GameData] that reads/writes the JSON array format
  * via [GameDataSurrogate] while the runtime representation uses [MutableMap]s.
  */
-private object GameDataSerializer : KSerializer<GameData> {
+object GameDataSerializer : KSerializer<GameData> {
     override val descriptor: SerialDescriptor = GameDataSurrogate.serializer().descriptor
 
     override fun deserialize(decoder: Decoder): GameData {

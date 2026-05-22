@@ -25,7 +25,7 @@ object SaveManager {
     private val json = Json { prettyPrint = true }
 
     /**
-     * Writes [state] to `savegame.json` in the working directory,
+     * Writes a [SaveState] to `savegame.json` in the working directory,
      * overwriting any previously saved game.
      *
      * @param gameData The current game state to persist.

@@ -12,7 +12,7 @@ import kotlin.io.print
  * Main game controller that manages state, processes player commands, and drives the game loop.
  *
  * On construction the game loads all rooms and items from the supplied [GameData]. The caller
- * should invoke [start] once, then repeatedly call [processCommand] with each line of player input
+ * should invoke [outputWelcome] once, then repeatedly call [processCommand] with each line of player input
  * until [isRunning] returns `false`.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.

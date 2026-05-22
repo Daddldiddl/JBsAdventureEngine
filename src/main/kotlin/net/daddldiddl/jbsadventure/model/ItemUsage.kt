@@ -41,7 +41,7 @@ data class ItemUsage(
     /**
      * Resolves the [Item] associated with this usage from the global item list.
      *
-     * @param items The complete list of items in the game world.
+     * @param itemMap The complete list of items in the game world.
      * @return The [Item] whose ID matches [itemId], or `null` if not found.
      */
     fun getUsageItem(itemMap: Map<Int, Item>): Item? {
