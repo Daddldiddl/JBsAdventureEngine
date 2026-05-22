@@ -1,0 +1,35 @@
+{
+    "useArticlesFromItemData": false,
+    "directionsHeading": "Directions",
+    "directions": {
+        "north": ["north", "n"],
+        "south": ["south", "s"],
+        "east": ["east", "e"],
+        "west": ["west", "w"],
+        "up": ["up", "u"],
+        "down": ["down", "d"]
+    },
+    "commandsHeading": "Commands",
+    "commands": {
+        "go": {"aliases": ["go", "move"], "description": "Move in a specified direction."},
+        "look": {"aliases": ["look", "l"], "description": "Look around the current location."},
+        "examine": {"aliases": ["examine", "x"], "description": "Examine an object more closely."},
+        "take": {"aliases": ["take", "pickup", "get", "t"], "description": "Pick up an item."},
+        "drop": {"aliases": ["drop"], "description": "Drop an item from your inventory."},
+        "use": {"aliases": ["use"], "description": "Use an item in the room or from your inventory."},
+        "inventory": {"aliases": ["inventory", "i"], "description": "Check your inventory."},
+        "help": {"aliases": ["help", "h", "?"], "description": "Show available commands and their descriptions."},
+        "quit": {"aliases": ["quit", "exit"], "description": "Exit the game."},
+        "save": {"aliases": ["save"], "description": "Save the current game state."},
+        "load": {"aliases": ["load"], "description": "Load a previously saved game state."}
+    },
+    "partsToIgnore": [
+        "the", "a", "an", "my", "your", "his", "her", "its", "our", "their",
+        "this", "that", "these", "those"
+    ],
+    "descriptionExits": "Exits: <exits>",
+    "descriptionNoExits": "There are no visible exits.",
+    "descriptionItems": "You see: <items>",
+    "descriptionInventory": "You are carrying: <items>",
+    "descriptionNoInventory": "You are not carrying anything."
+}
