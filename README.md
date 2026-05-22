@@ -25,13 +25,13 @@ to enable debug mode use:
 
 `java -jar jbs-adventure-engine.jar --consoleDebug`
 
-A log file will be written for each run, but you can disable that with the `--nolog` parameter.
+A log file will be written for each run if you enable that with the `--log` parameter.
 
 Of course you can combine the command line parameters as you like.
 
 ## Planned features
 
-- allow commands in other languages than english: all game texts come from the data.json, but the commands are fixed in english currently. I guess 'take Goldfischglas' or 'use forno' sound weird if you want to write your adventure in another language...
+- basic i8n support is in - commands, directions, help page etc. already work, but not all responses are translated yet and some mechanisms are still missing. Also no support for localized data files yet.
 - allow item on item usage (currently you can only use an item in a room)
 - allow item usages to have multiple actions (e.g. change state and move the player, move some items around)
 - add an item usage action which will replace an item with another (e.g. using a 'sword' in the mysterious pool will change it to the 'magic sword')
