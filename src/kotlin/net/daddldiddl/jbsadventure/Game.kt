@@ -2,6 +2,11 @@ package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.model.*
 import net.daddldiddl.jbsadventure.tools.*
+import net.daddldiddl.jbsadventure.LANGUAGE_DATA
+import net.daddldiddl.jbsadventure.CONSOLE
+import net.daddldiddl.jbsadventure.LOG
+import com.sun.tools.attach.AgentLoadException
+import kotlin.io.print
 
 /**
  * Main game controller that manages state, processes player commands, and drives the game loop.
@@ -40,6 +45,20 @@ class Game(private val gameData: GameData) {
         )
         CONSOLE.print()
         describeRoom()
+        CONSOLE.print()
+    }
+
+    /**
+     * Cleans up and filters the input string by removing unwanted characters and splitting into tokens.
+     *
+     * @param input The raw input string entered by the player.
+     * @return A list of cleaned and filtered tokens.
+     */
+    private fun cleanupAndFilterInput(input: String): List<String> {
+        val rgx = "[\\s{}\\[\\]\\$]+".toRegex()
+        return input.trim().lowercase().replace(rgx, " ").split("\\s+".toRegex())
+            .filter { it !in LANGUAGE_DATA.partsToIgnore }
+            .filter { !it.isBlank() }
     }
 
     /**
@@ -51,66 +70,60 @@ class Game(private val gameData: GameData) {
      * @param input The raw input string entered by the player.
      */
     fun processCommand(input: String) {
-        val parts = input.trim().lowercase().split("\\s+".toRegex())
+        CONSOLE.print()
+        var parts = cleanupAndFilterInput(input)
+        if(parts.isEmpty()) {
+            return
+        }
+        LOG.debug("Processing input string: \"$input\", filtered to: $parts")
         when (parts[0]) {
-            "go",
-            "move",
-            "e",
-            "w",
-            "n",
-            "s",
-            "u",
-            "d",
-            "east",
-            "west",
-            "north",
-            "south",
-            "up",
-            "down" -> {
+            in LANGUAGE_DATA.getAllDirectionAliases().union(LANGUAGE_DATA.getCommandAliases(LanguageKeys.go)) -> {
                 handleMove(parts)
             }
-            "look", "l" -> {                
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.look) -> {                
                 describeRoom()
             }
-            "examine", "x" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.examine) -> {
                 handleExamine(parts)
             }
-            "use" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.use) -> {
                 handleUse(parts)
             }
-            "pickup", "take", "t" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.take) -> {
                 handlePickup(parts)
             }
-            "drop" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.drop) -> {
                 handleDrop(parts)
             }
-            "inventory", "i" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.inventory) -> {
                 handleInventory()
             }
-            "help", "?" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.help) -> {
                 printHelp()
             }
-            "quit", "exit", "q" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.quit) -> {
                 LOG.debug("Handling quit command, exiting game loop")
                 CONSOLE.print()
                 CONSOLE.print(gameData.exitMessage)
                 running = false
             }
-            "save" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.save) -> {
                 saveGame()
             }
-            "load" -> {
+            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.load) -> {
                 loadGame()
             }
-            "" -> {
-                Unit
-            }
-
             // ignore blank input
             else -> {
-                CONSOLE.print("Unknown command '${parts[0]}'. Type 'help' for a list of commands.")
+                if(parts.size == 1 && parts[0].isBlank()) {
+                    return
+                } else {
+                    CONSOLE.warn("Unknown command: \"${parts.first()}\".\nType 'help' for a list of commands.")
+                }
+                
             }
         }
+        CONSOLE.print()
     }
 
     /**
@@ -131,29 +144,16 @@ class Game(private val gameData: GameData) {
     fun handleMove(parts: List<String>) {
         LOG.debug("Handling move command with parts: $parts")
         val part0: String = parts[0].lowercase()
-        val dirMap =
-                mapOf(
-                        "e" to "east",
-                        "w" to "west",
-                        "n" to "north",
-                        "s" to "south",
-                        "u" to "up",
-                        "d" to "down"
-                )
         if (parts.size == 1) {
-            if (part0 in dirMap.keys) {
-                move(dirMap[part0] ?: "")
-            } else if (part0 in dirMap.values) {
-                move(part0)
+            if (part0 in LANGUAGE_DATA.getAllDirectionAliases()) {
+                move(LANGUAGE_DATA.getInternalDirection(part0))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
         } else {
             val part1 = parts[1].lowercase()
-            if (part1 in dirMap.keys) {
-                move(dirMap[part1] ?: "")
-            } else if (part1 in dirMap.values) {
-                move(part1)
+            if (part1 in LANGUAGE_DATA.getAllDirectionAliases()) {
+                move(LANGUAGE_DATA.getInternalDirection(part1))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
@@ -356,11 +356,11 @@ class Game(private val gameData: GameData) {
 
     private fun handleInventory() {
         LOG.debug("Handling inventory request")
-        var inventoryItems = gameData.getItemList().filter { it.location == Item.Constants.INVENTORY_LOCATION } 
-        if(inventoryItems.isEmpty()) {
-            CONSOLE.print("You are not carrying anything.")
+        val itemList = gameData.getItemsForRoom(Item.Constants.INVENTORY_LOCATION).joinToString(", ") { "${it.getArticle()} ${it.name}" }
+        if(itemList.isEmpty()) {
+            CONSOLE.print(LANGUAGE_DATA.descriptionNoInventory, ConsoleColor.CYAN)
         } else {
-            CONSOLE.print("You are carrying: ${inventoryItems.joinToString(", ") { "${it.getArticle()} ${it.name}" }}")
+            CONSOLE.print(LANGUAGE_DATA.descriptionInventory.replace(LanguageKeys.placeholderItems, itemList), ConsoleColor.CYAN)
         }
     }
 
@@ -422,46 +422,35 @@ class Game(private val gameData: GameData) {
      */
     private fun describeRoom() {
         LOG.debug("Describing room '${currentRoom.debugName()}' with id ${currentRoom.id}")
-        CONSOLE.print()
-        CONSOLE.print(currentRoom.description)
-        val exitList = currentRoom.exits.keys.joinToString(", ")
-        CONSOLE.print("Exits: " + if (exitList.isNotEmpty()) "$exitList" else "none")
+        CONSOLE.print("-".repeat(currentRoom.name.length), ConsoleColor.LIGHTCYAN)
+        CONSOLE.print(currentRoom.name, ConsoleColor.LIGHTCYAN)
+        CONSOLE.print("-".repeat(currentRoom.name.length), ConsoleColor.LIGHTCYAN)
+        CONSOLE.print(currentRoom.description, ConsoleColor.WHITE)
+        val exitList = currentRoom.exits.keys.map { key -> LANGUAGE_DATA.getDirectionFromInternal(key) }.joinToString(", ")
+        if(!exitList.isEmpty()) {
+            CONSOLE.print(LANGUAGE_DATA.descriptionExits.replace(LanguageKeys.placeholderExits, exitList), ConsoleColor.LIGHTYELLOW)
+        } else {
+            CONSOLE.print(LANGUAGE_DATA.descriptionNoExits, ConsoleColor.LIGHTGREEN)
+        }
         val itemList = gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.getArticle()} ${it.name}" }
         if (itemList.isNotEmpty()) {
-            CONSOLE.print("There is: $itemList")
+            CONSOLE.print(LANGUAGE_DATA.descriptionItems.replace(LanguageKeys.placeholderItems, itemList), ConsoleColor.LIGHTGREEN)
         }
-        CONSOLE.print()
     }
 
     /** Prints a summary of all available player commands to stdout. */
     private fun printHelp() {
         LOG.debug("Handling help request, printing help message")
         CONSOLE.print()
-        CONSOLE.print("Available commands:")
-        CONSOLE.print(
-                "  go <direction>  - Move in a direction (north, south, east, west, up, down)."
-        )
-        CONSOLE.print(
-                "                    You can also use direction shortcuts: 'n', 's', 'e', 'w', 'u', 'd'"
-        )
-        CONSOLE.print("  look            - Describe your current surroundings (shortcut: 'l').")
-        CONSOLE.print(
-                "  examine <item>  - Examine an item in the room, e.g. 'examine key' (shortcut: 'x')."
-        )
-        CONSOLE.print("  use <item>      - Use an item in the room, e.g. 'use key'.")
-        CONSOLE.print(
-                "  pickup <item>   - Pick up a carriable item in the room, e.g. 'pickup key' (shortcut: 't')."
-        )
-        CONSOLE.print(
-                "  drop <item>     - Drop an item from your inventory, e.g. 'drop key'."
-        )
-        CONSOLE.print(
-                "  inventory       - Show the items you are currently carrying (shortcut: 'i')."
-        )
-        CONSOLE.print("  help            - Show this help message (shortcut: '?').")
-        CONSOLE.print("  save            - Save the current game state to savegame.json.")
-        CONSOLE.print("  load            - Load a previously saved game state.")
-        CONSOLE.print("  quit            - Exit the game (shortcut: 'q').")
-        CONSOLE.print()
+        val sb = StringBuilder()
+        sb.append("${ConsoleColor.CYAN}${LANGUAGE_DATA.commandsHeading}:\n")
+        for (key in LANGUAGE_DATA.commands.keys.sorted()) {
+            sb.append("${ConsoleColor.LIGHTYELLOW}- ${LANGUAGE_DATA.getCommandAliases(key).joinToString(", ")}:${ConsoleColor.WHITE} ${LANGUAGE_DATA.getCommandDescription(key)}\n")
+        }
+        sb.append("´\n${ConsoleColor.CYAN}${LANGUAGE_DATA.directionsHeading}:\n${ConsoleColor.LIGHTYELLOW}")
+        for (key in LANGUAGE_DATA.directions.keys.sorted()) {
+            sb.append("- ${LANGUAGE_DATA.getDirectionAliases(key).joinToString(", ")}\n")
+        }
+        CONSOLE.print(sb.toString())
     }
 }
