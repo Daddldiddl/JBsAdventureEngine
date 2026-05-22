@@ -15,4 +15,6 @@ to enable debug mode use:
 
 `java -jar jbs-adventure-engine.jar --consoleDebug`
 
-A log file will be written for each run, but you can disable that with the --nolog parameter.
+A log file will be written for each run, but you can disable that with the `--nolog` parameter.
+
+Of course you can combine the command line parameters as you like.
