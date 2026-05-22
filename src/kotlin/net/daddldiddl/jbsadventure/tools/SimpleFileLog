@@ -5,6 +5,11 @@ import java.io.FileWriter
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import net.daddldiddl.jbsadventure.CONSOLE
+
+public enum class LogLevel(val priority: Int) {
+    ERROR(5), WARN(4), INFO(3), CONSOLE(2), DEBUG(1)
+}
 
 /**
  * Simple logging utility class to log messages. The console output mode can be enabled or disabled
@@ -25,10 +30,6 @@ class SimpleFileLog(consoleLogEnabled: Boolean, writeToFile :Boolean,logLevel: L
     private val CONSOLE_TAG = "[TEXT] "
     private val dateFormatter = DateTimeFormatter.ofPattern("yyMMddHHmmss-SSS")
 
-    public enum class LogLevel(val priority: Int) {
-        ERROR(5), WARN(4), INFO(3), CONSOLE(2), DEBUG(1)
-    }
-
     /**
      * Logs a message with the specified log level. The message is prefixed with a timestamp and the log level tag.
      * If console logging is enabled, the message is also printed to the console with color coding based on the log level.
@@ -47,14 +48,7 @@ class SimpleFileLog(consoleLogEnabled: Boolean, writeToFile :Boolean,logLevel: L
         }
         // Print to console with color coding if console logging is enabled
         if (consoleLogEnabled && level != LogLevel.CONSOLE && level.priority >= logLevel.priority) {
-            val colorCode = when (level) {
-                LogLevel.DEBUG -> "\u001B[34m" // Blue
-                LogLevel.ERROR -> "\u001B[31m" // Red
-                LogLevel.WARN -> "\u001B[33m"  // Yellow
-                LogLevel.INFO -> "\u001B[32m"  // Green
-                else -> "\u001B[0m" // Reset
-            }
-            println("$colorCode$logMsg\u001B[0m") // Reset color after printing
+            CONSOLE.printLog(logMsg, level)
         } 
         // Append the log message to the log file if the log level is appropriate
         if(writeToFile && level.priority >= logLevel.priority) {
