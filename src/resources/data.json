@@ -1,0 +1,251 @@
+{
+    "title": "JB's Small Adventure",
+    "introductionMessage": "This is an example adventure showcasing the possibilities of JB's Adventure Engine.\nEnjoy exploring the mine and discovering its secrets - then build your own adventure!",
+    "exitMessage": "Thank you for playing JB's Big Adventure! We hope you enjoyed exploring the mine.\nSee you next time!",
+    "Rooms": [
+        {
+            "id": 1,
+            "name": "mine entrance",
+            "description": "You are standing at the entrance of a dark mine.\nThe air is damp and you can hear the faint sound of dripping water echoing from within.",
+            "exits": {
+                "north": 2
+            }
+        },
+        {
+            "id": 2,
+            "name": "mine tunnel",
+            "description": "You have entered the mine tunnel.\nThe walls are lined with wooden supports, and the ground is uneven.\nYou can see faint daylight coming from the south.",
+            "exits": {
+                "south": 1,
+                "east": 3,
+                "west": 4
+            }
+        },
+        {
+            "id": 3,
+            "name": "mine chamber",
+            "description": "You have reached a large chamber within the mine.\nThe ceiling is high, and there are piles of rocks scattered around.\nIn the center of the chamber, you see a glowing crystal emitting a soft light.\nBehind the crystal there is a wide crack in the ground that seems bottomless.",
+            "exits": {
+                "west": 2
+            }
+        },
+        {
+            "id": 4,
+            "name": "mine shaft",
+            "description": "You have entered a narrow mine shaft.\nThe walls are close together, and the air is thick with dust.\nYou can hear the sound of machinery coming from the north.",
+            "exits": {
+                "east": 2,
+                "west": 5
+            }
+        },
+        {
+            "id": 5,
+            "name": "mine machinery room",
+            "description": "You have entered a room filled with old mining machinery.\nThe machines are covered in rust, and the air is filled with the smell of oil.\nYou can see a control panel on the wall.",
+            "exits": {
+                "east": 4,
+                "north": 10
+            },
+            "ItemUsages": [
+                {
+                    "itemId": 2,
+                    "description": "You step into the elevator and pull the lever.\nThe elevator descends smoothly down to the underground lake level.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 6
+                },
+                {
+                    "itemId": 3,
+                    "description": "You push the button on the control panel.\nThe elevator is now on this level.",
+                    "action": "SetItemRoom",
+                    "affectedItemId": 2,
+                    "moveToRoomId": 5
+                },{
+                    "itemId": 7,
+                    "action": "ChangeState",
+                    "stateKey": "ELEVATORPANEL_STATE",
+                    "consumeUsedItem": true,
+                    "affectedItemId": 3,
+                    "becomesUsable": true,
+                    "description": "You plug the fuse into the socket on the elevator's panel.\nThe panel springs to life. You can now call the elevator to this level.",
+                    "oldStateValue": "broken",
+                    "newStateValue": "operational"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "name": "mine underground lake",
+            "description": "You have reached an underground lake within the mine.\nThe water is dark and still, and you can see the reflection of a lone torch marking the entrance to a dark tunnel.\nThere is a small moat at the shore.",
+            "exits": {
+                "east": 7
+            },
+            "ItemUsages": [
+                {
+                    "itemId": 1,
+                    "description": "You untie the boat and step into it. You use the boat to\ncross the underground lake to reach the island on the other side.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 9
+                },
+                {
+                    "itemId": 2,
+                    "description": "You step into the elevator and pull the lever.\nThe elevator ascends smoothly up to the entrance level.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 5
+                },
+                {
+                    "itemId": 4,
+                    "description": "You push the button on the control panel.\nThe elevator is now on this level.",
+                    "action": "SetItemRoom",
+                    "affectedItemId": 2,
+                    "moveToRoomId": 6
+                },{
+                    "itemId": 7,
+                    "action": "ChangeState",
+                    "stateKey": "ELEVATORPANEL2_STATE",
+                    "consumeUsedItem": true,
+                    "affectedItemId": 4,
+                    "becomesUsable": true,
+                    "description": "You plug the fuse into the socket on the elevator's panel.\nThe panel springs to life. You can now call the elevator to this level.",
+                    "oldStateValue": "broken",
+                    "newStateValue": "operational"
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "name": "mine drainage tunnel",
+            "description": "You have entered a narrow drainage tunnel within the mine.\nThe walls are damp, and the sound of dripping water echoes through the tunnel.",
+            "exits": {
+                "west": 6,
+                "east": 8
+            }
+        },
+        {
+            "id": 8,
+            "name": "mine cave-in site",
+            "description": "You have reached a site where a cave-in has occurred.\nThe tunnel is blocked by rubble, and you can see dust particles floating in the air.\nThere is a faint glow visible through a crack far above.",
+            "exits": {
+                "west": 7
+            }
+        },
+        {
+            "id": 9,
+            "name": "small lake island",
+            "description": "You have reached a small island in the middle of the underground lake.\nThe island is covered with moss and small plants.\nThere is a wooden pier at the shore.",
+            "exits": {
+            },
+            "ItemUsages": [
+                {
+                    "itemId": 1,
+                    "description": "You untie the boat and step into it.\nYou use the boat to cross the underground lake back to the shore.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 6
+                },
+                {
+                    "itemId": 5,
+                    "description": "You climb the ladder to reach the higher level.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 10
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "name": "mine ladder shaft",
+            "description": "You have entered a narrow shaft within the mine.\nA sturdy wooden ladder leads downwards to lower levels.",
+            "exits": {
+                "south": 5
+            }, 
+            "ItemUsages": [
+                {
+                    "itemId": 6,
+                    "description": "You climb the ladder to reach the lower level.",
+                    "action": "MoveTo",
+                    "moveToRoomId": 9
+                }
+            ]
+        }
+    ],
+    "Items": [
+        {
+            "comment": "the boat between location 6 (underground lake location) and location 9 (island location)",
+            "id": 1,
+            "name": "boat",
+            "alternateNames": ["boat", "small boat"],
+            "description": "A small wooden boat, suitable for crossing the underground lake.",
+            "driveable": true,
+            "location": 6
+        },
+        {
+            "comment": "the elevator between location 5 (upper level machine room) and location 6 (underground lake location)",
+            "id": 2,
+            "name": "elevator",
+            "alternateNames": ["elevator", "lift"],
+            "driveable": true,
+            "description": "A sturdy looking elevator cage suitable for transporting mining\nequipment or people between levels.",
+            "location": 6
+        },
+        {
+            "comment": "the elevator controls located in location 5 (upper level machine room)",
+            "id": 3,
+            "name": "control panel",
+            "alternateNames": ["panel", "controls", "button"],
+            "description": "A sturdy looking control panel with a button to call the elevator up.\nThere is a fuse socket on the side of the panel.",
+            "location": 5,
+            "stateKey": "ELEVATORPANEL_STATE",
+            "usable": false
+        },
+        {
+            "comment": "the elevator controls located in location 6 (underground lake location)",
+            "id": 4,
+            "name": "control panel",
+            "alternateNames": ["panel", "controls", "button"],
+            "description": "A sturdy looking control panel with a button to call the elevator down.\nThere is a fuse socket on the side of the panel.",
+            "location": 6,
+            "stateKey": "ELEVATORPANEL2_STATE",
+            "usable": false
+        },
+        {
+            "comment": "the ladder located in location 9 (island location)",
+            "id": 5,
+            "name": "ladder",
+            "alternateNames": ["ladder", "wooden ladder"],
+            "description": "A sturdy wooden ladder, suitable for climbing to higher levels.",
+            "location": 9
+        },
+        {
+            "comment": "the ladder located in location 10 (corridor above island location)",
+            "id": 6,
+            "name": "ladder",
+            "alternateNames": ["wooden ladder"],
+            "description": "A sturdy wooden ladder, suitable for climbing to lower levels.",
+            "location": 10
+        },
+         {
+            "comment": "a fuse pack found in the mine, located in location 3 (mine chamber)",
+            "id": 7,
+            "name": "fuse pack",
+            "alternateNames": ["fuse", "fuses", "pack"],
+            "description": "A small pack of fuses, useful for repairing electrical equipment.\nThere are <numberOfUses> fuses left.",
+            "carriable": true,
+            "numberOfUses": 2,
+            "location": 3
+        }
+    ],
+    "States": [
+        {
+            "comment": "the state of the elevator panel leading down to the lake, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL_STATE",
+            "description": "The elevator panel looks <currentValue>.",
+            "possibleValues": ["operational", "broken"],
+            "currentValue": "broken"
+        },
+        {
+            "comment": "the state of the elevator panel leading up to the upper level, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL2_STATE",
+            "description": "The elevator panel looks <currentValue>.",
+            "possibleValues": ["operational", "broken"],
+            "currentValue": "broken"
+        }
+    ]
+}
