@@ -1,6 +1,6 @@
 {
     "title": "JB's Small Adventure",
-    "introductionMessage": "This is an example adventure showcasing the possibilities of JB's Adventure Engine.\nEnjoy exploring the mine and discovering its secrets - then build your own adventure!",
+    "introMessage": "This is an example adventure showcasing the possibilities of JB's Adventure Engine.\nEnjoy exploring the mine and discovering its secrets - then build your own adventure!",
     "exitMessage": "Thank you for playing JB's Big Adventure! We hope you enjoyed exploring the mine.\nSee you next time!",
     "Rooms": [
         {
@@ -171,6 +171,7 @@
             "comment": "the boat between location 6 (underground lake location) and location 9 (island location)",
             "id": 1,
             "name": "boat",
+            "article": "a",
             "alternateNames": ["boat", "small boat"],
             "description": "A small wooden boat, suitable for crossing the underground lake.",
             "driveable": true,
@@ -180,6 +181,7 @@
             "comment": "the elevator between location 5 (upper level machine room) and location 6 (underground lake location)",
             "id": 2,
             "name": "elevator",
+            "article": "an",
             "alternateNames": ["elevator", "lift"],
             "driveable": true,
             "description": "A sturdy looking elevator cage suitable for transporting mining\nequipment or people between levels.",
@@ -189,6 +191,7 @@
             "comment": "the elevator controls located in location 5 (upper level machine room)",
             "id": 3,
             "name": "control panel",
+            "article": "a",
             "alternateNames": ["panel", "controls", "button"],
             "description": "A sturdy looking control panel with a button to call the elevator up.\nThere is a fuse socket on the side of the panel.",
             "location": 5,
@@ -199,6 +202,7 @@
             "comment": "the elevator controls located in location 6 (underground lake location)",
             "id": 4,
             "name": "control panel",
+            "article": "a",
             "alternateNames": ["panel", "controls", "button"],
             "description": "A sturdy looking control panel with a button to call the elevator down.\nThere is a fuse socket on the side of the panel.",
             "location": 6,
@@ -209,6 +213,7 @@
             "comment": "the ladder located in location 9 (island location)",
             "id": 5,
             "name": "ladder",
+            "article": "a",
             "alternateNames": ["ladder", "wooden ladder"],
             "description": "A sturdy wooden ladder, suitable for climbing to higher levels.",
             "location": 9
@@ -217,6 +222,7 @@
             "comment": "the ladder located in location 10 (corridor above island location)",
             "id": 6,
             "name": "ladder",
+            "article": "a",
             "alternateNames": ["wooden ladder"],
             "description": "A sturdy wooden ladder, suitable for climbing to lower levels.",
             "location": 10
@@ -225,11 +231,100 @@
             "comment": "a fuse pack found in the mine, located in location 3 (mine chamber)",
             "id": 7,
             "name": "fuse pack",
+            "article": "a",
             "alternateNames": ["fuse", "fuses", "pack"],
             "description": "A small pack of fuses, useful for repairing electrical equipment.\nThere are <numberOfUses> fuses left.",
             "carriable": true,
             "numberOfUses": 2,
-            "location": 3
+            "location": -2
+        },
+        {
+            "comment": "a key found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 8,
+            "name": "rusty key",
+            "article": "a",
+            "alternateNames": ["key", "rusty key"],
+            "description": "A small rusty key, it looks like it could open a simple lock.",
+            "carriable": true,
+            "location": 8
+        },
+        {
+            "comment": "a treasure item found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 9,
+            "name": "shiny gem",
+            "article": "a",
+            "alternateNames": ["gem", "jewel", "treasure"],
+            "description": "A shiny gem that sparkles in the light. It looks valuable.",
+            "carriable": true,
+            "location": -2,
+            "onExamine": {
+                "actions": [
+                    {
+                        "action": "ChangeState",
+                        "requiredStateKey": "GEM_EXAMINED_ONCE",
+                        "requiredStateValue": "true",
+                        "stateKey": "GEM_EXAMINED_TWICE",
+                        "oldStateValue": "false",
+                        "newStateValue": "true"
+                    },
+                    {
+                        "action": "ChangeState",
+                        "stateKey": "GEM_EXAMINED_ONCE",
+                        "oldStateValue": "false",
+                        "newStateValue": "true"
+                    },
+                    {
+                        "action": "TransformIntoItem",
+                        "description": "As you examine the gem more closely, you recognize it as the famous Eye Of Bengal!",               
+                        "requiredStateKey": "GEM_EXAMINED_TWICE",
+                        "requiredStateValue": "true",
+                        "transformsIntoItemId": 10
+                    }
+                ],
+                "description": "As you examine the gem more closely, it you recognize it as the famous Eye Of Bengal!",
+                "action": "TransformIntoItem",
+                "transformsIntoItemId": 10
+            }
+        },
+        {
+            "comment": "replaces the 'shiny gem' when that item is examined",
+            "id": 10,
+            "name": "Eye Of Bengal",
+            "article": "the",
+            "alternateNames": ["eye", "eye of bengal", "jewel", "treasure", "gem", "shiny gem"],
+            "description": "A beautiful gem known as the Eye Of Bengal. It is said to be worth a fortune.",
+            "carriable": true,
+            "location": 0
+        }
+    ],
+    "Containers": [
+        {
+            "comment": "a crate located in location 3 (mine chamber) that contains a fuse pack",
+            "id": 1,
+            "name": "wooden crate",
+            "article": "a",
+            "alternateNames": ["crate", "box"],
+            "isOpen": false,
+            "isLocked": false,
+            "keyItemId": null,
+            "description": "A wooden crate that seems to have been left behind by the miners.",
+            "carriable": false,
+            "location": 3,
+            "containedItems": [7]
+        },
+        {
+            "comment": "a treasure chest located in location 9 (lake island) that contains a shiny gem",
+            "id": 2,
+            "name": "treasure chest",
+            "article": "a",
+            "alternateNames": ["chest", "box"],
+            "isOpen": false,
+            "isLocked": true,
+            "keyItemId": 8,
+            "description": "A sturdy looking treasure chest with intricate carvings on its surface.\nIt seems to be locked.",
+            "carriable": false,
+            "location": 9,
+            "containedItems": [9]
         }
     ],
     "States": [
@@ -246,6 +341,20 @@
             "description": "The elevator panel looks <currentValue>.",
             "possibleValues": ["operational", "broken"],
             "currentValue": "broken"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_ONCE",
+            "description": "You had a first look at the gem.",
+            "possibleValues": ["true", "false"],
+            "currentValue": "false"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_TWICE",
+            "description": "You have thoroughly examined the gem.",
+            "possibleValues": ["true", "false"],
+            "currentValue": "false"
         }
     ]
 }

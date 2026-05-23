@@ -7,7 +7,8 @@ import java.io.File
 
 public lateinit var LOG: SimpleFileLog
 public lateinit var CONSOLE: ConsoleOutput
-public lateinit var LANGUAGE_DATA: LanguageData
+public lateinit var LANG: LanguageData
+public lateinit var DATA: GameData
 
 /**
  * Application entry point for JB's Adventure Engine.
@@ -35,13 +36,13 @@ fun main(args: Array<String>) {
     // initialize global variables
     LOG = SimpleFileLog(consoleLogEnabled = debugMode, writeToFile = writeToFile, logLevel = logLevel)
     CONSOLE = ConsoleOutput()
-    LANGUAGE_DATA = GameLoader.loadLanguageData(langCode)
+    LANG = GameLoader.loadLanguageData(langCode)
 
     LOG.info("JB's Adventure Engine starting up (Debug mode: $debugMode, Write to file: $writeToFile, Log level: $logLevel, Language: $langCode)")
     LOG.debug("Command line arguments: ${args.joinToString(" ")}")
 
     // load game data
-    val gameData = when {
+    DATA = when {
         dataFilePath != null && !File(dataFilePath).exists() -> {
             LOG.error("External data file not found at '$dataFilePath'")
             return
@@ -49,17 +50,17 @@ fun main(args: Array<String>) {
         dataFilePath != null -> GameLoader.loadGameData(dataFilePath)
         else -> GameLoader.loadGameData()
     }
-    LOG.info("Game data for ${gameData.title} loaded successfully, starting game loop")
+    LOG.info("Game data for ${DATA.title} loaded successfully, starting game loop")
 
     // initialize and run the game
-    val game = Game(gameData)
-    game.outputWelcome()
+    val game = Game(DATA)
+    game.printWelcome()
     val reader = System.`in`.bufferedReader()
 
     // main game loop
     while (game.isRunning()) {
         game.currentStateDebug()
-        print("> ")
+        print("${ConsoleColor.LIGHTCYAN}> ${ConsoleColor.RESET}")
         System.out.flush()
         val line = reader.readLine() ?: break
         game.processCommand(line)
@@ -67,7 +68,7 @@ fun main(args: Array<String>) {
 
     // game has ended
     LOG.info("Game finished, exiting")
-    CONSOLE.print("Thanks for playing! Goodbye.")
+    game.printGoodbye()
 }
 
 /**
@@ -96,7 +97,7 @@ fun printCommandLineHelp() {
     println("  ${ConsoleColor.LIGHTYELLOW}--logDebug       ${ConsoleColor.WHITE}Enable DEBUG level file logging")
     println("  ${ConsoleColor.LIGHTYELLOW}--data ${ConsoleColor.LIGHTCYAN}<path>    ${ConsoleColor.WHITE}Load game data from the specified JSON file instead of the bundled data.json")
     println("  ${ConsoleColor.LIGHTYELLOW}--lang ${ConsoleColor.LIGHTCYAN}<code>    ${ConsoleColor.WHITE}Load language data for the specific country code.")
-    println("                   Supported codes: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE}, ${ConsoleColor.LIGHTCYAN}de${ConsoleColor.WHITE} (default: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE})")
+    println("                   Supported codes: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE} (default: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE})")
     println("  ${ConsoleColor.LIGHTYELLOW}--help -h -?     ${ConsoleColor.WHITE}Show this help message")
     println("${ConsoleColor.RESET}")
 }

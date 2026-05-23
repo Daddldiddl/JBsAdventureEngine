@@ -27,11 +27,6 @@ data class Item(
     var location: Int,
     val comment: String? = null
 ) {
-    object Constants {
-        public val INVENTORY_LOCATION :Int = -1
-        public val NOTASSIGNED_LOCATION :Int = 0
-    }
-
     fun getArticle(): String {
         val firstChar = name.firstOrNull()?.lowercaseChar() ?: return "a"
         return if (firstChar in listOf('a', 'e', 'i', 'o', 'u')) "an" else "a"

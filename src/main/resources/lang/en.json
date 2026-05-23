@@ -1,6 +1,6 @@
 {
     "useArticlesFromItemData": false,
-    "directionsHeading": "Directions",
+    "defaultArticle": "a",
     "directions": {
         "north": ["north", "n"],
         "south": ["south", "s"],
@@ -9,7 +9,6 @@
         "up": ["up", "u"],
         "down": ["down", "d"]
     },
-    "commandsHeading": "Commands",
     "commands": {
         "go": {"aliases": ["go", "move"], "description": "Move in a specified direction."},
         "look": {"aliases": ["look", "l"], "description": "Look around the current location."},
@@ -17,6 +16,8 @@
         "take": {"aliases": ["take", "pickup", "get", "t"], "description": "Pick up an item."},
         "drop": {"aliases": ["drop"], "description": "Drop an item from your inventory."},
         "use": {"aliases": ["use"], "description": "Use an item in the room or from your inventory."},
+        "close": {"aliases": ["close"], "description": "Close an object, such as a door or container."},
+        "open": {"aliases": ["open"], "description": "Open an object, such as a door or container."},
         "inventory": {"aliases": ["inventory", "i"], "description": "Check your inventory."},
         "help": {"aliases": ["help", "h", "?"], "description": "Show available commands and their descriptions."},
         "quit": {"aliases": ["quit", "exit"], "description": "Exit the game."},
@@ -27,9 +28,27 @@
         "the", "a", "an", "my", "your", "his", "her", "its", "our", "their",
         "this", "that", "these", "those"
     ],
-    "descriptionExits": "Exits: <exits>",
-    "descriptionNoExits": "There are no visible exits.",
-    "descriptionItems": "You see: <items>",
-    "descriptionInventory": "You are carrying: <items>",
-    "descriptionNoInventory": "You are not carrying anything."
+    "headings": {
+        "commandsHeading": "Commands",
+        "directionsHeading": "Directions"
+    },
+    "messages": {
+        "msgUnknownCommand": "I don't understand '<command>'!",
+        "msgNoExit": "You can't go <direction>!",
+        "msgNoItem": "There is no '<item>' here or in your inventory.",
+        "msgNoInventoryItem": "You don't have <article> <item>.",
+        "msgItemTaken": "You take <article> <item>.",
+        "msgItemDropped": "You drop <article> <item>.",
+        "msgItemNotUsable": "You can't use <article> <item>.",
+        "msgWelcome": "Welcome to <title>!",
+        "msgGoodbye": "Thanks for playing <title>! Goodbye!",
+        "msgIntroHelp": "Use commands like 'look', 'go <direction>', 'take <item>', and 'use <item>' to interact with the environment.\nType 'help' for a list of commands."
+    },
+    "messageParts": {
+        "msgPartExits": "Exits: <exits>",
+        "msgPartNoExits": "There are no visible exits.",
+        "msgPartItems": "You see: <items>",
+        "msgPartInventory": "You are carrying: <items>",
+        "msgPartNoInventory": "You are not carrying anything."
+   }
 }

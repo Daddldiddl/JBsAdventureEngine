@@ -14,7 +14,9 @@ enum class ItemAction {
     /** Moves the item to the room specified by [ItemUsage.moveToRoomId]. */
     SetItemRoom,
     /** Changes the state of the item specified by [ItemUsage.itemId]. */
-    ChangeState
+    ChangeState,
+    /** Transforms the item specified by [ItemUsage.itemId] into another item specified by [ItemUsage.transformsIntoItemId]. */
+    TransformIntoItem
 }
 
 /**
@@ -28,13 +30,7 @@ enum class ItemAction {
 @Serializable
 data class ItemUsage(
     val itemId: Int,
-    val description: String,
-    val action: ItemAction? = null,
-    val moveToRoomId: Int? = null,
-    val affectedItemId: Int? = null,
-    val stateKey: String? = null,
-    val oldStateValue: String? = null,
-    val newStateValue: String? = null,
+    val action: Action,
     val becomesUsable: Boolean? = null,
     val consumeUsedItem: Boolean? = false
 ) {

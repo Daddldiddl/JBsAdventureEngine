@@ -29,18 +29,26 @@ class Game(private val gameData: GameData) {
      * Prints the welcome banner and describes the starting room. Must be called once before the
      * first [processCommand] invocation.
      */
-    fun outputWelcome() {
-        CONSOLE.print("=".repeat(50))
-        CONSOLE.print("Welcome to ${gameData.title}!")
-        CONSOLE.print("=".repeat(50))
-        CONSOLE.print(gameData.introductionMessage)
+    fun printWelcome() {
+        val welcome = LANG.getMessage(LangKey.msgWelcome).replace(LangKey.placeholderTitle, gameData.title)
+        CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
+        CONSOLE.print(welcome, ConsoleColor.LIGHTGREEN)
+        CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
+        CONSOLE.print(gameData.introductionMessage, ConsoleColor.WHITE)
+        Console.print()
+        CONSOLE.print(LANG.getMessage(LangKey.msgIntro), ConsoleColor.WHITE)
         CONSOLE.print()
-        CONSOLE.print(
-                "Use commands like 'look', 'go north', 'take item', and 'use item' to interact with the environment.\nType 'help' for a list of commands."
-        )
+        CONSOLE.print(LANG.getMessage(LangKey.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
         CONSOLE.print()
         describeRoom()
         CONSOLE.print()
+    }
+
+    /**
+     * Prints the goodbye message when the player exits the game.
+     */
+    fun printGoodbye() {
+        CONSOLE.print(LANG.getMessage(LangKey.msgGoodbye).replace(LangKey.placeholderTitle, gameData.title), ConsoleColor.LIGHTGREEN)
     }
 
     /**
@@ -52,7 +60,7 @@ class Game(private val gameData: GameData) {
     private fun cleanupAndFilterInput(input: String): List<String> {
         val rgx = "[\\s{}\\[\\]\\$]+".toRegex()
         return input.trim().lowercase().replace(rgx, " ").split("\\s+".toRegex())
-            .filter { it !in LANGUAGE_DATA.partsToIgnore }
+            .filter { it !in LANG.partsToIgnore }
             .filter { !it.isBlank() }
     }
 
@@ -72,40 +80,40 @@ class Game(private val gameData: GameData) {
         }
         LOG.debug("Processing input string: \"$input\", filtered to: $parts")
         when (parts[0]) {
-            in LANGUAGE_DATA.getAllDirectionAliases().union(LANGUAGE_DATA.getCommandAliases(LanguageKeys.go)) -> {
+            in LANG.getAllDirectionAliases().union(LANG.getCommandAliases(LangKey.go)) -> {
                 handleMove(parts)
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.look) -> {                
+            in LANG.getCommandAliases(LangKey.look) -> {                
                 describeRoom()
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.examine) -> {
+            in LANG.getCommandAliases(LangKey.examine) -> {
                 handleExamine(parts)
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.use) -> {
+            in LANG.getCommandAliases(LangKey.use) -> {
                 handleUse(parts)
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.take) -> {
+            in LANG.getCommandAliases(LangKey.take) -> {
                 handlePickup(parts)
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.drop) -> {
+            in LANG.getCommandAliases(LangKey.drop) -> {
                 handleDrop(parts)
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.inventory) -> {
+            in LANG.getCommandAliases(LangKey.inventory) -> {
                 handleInventory()
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.help) -> {
+            in LANG.getCommandAliases(LangKey.help) -> {
                 printHelp()
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.quit) -> {
+            in LANG.getCommandAliases(LangKey.quit) -> {
                 LOG.debug("Handling quit command, exiting game loop")
                 CONSOLE.print()
                 CONSOLE.print(gameData.exitMessage)
                 running = false
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.save) -> {
+            in LANG.getCommandAliases(LangKey.save) -> {
                 saveGame()
             }
-            in LANGUAGE_DATA.getCommandAliases(LanguageKeys.load) -> {
+            in LANG.getCommandAliases(LangKey.load) -> {
                 loadGame()
             }
             // ignore blank input
@@ -140,15 +148,15 @@ class Game(private val gameData: GameData) {
         LOG.debug("Handling move command with parts: $parts")
         val part0: String = parts[0].lowercase()
         if (parts.size == 1) {
-            if (part0 in LANGUAGE_DATA.getAllDirectionAliases()) {
-                move(LANGUAGE_DATA.getInternalDirection(part0))
+            if (part0 in LANG.getAllDirectionAliases()) {
+                move(LANG.getInternalDirection(part0))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
         } else {
             val part1 = parts[1].lowercase()
-            if (part1 in LANGUAGE_DATA.getAllDirectionAliases()) {
-                move(LANGUAGE_DATA.getInternalDirection(part1))
+            if (part1 in LANG.getAllDirectionAliases()) {
+                move(LANG.getInternalDirection(part1))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
@@ -168,10 +176,10 @@ class Game(private val gameData: GameData) {
         } else {
             val itemName = parts.drop(1).joinToString(" ")
             val item = gameData.getItemByNameAndRoom(itemName, currentRoom.id) 
-                    ?: gameData.getItemByNameAndRoom(itemName, Item.Constants.INVENTORY_LOCATION)
+                    ?: gameData.getItemByNameAndRoom(itemName, Locations.INVENTORY)
             if (item == null) {
                 CONSOLE.print("There is no '$itemName' here to examine.")
-            } else if (item.location != currentRoom.id && item.location != Item.Constants.INVENTORY_LOCATION) {
+            } else if (item.location != currentRoom.id && item.location != Locations.INVENTORY) {
                 CONSOLE.print("You don't see ${item.getArticle()} ${item.name} here to examine.")
             } else {
                 if (item.usable == false) {
@@ -198,7 +206,7 @@ class Game(private val gameData: GameData) {
         } else {
             val itemName = parts.drop(1).joinToString(" ")
             val item = gameData.getItemByNameAndRoom(itemName, currentRoom.id) 
-                    ?: gameData.getItemByNameAndRoom(itemName, Item.Constants.INVENTORY_LOCATION)
+                    ?: gameData.getItemByNameAndRoom(itemName, Locations.INVENTORY)
             if (item == null) {
                 CONSOLE.print("There is no '${itemName}' here to use.")
             } else if (item.usable == false) {
@@ -326,7 +334,7 @@ class Game(private val gameData: GameData) {
                 CONSOLE.print("You can't pickup the ${item.name}.")
             } else {
                 LOG.debug("Setting location of item '${item.debugName()}' to INVENTORY_LOCATION due to pickup")
-                gameData.setItemLocation(item.id, Item.Constants.INVENTORY_LOCATION)
+                gameData.setItemLocation(item.id, Locations.INVENTORY)
                 CONSOLE.print("You picked up the ${item.name}.")
             }
         }
@@ -338,7 +346,7 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("Drop what? e.g. 'drop key'")
         } else {
             val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getItemByNameAndRoom(itemName, Item.Constants.INVENTORY_LOCATION)
+            val item = gameData.getItemByNameAndRoom(itemName, Locations.INVENTORY)
             if (item == null) {
                 CONSOLE.print("You are not carrying a '$itemName'.")
             } else {
@@ -351,11 +359,11 @@ class Game(private val gameData: GameData) {
 
     private fun handleInventory() {
         LOG.debug("Handling inventory request")
-        val itemList = gameData.getItemsForRoom(Item.Constants.INVENTORY_LOCATION).joinToString(", ") { "${it.getArticle()} ${it.name}" }
+        val itemList = gameData.getItemsForRoom(Locations.INVENTORY).joinToString(", ") { "${it.getArticle()} ${it.name}" }
         if(itemList.isEmpty()) {
-            CONSOLE.print(LANGUAGE_DATA.descriptionNoInventory, ConsoleColor.CYAN)
+            CONSOLE.print(LANG.descriptionNoInventory, ConsoleColor.CYAN)
         } else {
-            CONSOLE.print(LANGUAGE_DATA.descriptionInventory.replace(LanguageKeys.placeholderItems, itemList), ConsoleColor.CYAN)
+            CONSOLE.print(LANG.descriptionInventory.replace(LangKey.placeholderItems, itemList), ConsoleColor.CYAN)
         }
     }
 
@@ -421,15 +429,15 @@ class Game(private val gameData: GameData) {
         CONSOLE.print(currentRoom.name, ConsoleColor.LIGHTCYAN)
         CONSOLE.print("-".repeat(currentRoom.name.length), ConsoleColor.LIGHTCYAN)
         CONSOLE.print(currentRoom.description, ConsoleColor.WHITE)
-        val exitList = currentRoom.exits.keys.map { key -> LANGUAGE_DATA.getDirectionFromInternal(key) }.joinToString(", ")
+        val exitList = currentRoom.exits.keys.map { key -> LANG.getDirectionFromInternal(key) }.joinToString(", ")
         if(!exitList.isEmpty()) {
-            CONSOLE.print(LANGUAGE_DATA.descriptionExits.replace(LanguageKeys.placeholderExits, exitList), ConsoleColor.LIGHTYELLOW)
+            CONSOLE.print(LANG.descriptionExits.replace(LangKey.placeholderExits, exitList), ConsoleColor.LIGHTYELLOW)
         } else {
-            CONSOLE.print(LANGUAGE_DATA.descriptionNoExits, ConsoleColor.LIGHTGREEN)
+            CONSOLE.print(LANG.descriptionNoExits, ConsoleColor.LIGHTGREEN)
         }
         val itemList = gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.getArticle()} ${it.name}" }
         if (itemList.isNotEmpty()) {
-            CONSOLE.print(LANGUAGE_DATA.descriptionItems.replace(LanguageKeys.placeholderItems, itemList), ConsoleColor.LIGHTGREEN)
+            CONSOLE.print(LANG.descriptionItems.replace(LangKey.placeholderItems, itemList), ConsoleColor.LIGHTGREEN)
         }
     }
 
@@ -438,13 +446,13 @@ class Game(private val gameData: GameData) {
         LOG.debug("Handling help request, printing help message")
         CONSOLE.print()
         val sb = StringBuilder()
-        sb.append("${ConsoleColor.CYAN}${LANGUAGE_DATA.commandsHeading}:\n")
-        for (key in LANGUAGE_DATA.commands.keys.sorted()) {
-            sb.append("${ConsoleColor.LIGHTYELLOW}- ${LANGUAGE_DATA.getCommandAliases(key).joinToString(", ")}:${ConsoleColor.WHITE} ${LANGUAGE_DATA.getCommandDescription(key)}\n")
+        sb.append("${ConsoleColor.CYAN}${LANG.commandsHeading}:\n")
+        for (key in LANG.commands.keys.sorted()) {
+            sb.append("${ConsoleColor.LIGHTYELLOW}- ${LANG.getCommandAliases(key).joinToString(", ")}:${ConsoleColor.WHITE} ${LANG.getCommandDescription(key)}\n")
         }
-        sb.append("´\n${ConsoleColor.CYAN}${LANGUAGE_DATA.directionsHeading}:\n${ConsoleColor.LIGHTYELLOW}")
-        for (key in LANGUAGE_DATA.directions.keys.sorted()) {
-            sb.append("- ${LANGUAGE_DATA.getDirectionAliases(key).joinToString(", ")}\n")
+        sb.append("´\n${ConsoleColor.CYAN}${LANG.directionsHeading}:\n${ConsoleColor.LIGHTYELLOW}")
+        for (key in LANG.directions.keys.sorted()) {
+            sb.append("- ${LANG.getDirectionAliases(key).joinToString(", ")}\n")
         }
         CONSOLE.print(sb.toString())
     }
