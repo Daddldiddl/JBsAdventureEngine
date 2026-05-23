@@ -5,7 +5,6 @@ import net.daddldiddl.jbsadventure.tools.*
 import net.daddldiddl.jbsadventure.LANGUAGE_DATA
 import net.daddldiddl.jbsadventure.CONSOLE
 import net.daddldiddl.jbsadventure.LOG
-import com.sun.tools.attach.AgentLoadException
 import kotlin.io.print
 
 /**
@@ -23,11 +22,7 @@ class Game(private val gameData: GameData) {
     private var running = true
 
     fun currentStateDebug() {
-        val sb = StringBuilder()
-        sb.append(
-                "Current room: ${currentRoom.name} (id=${currentRoom.id}), containing items: ${gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}"
-        )
-        LOG.debug(sb.toString())
+        LOG.debug("Current room: ${currentRoom.name} (id=${currentRoom.id}), containing items: ${gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}")
     }
 
     /**
