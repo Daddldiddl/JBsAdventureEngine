@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
 data class Item(
     val id: Int,
     val name: String,
+    val article: String? = null
     val description: String,
     val alternateNames: List<String>,
     val carriable: Boolean? = false,
@@ -25,7 +26,8 @@ data class Item(
     var usable: Boolean = true,
     var numberOfUses: Int? = null,
     var location: Int,
-    val comment: String? = null
+    val comment: String? = null,
+    val usages: List<ItemUsage>? = emptyList()
 ) {
     fun getArticle(): String {
         val firstChar = name.firstOrNull()?.lowercaseChar() ?: return "a"

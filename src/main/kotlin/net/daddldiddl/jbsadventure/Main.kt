@@ -9,6 +9,7 @@ public lateinit var LOG: SimpleFileLog
 public lateinit var CONSOLE: ConsoleOutput
 public lateinit var LANG: LanguageData
 public lateinit var DATA: GameData
+public lateinit var MESSAGES: Messages
 
 /**
  * Application entry point for JB's Adventure Engine.
@@ -37,6 +38,7 @@ fun main(args: Array<String>) {
     LOG = SimpleFileLog(consoleLogEnabled = debugMode, writeToFile = writeToFile, logLevel = logLevel)
     CONSOLE = ConsoleOutput()
     LANG = GameLoader.loadLanguageData(langCode)
+    MESSAGES = Messages(LANG)
 
     LOG.info("JB's Adventure Engine starting up (Debug mode: $debugMode, Write to file: $writeToFile, Log level: $logLevel, Language: $langCode)")
     LOG.debug("Command line arguments: ${args.joinToString(" ")}")

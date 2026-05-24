@@ -1,6 +1,7 @@
 {
     "useArticlesFromItemData": false,
-    "defaultArticle": "a",
+    "defaultDefiniteArticle": "the",
+    "defaultIndefiniteArticle": "a",
     "directions": {
         "north": ["north", "n"],
         "south": ["south", "s"],
@@ -28,6 +29,12 @@
         "the", "a", "an", "my", "your", "his", "her", "its", "our", "their",
         "this", "that", "these", "those"
     ],
+    "stateValues": {
+        "stateExitLocked": "locked",
+        "stateExitClosed": "closed",
+        "stateExitBlocked": "blocked",
+        "stateExitVisible": "visible"
+    },
     "headings": {
         "commandsHeading": "Commands",
         "directionsHeading": "Directions"
@@ -42,11 +49,16 @@
         "msgItemNotUsable": "You can't use <article> <item>.",
         "msgWelcome": "Welcome to <title>!",
         "msgGoodbye": "Thanks for playing <title>! Goodbye!",
-        "msgIntroHelp": "Use commands like 'look', 'go <direction>', 'take <item>', and 'use <item>' to interact with the environment.\nType 'help' for a list of commands."
+        "msgIntroHelp": "Use commands like 'look', 'go <direction>', 'take <item>', and 'use <item>' to interact with the environment.\nType 'help' for a list of commands.",
+        "msgExitDefaultDescription": "You see an exit leading <direction>.",
+        "msgExitDescription": "You see <exit> leading <direction>.",
+        "msgExitDetailedDescription": "You see <exit> leading <direction>. <description>",
+        "msgExitDetailedDescriptionNoName": "You see an exit leading <direction>. <description>"
     },
     "messageParts": {
         "msgPartExits": "Exits: <exits>",
         "msgPartNoExits": "There are no visible exits.",
+        "msgPartState": "It is <state>.",
         "msgPartItems": "You see: <items>",
         "msgPartInventory": "You are carrying: <items>",
         "msgPartNoInventory": "You are not carrying anything."

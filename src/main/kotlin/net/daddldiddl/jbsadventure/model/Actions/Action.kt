@@ -31,8 +31,7 @@ enum class ActionType {
 @Serializable
 open data class Action(
     val type: ActionType,
-    val requiredStateKey: String? = null,
-    val requiredStateValue: String? = null,
+    val preconditions: List<Precondition>? = null,
     val description: String? = null,
     val comment: String? = null,
     @Transient val actionDebug: String? = null,
@@ -44,39 +43,46 @@ open data class Action(
      * @return `true` if the action can be executed (i.e., conditions are met or no conditions specified); `false` otherwise.
      */
     fun canExecute(gameData: GameData): Boolean {
-        if (requiredStateKey == null || requiredStateValue == null) {
-            return true // No state requirement, action can be executed
+        if (preconditions.isNullOrEmpty()) {
+            return true // No preconditions, action can be executed
         }
-        val state = gameData.getStateMap()[requiredStateKey] ?: return false
-        return state.currentValue == requiredStateValue
+        return preconditions.all { precondition ->
+            val state = gameData.getStateMap()[precondition.requiredStateKey] ?: return false
+            state.currentValue == precondition.requiredStateValue
+        }
     }
 }
 
+/**
+ * Action representing a change in the game state, such as unlocking a door or activating a mechanism.
+ */
 data class ChangeStateAction(
     val changedStateKey: String,
-    val oldStateValue: String,
     val newStateValue: String
 ) : Action(
     type = ActionType.ChangeState,
     description :String? = null,
     comment: String? = null,
-    requiredStateKey: String? = null,
-    requiredStateValue: String? = null,
+    preconditions: List<Precondition>? = null,
     actionDebug = "Changed state '$changedStateKey' from '$oldStateValue' to '$newStateValue'."
 )
 
+/**
+ * Action representing a transformation of one item into another, such as using a key to create an open door.
+ */
 data class MoveToAction(
     val moveToRoomId: Int
 ) : Action(
     type = ActionType.MoveTo,
     description :String? = null,
     comment: String? = null,
-    requiredStateKey: String? = null,
-    requiredStateValue: String? = null,
+    preconditions: List<Precondition>? = null,
     actionDebug = "Move player to room with id $moveToRoomId."
 )
 
-
+/**
+ * Action representing a change in the room location of an item, such as moving an item to a different room.
+ */
 data class SetItemRoomAction(
     val affectedItemIds : List<Int>,
     val moveToRoomId: Int
@@ -84,11 +90,13 @@ data class SetItemRoomAction(
     type = ActionType.SetItemRoom,
     description :String? = null,
     comment: String? = null,
-    requiredStateKey: String? = null,
-    requiredStateValue: String? = null,
+    preconditions: List<Precondition>? = null,
     actionDebug = "Move items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId."
 )
 
+/**
+ * Action representing a change in the room location of an item, such as moving an item to a different room.
+ */
 data class SetItemRoomAction(
     val itemIds: List<Int>,
     val moveToRoomId: Int
@@ -96,20 +104,21 @@ data class SetItemRoomAction(
     type = ActionType.SetItemRoom,
     description :String? = null,
     comment: String? = null,
-    requiredStateKey: String? = null,
-    requiredStateValue: String? = null,
+    preconditions: List<Precondition>? = null,
     actionDebug = "Move items ${itemIds.joinToString(", ")} to room with id $moveToRoomId."
 )
 
-data class TransformIntoItemsAction(
+/**
+ * Action representing a transformation of one item into another, such as using a key to create an open door.
+ */
+data class TransformIntoItemAction(
     val itemIds: List<Int>,
     val transformsIntoItemIds: List<Int>
 ) : Action(
     type = ActionType.TransformIntoItem,
     description :String? = null,
     comment: String? = null,
-    requiredStateKey: String? = null,
-    requiredStateValue: String? = null,
+    preconditions: List<Precondition>? = null,
     actionDebug = "Transform items ${itemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}."
 )
 

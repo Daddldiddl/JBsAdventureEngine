@@ -16,7 +16,8 @@ data class Room(
     val id: Int,
     val name: String,
     val description: String,
-    val exits: Map<String, Int>,
+    @SerialName("Exits")
+    val exits: Map<String, Exit>,
     @SerialName("ItemUsages")
     val itemUsages: List<ItemUsage>? = emptyList()
 ) {
