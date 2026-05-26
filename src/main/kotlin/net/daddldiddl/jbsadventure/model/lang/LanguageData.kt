@@ -8,6 +8,7 @@ import kotlinx.serialization.encoding.Encoder
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.GameData
 import kotlin.collections.List
+import kotlin.collections.get
 
 /**
  * Represents the data for a command, including its aliases and description.
@@ -20,15 +21,21 @@ data class CommandData(
 
 @Serializable
 data class PronounGroup(
-    val key: String,
+    val genderKey: String,
     val definiteArticle: String,
     val indefiniteArticle: String,
-    val pronoun: String,
-    val pluralPronoun: String,
+    val pronounSubject: String,
+    val pronounObject: String,
+    val possessiveAdjective: String,
     val possessivePronoun: String,
-    val possessivePluralPronoun: String,
-    val isDefault: Boolean ?= false
-)
+    val definiteArticlePlural: String,
+    val indefiniteArticlePlural: String,
+    val pronounSubjectPlural: String,
+    val pronounObjectPlural: String,
+    val possessiveAdjectivePlural: String,
+    val possessivePronounPlural: String,
+
+    )
 
 @Serializable
 data class LanguageDataSurrogate(
@@ -54,7 +61,7 @@ object LanguageDataSerializer : KSerializer<LanguageData> {
     override fun deserialize(decoder: Decoder): LanguageData {
         val surrogate = decoder.decodeSerializableValue(LanguageDataSurrogate.serializer())
         return LanguageData(
-            pronounGroups = surrogate.pronounGroups.associateBy { it.key }.toMutableMap(),
+            pronounGroups = surrogate.pronounGroups.associateBy { it.genderKey }.toMutableMap(),
             directions = surrogate.directions,
             commands = surrogate.commands,
             headings = surrogate.headings,
@@ -100,14 +107,20 @@ data class LanguageData(
     val defaultPronoun: PronounGroup = pronounGroups[Keys.Pronouns.keyDefaultGroup]
         ?:  if(pronounGroups.isNotEmpty()) pronounGroups.values.first() // no default value
             else PronounGroup(
-            Keys.Pronouns.keyDefaultGroup,
-            definiteArticle = "the",
-            indefiniteArticle = "a",
-            pronoun = "it",
-            pluralPronoun = "they",
-            possessivePronoun = "its",
-            possessivePluralPronoun = "their"
-        ) // no values at all
+                genderKey = Keys.Pronouns.keyDefaultGroup,
+                definiteArticle = "the",
+                indefiniteArticle = "a",
+                possessivePronoun = "its",
+                pronounSubject = "it",
+                pronounObject = "it",
+                possessiveAdjective = "its",
+                definiteArticlePlural = "the",
+                indefiniteArticlePlural = "",
+                pronounSubjectPlural = "they",
+                pronounObjectPlural = "them",
+                possessiveAdjectivePlural = "their",
+                possessivePronounPlural = "theirs"
+            ) // no values at all
 
     init {
         if(pronounGroups.isEmpty()){
@@ -117,24 +130,30 @@ data class LanguageData(
         }
     }
 
-    fun getArticle(definite: Boolean = false, genderKey: String ?= defaultPronoun.key): String {
-        return when(definite){
-            true -> pronounGroups[genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
-            else -> pronounGroups[genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle
+    fun getArticle(definite: Boolean = false, plural:Boolean? = false, genderKey: String ?= defaultPronoun.genderKey): String {
+        return when(plural?:false) {
+            false -> when (definite) {
+                true -> pronounGroups[genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
+                else -> pronounGroups[genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle
+            }
+            true -> when (definite) {
+                true -> pronounGroups[genderKey]?.definiteArticlePlural?: defaultPronoun.definiteArticlePlural
+                else -> pronounGroups[genderKey]?.indefiniteArticlePlural ?: defaultPronoun.indefiniteArticlePlural
+            }
         }
     }
 
-    fun getPronoun(singular: Boolean = false, genderKey: String ?= defaultPronoun.key): String {
-        return when(singular){
-            true -> pronounGroups[genderKey]?.pronoun ?: defaultPronoun.pronoun
-            false -> pronounGroups[genderKey]?.pluralPronoun ?: defaultPronoun.pluralPronoun
+    fun getPronounSubject(plural:Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
+        return when(plural) {
+            true -> pronounGroups[genderKey]?.pronounSubjectPlural?: defaultPronoun.pronounSubjectPlural
+            else -> pronounGroups[genderKey]?.pronounSubject?: defaultPronoun.pronounSubject
         }
     }
 
-    fun getPossessivePronoun(singular: Boolean = false, genderKey: String ?= defaultPronoun.key): String {
-        return when(singular){
-            true -> pronounGroups[genderKey]?.possessivePronoun ?: defaultPronoun.possessivePronoun
-            false -> pronounGroups[genderKey]?.possessivePluralPronoun ?: defaultPronoun.possessivePluralPronoun
+    fun getPronounObject(plural :Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
+        return when(plural) {
+            true -> pronounGroups[genderKey]?.pronounObjectPlural?: defaultPronoun.pronounObjectPlural
+            else -> pronounGroups[genderKey]?.pronounObject?: defaultPronoun.pronounObject
         }
     }
 

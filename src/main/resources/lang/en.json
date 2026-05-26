@@ -15,7 +15,7 @@
             "pronounSubjectPlural": "they",
             "pronounObjectPlural": "them",
             "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs",
+            "possessivePronounPlural": "theirs"
         },
         {
             "genderKey": "female",
@@ -30,7 +30,7 @@
             "pronounSubjectPlural": "they",
             "pronounObjectPlural": "them",
             "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs",
+            "possessivePronounPlural": "theirs"
         },
         {
             "genderKey": "neutral",
@@ -45,7 +45,7 @@
             "pronounSubjectPlural": "they",
             "pronounObjectPlural": "them",
             "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs",
+            "possessivePronounPlural": "theirs"
         }
     ],
     "directions": {
