@@ -32,6 +32,7 @@ data class PronounGroup(
 
 @Serializable
 data class LanguageDataSurrogate(
+    val languageKey: String?,
     val pronounGroups: List<PronounGroup>,
     val directions: Map<String, Set<String>>,
     val commands: Map<String, CommandData>,
@@ -60,12 +61,14 @@ object LanguageDataSerializer : KSerializer<LanguageData> {
             stateValues = surrogate.stateValues,
             messageParts = surrogate.messageParts,
             messages = surrogate.messages,
-            partsToIgnore = surrogate.partsToIgnore
+            partsToIgnore = surrogate.partsToIgnore,
+            languageKey = "en"
         )
     }
 
     override fun serialize(encoder: Encoder, value: LanguageData) {
         val surrogate = LanguageDataSurrogate(
+            languageKey = value.languageKey,
             pronounGroups = value.pronounGroups.values.toList(),
             directions = value.directions,
             commands = value.commands,
@@ -73,7 +76,7 @@ object LanguageDataSerializer : KSerializer<LanguageData> {
             stateValues = value.stateValues,
             messageParts = value.messageParts,
             partsToIgnore = value.partsToIgnore,
-            messages = value.messages
+            messages = value.messages,
         )
         encoder.encodeSerializableValue(LanguageDataSurrogate.serializer(), surrogate)
     }
