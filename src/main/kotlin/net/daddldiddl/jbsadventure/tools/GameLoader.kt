@@ -76,15 +76,24 @@ object GameLoader {
      */
     fun loadLanguageData(langCode: String): LanguageData {
         LOG.debug("Attempting to load language data for language code '$langCode'")
-        val resourcePath = "/lang/$langCode.json"
-        val text =
-                GameLoader::class
-                        .java
-                        .getResourceAsStream(resourcePath)
-                        ?.bufferedReader()
-                        ?.readText()
-                        ?: error("Language data file not found for language code '$langCode' at path '$resourcePath'")
-        LOG.info("Loaded language data for language code '$langCode'")
-        return json.decodeFromString<LanguageData>(text)
+        val localFile = File(pathneme = "./$langCode.json")
+        if (localFile.exits()) {
+            localFile.bufferedReader().use { reader ->
+                val text = reader.readText()
+                LOG.info("Loaded language data for language code '$langCode' from file system")
+                return json.decodeFromString<LanguageData>(text)
+            }
+        } else {
+            val resourcePath = "/lang/$langCode.json"
+            val text =
+                    GameLoader::class
+                            .java
+                            .getResourceAsStream(resourcePath)
+                            ?.bufferedReader()
+                            ?.readText()
+                            ?: error("Language data file not found for language code '$langCode' at path '$resourcePath'")
+            LOG.info("Loaded language data for language code '$langCode'")
+            return json.decodeFromString<LanguageData>(text)
+        }
     }
 }
