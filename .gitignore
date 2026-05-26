@@ -31,3 +31,4 @@ target/*
 /*.log
 /.vscode
 savegame.json
+/.idea

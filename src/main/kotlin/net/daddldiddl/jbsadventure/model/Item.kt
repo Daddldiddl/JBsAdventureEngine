@@ -1,6 +1,69 @@
 package net.daddldiddl.jbsadventure.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.lang.*
+
+@Serializable
+data class ItemSurrogate(
+    val id: Int,
+    val name: String,
+    val genderKey: String? = null,
+    val description: String,
+    val alternateNames: List<String>,
+    val carriable: Boolean? = false,
+    val driveable: Boolean? = false,
+    val stateKey: String? = null,
+    var usable: Boolean = true,
+    var numberOfUses: Int? = null,
+    var location: Int,
+    val comment: String? = null,
+    val usages: List<ItemUsage>? = emptyList()
+)
+
+object ItemSerializer : KSerializer<Item> {
+    override val descriptor: SerialDescriptor = ItemSurrogate.serializer().descriptor
+
+    override fun deserialize(decoder: Decoder): Item {
+        val surrogate = decoder.decodeSerializableValue(ItemSurrogate.serializer())
+        return Item(
+            id = surrogate.id,
+            name = Name(surrogate.name, surrogate.genderKey),
+            description = surrogate.description,
+            alternateNames = surrogate.alternateNames,
+            carriable = surrogate.carriable,
+            stateKey = surrogate.stateKey,
+            usable = surrogate.usable,
+            numberOfUses = surrogate.numberOfUses,
+            location = surrogate.location,
+            comment = surrogate.comment,
+            usages = surrogate.usages
+        )
+    }
+
+    override fun serialize(encoder: Encoder, value: Item) {
+        val surrogate = ItemSurrogate(
+            id = value.id,
+            name =value.name.name,
+            genderKey = value.name.genderKey,
+            description = value.description,
+            alternateNames = value.alternateNames,
+            carriable = value.carriable,
+            stateKey = value.stateKey,
+            usable = value.usable,
+            numberOfUses = value.numberOfUses,
+            location = value.location,
+            comment = value.comment,
+            usages = value.usages
+        )
+        encoder.encodeSerializableValue(RoomSurrogate.serializer(), surrogate)
+    }
+
+}
 
 /**
  * Represents an item that can exist within the game world.
@@ -13,11 +76,10 @@ import kotlinx.serialization.Serializable
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-@Serializable
+@Serializable(with = ItemSerializer::class)
 data class Item(
     val id: Int,
-    val name: String,
-    val article: String? = null
+    val name: Name,
     val description: String,
     val alternateNames: List<String>,
     val carriable: Boolean? = false,
@@ -27,13 +89,9 @@ data class Item(
     var numberOfUses: Int? = null,
     var location: Int,
     val comment: String? = null,
-    val usages: List<ItemUsage>? = emptyList()
+    val usages: List<ItemUsage>? = emptyList(),
+    val container: Container? = null
 ) {
-    fun getArticle(): String {
-        val firstChar = name.firstOrNull()?.lowercaseChar() ?: return "a"
-        return if (firstChar in listOf('a', 'e', 'i', 'o', 'u')) "an" else "a"
-    }
-
     /**
      * Checks if the given name matches this item, considering both the main name and any alternate names.
      *

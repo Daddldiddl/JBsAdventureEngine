@@ -1,7 +1,35 @@
 {
-    "useArticlesFromItemData": false,
-    "defaultDefiniteArticle": "the",
-    "defaultIndefiniteArticle": "a",
+    "langCode": "en",
+    "defaultPronounKey": "neutral",
+    "pronounGroups": [
+        {
+            "genderKey": "male",
+            "definiteArticle": "the",
+            "indefiniteArticle":  "a",
+            "pronoun":  "he",
+            "pluralPronoun": "they",
+            "possessivePronoun": "his",
+            "possessivePluralPronoun": "their"
+        },
+        {
+            "genderKey": "female",
+            "definiteArticle": "the",
+            "indefiniteArticle":  "a",
+            "pronoun": "she",
+            "pluralPronoun": "they",
+            "possessivePronoun": "her",
+            "possessivePluralPronoun": "their"
+        },
+        {
+            "genderKey": "neutral",
+            "definiteArticle": "the",
+            "indefiniteArticle":  "a",
+            "pronoun":  "it",
+            "pluralPronoun": "they",
+            "possessivePronoun": "its",
+            "possessivePluralPronoun": "their"
+        }
+    ],
     "directions": {
         "north": ["north", "n"],
         "south": ["south", "s"],
@@ -26,8 +54,8 @@
         "load": {"aliases": ["load"], "description": "Load a previously saved game state."}
     },
     "partsToIgnore": [
-        "the", "a", "an", "my", "your", "his", "her", "its", "our", "their",
-        "this", "that", "these", "those"
+        "the", "a", "an", "my", "your", "his", "her", "it", "its", "our", "their",
+        "this", "that", "these", "those", "they"
     ],
     "stateValues": {
         "stateExitLocked": "locked",

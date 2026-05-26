@@ -1,9 +1,7 @@
-package net.daddldiddl.jbsadventure
+package net.daddldiddl.jbsadventure.tools
 
-import net.daddldiddl.jbsadventure.model.GameData
-import net.daddldiddl.jbsadventure.model.Item
-import net.daddldiddl.jbsadventure.model.ItemAction
-import net.daddldiddl.jbsadventure.model.ItemUsage
+import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.model.*
 
 /**
  * Provides validation checks for deserialized data.
@@ -30,33 +28,43 @@ object DataValidator {
         LOG.debug("Validating game data...")
         // Check that all room exits point to valid room IDs
         for (room in gameData.getRoomList()) {
-            for ((direction, targetRoomId) in room.exits) {
-                if (!gameData.getRoomMap().containsKey(targetRoomId)) {
+            for ((direction, exit) in room.exits) {
+                if (!gameData.getRoomMap().containsKey(exit.targetRoomId)) {
                     LOG.warn(
-                            "Room '${room.id}' has an exit '$direction' pointing to non-existent room ID '$targetRoomId'"
+                            "Room '${room.id}' has an exit '$direction' pointing to non-existent room ID '$exit.targetRoomId'"
                     )
                     isValid = false
                 }
             }
         }
-        // Check that all items reference valid states
+        // Check that all items reference valid states and locations
         for (item in gameData.getItemList()) {
-            // Check if the item references a valid state key (if any)
+            // Check that the item references a valid state key (if any)
             val stateKey = item.stateKey
             if (stateKey != null && !gameData.getStateMap().containsKey(stateKey)) {
                 LOG.warn("Item '${item.id}' has a usage referencing non-existent state '$stateKey'")
                 isValid = false
             }
-            // Check if the item is located in a valid room (if any)
+            // Check that the item is located in a valid room (if any)
             val location = item.location
-            if (location != Item.Constants.INVENTORY_LOCATION &&
-                            location != Item.Constants.NOTASSIGNED_LOCATION &&
-                            !gameData.getRoomMap().containsKey(location)
-            ) {
+            if (location !in Locations.fixedValues() && !gameData.getRoomMap().containsKey(location)) {
                 LOG.warn(
                         "Item '${item.id}' has a usage referencing non-existent room ID '$location'"
                 )
                 isValid = false
+            }
+            // check that an Item with location CONTAINER has exactly one container containing it
+            if(location == Locations.CONTAINER.value){
+                val containers = gameData.getItemMap().values
+                    .filter{it.container?.containedItems!!.contains(item.id)}
+                    .map{it.id}
+                if (containers.isEmpty()){
+                    LOG.warn("Item '${item.id}' has no container")
+                    isValid = false
+                } else if (containers.size > 1) {
+                    LOG.warn("Item '${item.id}' has more than one container (itemIds: ${containers.joinToString(", ")})")
+                    isValid = false
+                }
             }
         }
         // Check that all rooms with item usage have valid properties(e.g., target room IDs, item

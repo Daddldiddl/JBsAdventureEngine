@@ -1,25 +1,25 @@
 
 package net.daddldiddl.jbsadventure.model
 
+import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.lang.*
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ExitState(
-    val closed: Boolean = false,
-    val locked: Boolean = false,
-    val blocked: Boolean = false,
+data class ExitState (
+    override var open: Boolean = true,
+    override var locked: Boolean = false,
     val visible: Boolean = true
-){
+) : IOpenLockEnabled {
+
     fun getStateDescription(): String? {
         val stateDescriptions = mutableListOf<String>()
-        if (blocked) {
-            stateDescriptions.add(MESSAGES.getMessage(LangKeys.StateValues.exitBlocked))
+        if (isLocked()) {
+            stateDescriptions.add(LANG.getStateValue(Keys.StateValues.locked))
         }
-        if (locked) {
-            stateDescriptions.add(MESSAGES.getMessage(LangKeys.StateValues.exitLocked))
-        }
-        if (closed) {
-            stateDescriptions.add(MESSAGES.getMessage(LangKeys.StateValues.exitClosed))
+        else if (!isOpen()) {
+            stateDescriptions.add(LANG.getStateValue(Keys.StateValues.closed))
         }
         return if (stateDescriptions.isNotEmpty()) {
             stateDescriptions.first() // For now, we return only the first applicable state. This can be expanded to combine states if needed.
@@ -35,8 +35,8 @@ data class ExitState(
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
 */
 @Serializable
-class Exit(
-    val direction: Direction,
+class Exit (
+    val direction: String,
     val targetRoomId: Int,
     val exitState: ExitState = ExitState(),
     val name: Name? = null,
@@ -49,12 +49,14 @@ class Exit(
      * If [definite] is `true`, the name will be returned in its definite form (e.g., "the north exit"); otherwise, it will be returned in its indefinite form (e.g., "a north exit").
      */
     fun getDescriptiveName(definite: Boolean = false): String {
-        var descriptiveName = direction.getDisplayName()
+        var descriptiveName = direction
         if (name != null) {
             descriptiveName = if (definite) name.getDefiniteName() else name.getIndefiniteName()
         }
         return descriptiveName
     }
+
+    fun isVisible(): Boolean { return exitState.visible }
 
     fun getDetailedDescription(): String {
         var descriptionText = ""
@@ -62,22 +64,18 @@ class Exit(
             descriptionText = description
         }
         val template = when(name) {
-            null -> MESSAGES.getMessage(LangKeys.Messages.msgExitDetailedDescriptionNoName)
-            else -> MESSAGES.getMessage(LangKeys.Messages.msgExitDetailedDescription)
+            null -> LANG.getMessageTemplate(Keys.Messages.msgExitDetailedDescriptionNoName)
+            else -> LANG.getMessageTemplate(Keys.Messages.msgExitDetailedDescription)
         }
-        if(name != null) {
-            val template = lang.messages[key]
-        } else i
         var message = template
-        message = message
-        if(exit.exitState.blocked || exit.exitState.locked || exit.exitState.closed) {
-            val stateDescription = exit.exitState.getStateDescription()
+        if(exitState.isLocked() || exitState.isClosed()) {
+            val stateDescription = exitState.getStateDescription()
             if (stateDescription != null) {
                 val stateTemplate = when(name) {
-                    null -> MESSAGES.getMessagePart(LangKeys.MessageParts.msgPartExitStateNoName)
-                    else -> MESSAGES.getMessagePart(LangKeys.MessageParts.msgPartExitState)
+                    null -> LANG.getMessagePart(Keys.MessageParts.)
+                    else -> LANG.getMessagePart(Keys.MessageParts.msgPartExitState)
                 }
-                message += " ${stateTemplate.replace(LangKeys.Placeholders.placeholderState, stateDescription)}"
+                message += " ${stateTemplate.replace(Keys.Placeholders.placeholderState, stateDescription)}"
             }
         }
         return message.replace(LangKey.Placeholders.placeholderExit, getDescriptiveName(definite = true))
