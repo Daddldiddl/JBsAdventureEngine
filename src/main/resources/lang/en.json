@@ -6,28 +6,28 @@
             "genderKey": "male",
             "definiteArticle": "the",
             "indefiniteArticle":  "a",
-            "pronoun":  "he",
-            "pluralPronoun": "they",
+            "pronounSubject": "he",
+            "pronounObject": "him",
+            "possessiveAdjective": "his",
             "possessivePronoun": "his",
-            "possessivePluralPronoun": "their"
         },
         {
             "genderKey": "female",
             "definiteArticle": "the",
             "indefiniteArticle":  "a",
-            "pronoun": "she",
-            "pluralPronoun": "they",
-            "possessivePronoun": "her",
-            "possessivePluralPronoun": "their"
+            "pronounSubject": "she",
+            "pronounObject": "her",
+            "possessiveAdjective": "her",
+            "possessivePronoun": "hers",
         },
         {
             "genderKey": "neutral",
             "definiteArticle": "the",
             "indefiniteArticle":  "a",
-            "pronoun":  "it",
-            "pluralPronoun": "they",
+            "pronounSubject": "it",
+            "pronounObject": "it",
+            "possessiveAdjective": "its",
             "possessivePronoun": "its",
-            "possessivePluralPronoun": "their"
         }
     ],
     "directions": {
