@@ -10,6 +10,12 @@
             "pronounObject": "him",
             "possessiveAdjective": "his",
             "possessivePronoun": "his",
+            "definiteArticlePlural": "the",
+            "indefiniteArticlePlural":  "",
+            "pronounSubjectPlural": "they",
+            "pronounObjectPlural": "them",
+            "possessiveAdjectivePlural": "their",
+            "possessivePronounPlural": "theirs",
         },
         {
             "genderKey": "female",
@@ -19,6 +25,12 @@
             "pronounObject": "her",
             "possessiveAdjective": "her",
             "possessivePronoun": "hers",
+            "definiteArticlePlural": "the",
+            "indefiniteArticlePlural":  "",
+            "pronounSubjectPlural": "they",
+            "pronounObjectPlural": "them",
+            "possessiveAdjectivePlural": "their",
+            "possessivePronounPlural": "theirs",
         },
         {
             "genderKey": "neutral",
@@ -28,6 +40,12 @@
             "pronounObject": "it",
             "possessiveAdjective": "its",
             "possessivePronoun": "its",
+            "definiteArticlePlural": "the",
+            "indefiniteArticlePlural":  "",
+            "pronounSubjectPlural": "they",
+            "pronounObjectPlural": "them",
+            "possessiveAdjectivePlural": "their",
+            "possessivePronounPlural": "theirs",
         }
     ],
     "directions": {
