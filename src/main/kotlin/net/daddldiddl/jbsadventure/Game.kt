@@ -27,7 +27,7 @@ class Game(private val gameData: GameData) {
      * first [processCommand] invocation.
      */
     fun printWelcome() {
-        val welcome = LANG.getMessage(Keys.msgWelcome).replace(Keys.Placeholders.Title, gameData.title)
+        val welcome = getWelcomeMessage()
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
         CONSOLE.print(welcome, ConsoleColor.LIGHTGREEN)
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
@@ -35,7 +35,7 @@ class Game(private val gameData: GameData) {
         CONSOLE.print()
         CONSOLE.print(LANG.get(Keys.msgIntro), ConsoleColor.WHITE)
         CONSOLE.print()
-        CONSOLE.print(LANG.getMessage(Keys.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
+        CONSOLE.print(LANG.getMessageTemplate(Keys.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
         CONSOLE.print()
         describeRoom()
         CONSOLE.print()
