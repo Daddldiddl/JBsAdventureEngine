@@ -9,11 +9,11 @@ Have fun to expand this yourself or build some adventures for it.
 It's a learning project for me and my first work on an text adventure engine (except for a 'Write Adventures in BASIC' book I read as a kid in the 80s) coming from a mainly logistics/automotive background in Java/C# with little Kotlin knowledge - so expect there to be non-optimal solutions and a sometimes weird focus. But then I'm not trying to write the best (or even a good) adventure engine - I'm trying to learn the language and have fun doing so.
 
 ### Regarding AI use
-I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion and debugging throughout the development and for refactoring. Also the guides were AI generated/translated. The rest is my own stupidity, of which there is plenty to go around.
+I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion, debugging and some refactoring. Also the guides were AI generated/translated. The rest is my own handywork and stupidity, of which there is plenty to go around - use the issue tracker if you find any problems or have feature requests.
 
 ## Running adventures
 
-Requires Java 21 or newer to run (all dependencies are included in the jar). Start with:
+Requires Java 21 or newer to run (all dependencies are packed into the jar). Start with:
 
 `java -jar jbs-adventure-engine.jar`
 
