@@ -41,4 +41,6 @@ Of course you can combine the command line parameters as you like.
 - allow item states to be reflected in the items name - currently that is only visible in the description
 - maybe separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
 
-These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. I8N is probably the least prio, even though its first in the list. The others will allow for much more elaborate puzzles and to actually develop better stories. The included 'adventure' is really just a testbed for the implemented features. There is no treasure to be found (yet?) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. I8N is currently the main focus of this rework as it affects the structure - but there's also ongoing work on the Actions (separating them out from the ItemUsage). The others will allow for much more elaborate puzzles and to actually develop better stories. The included 'adventure' is really just a testbed for the implemented features and serves more as an example forimplementing them in an actual game. There is no treasure to be found (yet - working on containers and lockable and openable items) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+
+Enjoy!
