@@ -6,14 +6,14 @@ This Adventure Game Engine (which sounds way too impressive already) is just a s
 Have fun to expand this yourself or build some adventures for it.
 
 ### Some notes to limit expectations:
-It's a learning project for me and my first work on an text adventure engine (except for a 'Write Adventures in BASIC' book I read as a kid in the 80s) coming from a mainly logistics/automotive background in Java/C# with little Kotlin knowledge - so expect there to be non-optimal solutions and a sometimes weird focus. But then I'm not trying to write the best (or even a good) adventure engine - I'm trying to learn the language and have fun doing so.
+It's a learning project for me and my first work on an text adventure engine (except for that 'Write Adventures in BASIC' book I read once in the 80s), so expect there to be non-optimal solutions as I now come from a mainly Java 8 background with little Kotlin knowledge. But then I'm not trying to write the best (or even a very good) adventure engine - I'm trying to learn the language and have fun doing so.
 
 ### Regarding AI use
-I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion, debugging and some refactoring. Also the guides were AI generated/translated. The rest is my own handywork and stupidity, of which there is plenty to go around - use the issue tracker if you find any problems or have feature requests.
+I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion and debugging throughout the development and for refactoring. Also the guides were AI generated/translated. The rest is my own stupidity, of which there is plenty to go around.
 
 ## Running adventures
 
-Requires Java 21 or newer to run (all dependencies are packed into the jar). Start with:
+Requires Java 21 or newer to run (all dependencies are included in the jar). Start with:
 
 `java -jar jbs-adventure-engine.jar`
 
@@ -31,14 +31,31 @@ Of course you can combine the command line parameters as you like.
 
 ## Planned features
 
-- basic i8n support is in - commands, directions, help page etc. already work, but not all responses are translated yet and some mechanisms are still missing. Also no support for localized data files yet.
+Currently planned/in the works:
+
+- basic i8n support is in - commands, directions, help page etc. already work, but not all responses are translated yet and some mechanisms are still missing. Also no support for localized data files yet - the data file is simply in the language its written in.
 - allow item on item usage (currently you can only use an item in a room)
 - allow item usages to have multiple actions (e.g. change state and move the player, move some items around)
+- separate exits from rooms (mostly done)
 - add an item usage action which will replace an item with another (e.g. using a 'sword' in the mysterious pool will change it to the 'magic sword')
 - add an action adding/removing exits to rooms
 - have state changes trigger actions
 - add container items (allowing for stuff like a 'treasure chest' that contains a 'heap of gold' and 'Blackbeard's clean underpants')
 - allow item states to be reflected in the items name - currently that is only visible in the description
-- maybe separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
+- separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
 
-These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. I8N is probably the least prio, even though its first in the list. The others will allow for much more elaborate puzzles and to actually develop better stories. The included 'adventure' is really just a testbed for the implemented features. There is no treasure to be found (yet?) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+What may be coming in the far future:
+
+- maybe add NPCs as additional object cathegory with dialog options?
+- add a stats (and combat?) system to allow for a 'roleplay-like' experience
+
+These are the basic ideas - this is not going to be a continous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+
+What I'm currently working on in this dev branch (in varying stages of completion):
+- I8N is currently the main focus of this rework as it hugely affects the class structure
+- there's ongoing work on the Actions (separating them out from the ItemUsage and allowing multiple Actions on a single item use), and reworking using items and maybe even adding triggers on state changes (to enable moving the respective actions to their items/rooms instead of having everything in one ItemUsage)
+- separating out exits as their own class
+- adding containers to items
+- allowing for the player to open/close and lock/unlock containers and exits
+
+Enjoy!
