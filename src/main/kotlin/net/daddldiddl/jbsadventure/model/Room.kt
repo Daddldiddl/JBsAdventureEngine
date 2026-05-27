@@ -12,7 +12,7 @@ import net.daddldiddl.jbsadventure.model.lang.*
 @Serializable
 data class RoomSurrogate(
     val id: Int,
-    val name: String,
+    val name: Name,
     val description: String,
     @SerialName("Exits")
     val exits: List<Exit>? = emptyList(),
@@ -24,7 +24,6 @@ data class RoomSurrogate(
  * Custom serializer for [Room] that reads/writes the JSON array format
  * via [RoomSurrogate] while the runtime representation uses [MutableMap]s.
  */
-
 object RoomSerializer : KSerializer<Room> {
     override val descriptor: SerialDescriptor = RoomSurrogate.serializer().descriptor
 
@@ -32,7 +31,7 @@ object RoomSerializer : KSerializer<Room> {
         val surrogate = decoder.decodeSerializableValue(RoomSurrogate.serializer())
         return Room(
             id = surrogate.id,
-            name = Name(surrogate.name),
+            name = surrogate.name,
             description = surrogate.description,
             exits = surrogate.exits?.associateBy { it.direction } ?: emptyMap(),
             itemUsages = surrogate.itemUsages
@@ -42,14 +41,13 @@ object RoomSerializer : KSerializer<Room> {
     override fun serialize(encoder: Encoder, value: Room) {
         val surrogate = RoomSurrogate(
             id = value.id,
-            name = value.name.name,
+            name = value.name,
             description = value.description,
             exits = value.exits?.values?.toList() ?: emptyList(),
             itemUsages = value.itemUsages
         )
         encoder.encodeSerializableValue(RoomSurrogate.serializer(), surrogate)
     }
-
 }
 
 
