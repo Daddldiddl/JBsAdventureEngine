@@ -6,7 +6,7 @@ This Adventure Game Engine (which sounds way too impressive already) is just a s
 Have fun to expand this yourself or build some adventures for it.
 
 ### Some notes to limit expectations:
-It's a learning project for me and my first work on an text adventure engine (except for that 'Write Adventures in BASIC' book I read once in the 80s), so expect there to be non-optimal solutions as I now come from a mainly Java 8 background with little Kotlin knowledge. But then I'm not trying to write the best (or even a very good) adventure engine - I'm trying to learn the language and have fun doing so.
+It's a learning project for me and my first work on an text adventure engine (except for a 'Write Adventures in BASIC' book I read as a kid in the 80s), so expect there to be non-optimal solutions as I now come from a mainly Java 8 background with little Kotlin knowledge. But then I'm not trying to write the best (or even a very good) adventure engine - I'm trying to learn the language and have fun doing so.
 
 ### Regarding AI use
 I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion and debugging throughout the development and for refactoring. Also the guides were AI generated/translated. The rest is my own stupidity, of which there is plenty to go around.
