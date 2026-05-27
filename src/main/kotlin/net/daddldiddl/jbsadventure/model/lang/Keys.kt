@@ -7,12 +7,20 @@ package net.daddldiddl.jbsadventure.model.lang
 object Keys {
 
     const val languageKey = "languageKey"
+    const val languageKeyEn = "en"
 
     object Pronouns {
-        const val keyDefaultGroup = "defaultPronounGroupKey"
-        const val keyNeutral = "keyNeutral"
-        const val keyMale = "keyMale"
-        const val keyFemale = "keyFemale"
+        /** The key for the defaultPronounGroupKey - used to decide the default pronoun group from the language data */
+        const val defaultPronounGroupKey = "defaultPronounGroupKey"
+        /** if no defaultPronounGroupKey is provided in the language file, this one is used */
+        const val defaultDefaultPronounGroupKey = "neutral"
+        /** default genderKeys for pronoun groups - you can use whatever you want,
+         * these are just examples and NOT actually used in the code.
+         * The only relevant relation is between the language file and
+         * the data.json, so make sure the genderKeys used in both match! */
+        const val keyNeutral = "neutral"
+        const val keyMale = "male"
+        const val keyFemale = "female"
     }
     /**
      * Defines the standard directions used in the game and their corresponding keys for language data.
@@ -115,6 +123,7 @@ object Keys {
         const val msgItemDropped = "msgItemDropped"
         const val msgItemNotUsable = "msgItemNotUsable"
         const val msgWelcome = "msgWelcome"
+        const val msgIntroHelp = "msgIntroHelp"
         const val msgGoodbye = "msgGoodbye"
         const val msgExitDefaultDescription = "msgExitDefaultDescription"
         const val msgExitDescription = "msgExitDescription"
