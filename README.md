@@ -49,7 +49,7 @@ What may be coming in the far future:
 - maybe add NPCs as additional object cathegory with dialog options?
 - add a stats (and combat?) system to allow for a 'roleplay-like' experience
 
-These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit.
+These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. Focus at the moment is:
 
 - I8N is currently the main focus of this rework as it affects the structure - but there's also ongoing work on the Actions (separating them out from the ItemUsage) and containers.
 - The idea is to provide the features required for more elaborate puzzles  and for developing better stories.
