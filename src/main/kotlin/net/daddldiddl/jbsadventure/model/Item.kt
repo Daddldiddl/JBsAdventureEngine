@@ -11,10 +11,9 @@ import net.daddldiddl.jbsadventure.model.lang.*
 @Serializable
 data class ItemSurrogate(
     val id: Int,
-    val name: String,
-    val genderKey: String? = null,
+    val name: Name,
     val description: String,
-    val alternateNames: List<String>,
+    val alternateNames: List<Name>,
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
@@ -32,7 +31,7 @@ object ItemSerializer : KSerializer<Item> {
         val surrogate = decoder.decodeSerializableValue(ItemSurrogate.serializer())
         return Item(
             id = surrogate.id,
-            name = Name(surrogate.name, surrogate.genderKey),
+            name = surrogate.name,
             description = surrogate.description,
             alternateNames = surrogate.alternateNames,
             carriable = surrogate.carriable,
@@ -48,8 +47,7 @@ object ItemSerializer : KSerializer<Item> {
     override fun serialize(encoder: Encoder, value: Item) {
         val surrogate = ItemSurrogate(
             id = value.id,
-            name =value.name.name,
-            genderKey = value.name.genderKey,
+            name =value.name,
             description = value.description,
             alternateNames = value.alternateNames,
             carriable = value.carriable,
@@ -81,7 +79,7 @@ data class Item(
     val id: Int,
     val name: Name,
     val description: String,
-    val alternateNames: List<String>,
+    val alternateNames: List<Name> = emptyList(),
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
@@ -98,9 +96,9 @@ data class Item(
      * @param name The name to check against this item.
      * @return `true` if the name matches either the main name or any alternate names; `false` otherwise.
      */
-    fun matchesName(name: String): Boolean {
-        val lowerName = name.lowercase()
-        return lowerName == this.name.lowercase() ||
+    fun matchesName(lookupName: String): Boolean {
+        val lowerName = lookupName.lowercase()
+        return lowerName == this.name.name.lowercase() ||
                 alternateNames.any { it.lowercase() == lowerName }
     }
 
