@@ -2,6 +2,11 @@ package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class Precondition(
+    val requiredStateKey: String,
+    val requiredStateValues: Set<String>
+)
 /**
  * Enum representing the different types of actions that can be performed in the game.
  * 
@@ -31,10 +36,9 @@ enum class ActionType {
 open class Action(
     val type: ActionType,
     val preconditions: List<Precondition>? = null,
-    val description: String = "",
-    val actionDebug: String = "$type",
+    val description: String? = null,
     val comment: String? = null
- ) {
+    val actionDebug: String? = null) {
     /**
      * Checks if the action's state conditions are met based on the provided game state.
      *
@@ -47,7 +51,7 @@ open class Action(
         }
         return preconditions.all { precondition ->
             val state = gameData.getStateMap()[precondition.requiredStateKey] ?: return false
-            state.currentValue == precondition.requiredStateValue
+            precondition.requiredStateValues.contains(state.currentValue)
         }
     }
 
@@ -67,9 +71,9 @@ data class ChangeStateAction(
     val newStateValue: String
 ) : Action(
     type = ActionType.ChangeState,
+    preconditions: List<Precondition>? = null,
     description: String = "",
     comment: String? = null,
-    preconditions: List<Precondition>? = null,
     actionDebug = "Changed state '$changedStateKey' from '$oldStateValue' to '$newStateValue'."
 )
 
@@ -81,9 +85,9 @@ data class MoveToAction(
     val moveToRoomId: Int
 ) : Action(
     type = ActionType.MoveTo,
-    description: String = "",
-    comment: String? = null,
     preconditions: List<Precondition>? = null,
+    description: String? = "",
+    comment: String? = null,
     actionDebug = "Moved player to room with id $moveToRoomId."
 )
 
@@ -96,9 +100,9 @@ data class SetItemRoomAction(
     val moveToRoomId: Int
 ) : Action(
     type = ActionType.SetItemRoom,
-    description: String = "",
-    comment: String? = null,
     preconditions: List<Precondition>? = null,
+    description: String? = "",
+    comment: String? = null,
     actionDebug = "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId."
 )
 
@@ -111,9 +115,9 @@ data class TransformIntoItemAction(
     val transformsIntoItemIds: List<Int>
 ) : Action(
     type = ActionType.TransformIntoItem,
-    description: String = "",
-    comment: String? = null,
     preconditions: List<Precondition>? = null,
+    description: String? = "",
+    comment: String? = null,
     actionDebug = "Transformed items ${itemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}."
 )
 
