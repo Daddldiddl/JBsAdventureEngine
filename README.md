@@ -31,7 +31,7 @@ Of course you can combine the command line parameters as you like.
 
 ## Planned features
 
-- basic i8n support is in - commands, directions, help page etc. already work, but not all responses are translated yet and some mechanisms are still missing. Also no support for localized data files yet.
+- basic i8n support is in - commands, directions, help page etc. already work, but not all responses are translated yet and some mechanisms are still missing. Also no support for localized data files yet - the data file is simply in the language its written in.
 - allow item on item usage (currently you can only use an item in a room)
 - allow item usages to have multiple actions (e.g. change state and move the player, move some items around)
 - add an item usage action which will replace an item with another (e.g. using a 'sword' in the mysterious pool will change it to the 'magic sword')
@@ -39,8 +39,13 @@ Of course you can combine the command line parameters as you like.
 - have state changes trigger actions
 - add container items (allowing for stuff like a 'treasure chest' that contains a 'heap of gold' and 'Blackbeard's clean underpants')
 - allow item states to be reflected in the items name - currently that is only visible in the description
-- maybe separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
+- separate actions out from item usages (that might also be the way for the above multi-action and state trigger ideas)
 
-These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. I8N is currently the main focus of this rework as it affects the structure - but there's also ongoing work on the Actions (separating them out from the ItemUsage). The others will allow for much more elaborate puzzles and to actually develop better stories. The included 'adventure' is really just a testbed for the implemented features and serves more as an example forimplementing them in an actual game. There is no treasure to be found (yet - working on containers and lockable and openable items) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+What may be coming in the far future:
+
+- maybe add NPCs as additional object cathegory with dialog options?
+- add a stats (and combat?) system to allow for a 'roleplay-like' experience
+
+These are the basic ideas - this is not going to be a huge effort, but I'd like to expand it a bit. I8N is currently the main focus of this rework as it affects the structure - but there's also ongoing work on the Actions (separating them out from the ItemUsage). Implementing the above will allow for much more elaborate puzzles and to actually develop better stories. The included 'adventure' is really just a testbed for the implemented features and serves more as an example for implementing them in an actual game. There is no treasure to be found (yet - working on containers and lockable and openable items) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
 
 Enjoy!
