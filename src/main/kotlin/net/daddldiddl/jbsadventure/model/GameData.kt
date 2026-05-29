@@ -11,7 +11,7 @@ data class GameData(
     val exitMessage: String,
     private val Rooms: MutableMap<Int, Room>,
     private val Items: MutableMap<Int, Item>,
-    private val States: MutableMap<String, State>
+    val States: MutableMap<String, State>
 ) {
     /**
      * Returns a map of all rooms in the game, keyed by their ID.

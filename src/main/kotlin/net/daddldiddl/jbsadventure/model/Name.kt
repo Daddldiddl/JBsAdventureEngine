@@ -40,16 +40,15 @@ interface NamedEntity {
      */
     fun getIndefiniteName(): String {
         val englishException = (!name.isPlural && LANG.languageKey == Keys.languageKeyEn && name.name.matches(regex = regexVocalStart))
-        val article: String = if(englishException) "an" else LANG.getArticle(definite=false, genderKey = name.genderKey)
-        else "${LANG.getArticle(definite=false, genderKey = name.genderKey)} ${name.name}".trim()
-        return "$article ${name.name}".trim()
+        val article: String = if (englishException) "an" else LANG.getArticle(definite=false, genderKey = name.genderKey)
+        return trimEmptySpaces("$article ${name.name}".trim())
     }
 
     /**
      * Returns the name of the entity in its definite form, including the appropriate article based on the language's grammar rules.
      */
     fun getDefiniteName(): String {
-        return "${LANG.getArticle(definite=true, genderKey = name.genderKey)} ${name.name}".trim()
+        return trimEmptySpaces("${LANG.getArticle(definite=true, genderKey = name.genderKey)} ${name.name}".trim())
     }
 
     /**

@@ -10,10 +10,6 @@ data class State(
     val possibleValues: List<String>,
     val comment: String? = null
 ) {
-    fun getDescriptionWithCurrentValue(): String {
-        return description.replace("<currentValue>", currentValue)
-    }
-
     /**
      * Returns a debug-friendly name for the state, including its key.
      */

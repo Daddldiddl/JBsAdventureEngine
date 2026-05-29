@@ -47,13 +47,12 @@ interface ContainerEntity : OpenLockEnabledNamedEntity{
 
 @Serializable(with = ItemSerializer::class)
 data class Container : BaseItem, ContainerEntity {
-    override val containedItems: MutableList<Int> = mutableListOf()
+
 
     constructor(
-        id: Int,
+        val id: Int,
         name: Name,
         description: String,
-        alternateNames: List<String> = emptyList(),
         carriable: Boolean? = false,
         driveable: Boolean? = false,
         stateKey: String? = null,
@@ -61,10 +60,22 @@ data class Container : BaseItem, ContainerEntity {
         numberOfUses: Int? = null,
         location: Int,
         comment: String? = null,
-        usages: List<ItemUsage>? = emptyList()
-    ) : super(
-        id, name, description, alternateNames, carriable, driveable, stateKey, usable, numberOfUses, location, comment, usages
+        usages: List<ItemUsage>? = emptyList(),
+        override val containedItems: MutableList<Int> = mutableListOf()
+    ) : BaseItem(
+        id = id,
+        name = name,
+        description = description,
+        carriable = carriable,
+        driveable = driveable,
+        stateKey = stateKey,
+        usable = usable,
+        numberOfUses = numberOfUses,
+        location = location,
+        comment = comment,
+        usages = usages
     )
+    {
 
     override fun getDescriptiveName(definite: Boolean): String {
         return LANG.getMessagePart(Keys.MessageParts.msgPartDescriptiveName))
