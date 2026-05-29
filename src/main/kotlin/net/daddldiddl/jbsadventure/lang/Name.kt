@@ -1,8 +1,7 @@
-package net.daddldiddl.jbsadventure.model.lang
+package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
-import kotlin.plus
 
 @Serializable
 class Name(

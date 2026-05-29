@@ -1,4 +1,4 @@
-package net.daddldiddl.jbsadventure.model.lang
+package net.daddldiddl.jbsadventure.lang
 
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.model.*

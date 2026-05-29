@@ -1,7 +1,7 @@
 {
-    "langCode": "en",
-    "defaultPronounKey": "neutral",
-    "pronounGroups": [
+    "languageKey": "en",
+    "defaultPronounGroupKey": "neutral",
+    "PronounGroups": [
         {
             "genderKey": "male",
             "definiteArticle": "the",
@@ -9,13 +9,7 @@
             "pronounSubject": "he",
             "pronounObject": "him",
             "possessiveAdjective": "his",
-            "possessivePronoun": "his",
-            "definiteArticlePlural": "the",
-            "indefiniteArticlePlural":  "",
-            "pronounSubjectPlural": "they",
-            "pronounObjectPlural": "them",
-            "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs"
+            "possessiveNoun": "his"
         },
         {
             "genderKey": "female",
@@ -24,13 +18,7 @@
             "pronounSubject": "she",
             "pronounObject": "her",
             "possessiveAdjective": "her",
-            "possessivePronoun": "hers",
-            "definiteArticlePlural": "the",
-            "indefiniteArticlePlural":  "",
-            "pronounSubjectPlural": "they",
-            "pronounObjectPlural": "them",
-            "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs"
+            "possessiveNoun": "hers"
         },
         {
             "genderKey": "neutral",
@@ -39,16 +27,19 @@
             "pronounSubject": "it",
             "pronounObject": "it",
             "possessiveAdjective": "its",
-            "possessivePronoun": "its",
-            "definiteArticlePlural": "the",
-            "indefiniteArticlePlural":  "",
-            "pronounSubjectPlural": "they",
-            "pronounObjectPlural": "them",
-            "possessiveAdjectivePlural": "their",
-            "possessivePronounPlural": "theirs"
+            "possessiveNoun": "its"
+        },
+        {
+            "genderKey": "plural",
+            "definiteArticle": "the",
+            "indefiniteArticle":  "",
+            "pronounSubject": "they",
+            "pronounObject": "them",
+            "possessiveAdjective": "their",
+            "possessiveNoun": "theirs"
         }
     ],
-    "directions": {
+    "Directions": {
         "north": ["north", "n"],
         "south": ["south", "s"],
         "east": ["east", "e"],
@@ -56,7 +47,7 @@
         "up": ["up", "u"],
         "down": ["down", "d"]
     },
-    "commands": {
+    "Commands": {
         "go": {"aliases": ["go", "move"], "description": "Move in a specified direction."},
         "look": {"aliases": ["look", "l"], "description": "Look around the current location."},
         "examine": {"aliases": ["examine", "x"], "description": "Examine an object more closely."},
@@ -71,41 +62,51 @@
         "save": {"aliases": ["save"], "description": "Save the current game state."},
         "load": {"aliases": ["load"], "description": "Load a previously saved game state."}
     },
-    "partsToIgnore": [
+    "PartsToIgnore": [
         "the", "a", "an", "my", "your", "his", "her", "it", "its", "our", "their",
         "this", "that", "these", "those", "they"
     ],
-    "stateValues": {
-        "stateExitLocked": "locked",
-        "stateExitClosed": "closed",
-        "stateExitBlocked": "blocked",
-        "stateExitVisible": "visible"
+    "StateValues": {
+        "stateLocked": "locked",
+        "stateLockedClosed": "locked",
+        "stateLockedOpen": "locked open",
+        "stateClosed": "closed",
+        "stateOpen": "open",
+        "stateBlocked": "blocked",
+        "stateVisible": "visible"
     },
-    "headings": {
+    "Headings": {
         "commandsHeading": "Commands",
         "directionsHeading": "Directions"
     },
-    "messages": {
+    "Messages": {
         "msgUnknownCommand": "I don't understand '<command>'!",
         "msgNoExit": "You can't go <direction>!",
-        "msgNoItem": "There is no '<item>' here or in your inventory.",
-        "msgNoInventoryItem": "You don't have <article> <item>.",
-        "msgItemTaken": "You take <article> <item>.",
-        "msgItemDropped": "You drop <article> <item>.",
-        "msgItemNotUsable": "You can't use <article> <item>.",
+        "msgNoItemFound": "There is no <name> here or in your inventory.",
+        "msgItemNotVisible": "You don't see <indefiniteName> here.",
+        "msgNoInventoryItem": "You don't have <indefiniteName>.",
+        "msgItemTaken": "You take <definiteName>.",
+        "msgItemDropped": "You drop <definiteName>.",
+        "msgItemNotUsable": "You can't use <definiteName> right now.",
+        "msgItemDetailedDescription": "<description>. <stateDescription>",
+        "msgContainerContents": "<definiteName> contains: <items>.",
+        "msgContainerEmpty": "<definiteName> is empty.",
         "msgWelcome": "Welcome to <title>!",
         "msgGoodbye": "Thanks for playing <title>! Goodbye!",
         "msgIntroHelp": "Use commands like 'look', 'go <direction>', 'take <item>', and 'use <item>' to interact with the environment.\nType 'help' for a list of commands.",
-        "msgExitDefaultDescription": "You see an exit leading <direction>.",
-        "msgExitDescription": "You see <exit> leading <direction>.",
-        "msgExitDetailedDescription": "You see <exit> leading <direction>. <description>",
-        "msgExitDetailedDescriptionNoName": "You see an exit leading <direction>. <description>"
+        "msgExitDetailedNoDescription": "You see <indefiniteName> leading <direction>.",
+        "msgExitDetailedDescriptionNoName": "You see an exit leading <direction>. <description>",
+        "msgExitDetailedNoDescriptionNoName": "You can go <direction> from here.",  
+        "msgExitDetailedDescription": "You see <indefiniteName> leading <direction>. <description>"
     },
-    "messageParts": {
+    "MessageParts": {
+        "msgPartDescriptiveName": "<article> <state> <name>",
         "msgPartExits": "Exits: <exits>",
         "msgPartNoExits": "There are no visible exits.",
-        "msgPartState": "It is <state>.",
+        "msgPartState": "<pronounSubject> is <state>.",
+        "msgPartStatePlural": "<pronounSubject> are <state>.",
         "msgPartItems": "You see: <items>",
+        "msgPartNoItems": "You see nothing of interest.",
         "msgPartInventory": "You are carrying: <items>",
         "msgPartNoInventory": "You are not carrying anything."
    }

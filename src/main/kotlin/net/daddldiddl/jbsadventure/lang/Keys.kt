@@ -1,4 +1,4 @@
-package net.daddldiddl.jbsadventure.model.lang
+package net.daddldiddl.jbsadventure.lang
 
 /**
  * Defines the keys for accessing specific language data entries from the maps in [LanguageData],
@@ -65,8 +65,13 @@ object Keys {
      * Placeholders are used for dynamic content in messages.
      */
     object Placeholders {    
+        const val name = "<name>"
         const val article = "<article>"
-        const val specificArticle = "<specificArticle>"
+        const val definiteName = "<definiteName>"
+        const val indefiniteName = "<indefiniteName>"
+        const val description = "<description>"
+        const val stateDescription = "<stateDescription>"
+        const val state = "<state>"
         const val direction = "<direction>"
         const val directions = "<directions>"
         const val exits = "<exits>"
@@ -75,17 +80,23 @@ object Keys {
         const val affectedItem = "<affectedItem>"
         const val title = "<title>"
         const val room = "<room>"
-        const val state = "<state>"
         const val command = "<command>"
         const val numberOfUses = "<numberOfUses>"
         const val placeholderExit = "<exit>"
         const val detailedExit = "<detailedExit>"
+        const val pronounSubject = "<pronounSubject>"
+        const val pronounObject = "<pronounObject>"
+        const val pronounSubjectPlural = "<pronounSubjectPlural>"
+        const val pronounObjectPlural = "<pronounObjectPlural>"
     }
 
     object StateValues {
-        const val locked = "stateExitLocked"
+        const val locked = "stateLocked"
         const val open = "stateOpen"
-        const val closed = "stateExitClosed"
+        const val closed = "stateClosed"
+        const val lockedClosed = "stateLockedClosed"
+        const val lockedOpen = "stateLockedOpen"
+        const val blocked = "stateBlocked"
     }
 
     /**
@@ -103,11 +114,13 @@ object Keys {
     object MessageParts {
         const val exits = "msgPartExits"
         const val noExits = "msgPartNoExits"
-        const val exitState = "msgPartExitState"
+        const val msgPartState = "msgPartState"
+        const val msgPartDescriptiveName = "msgPartDescriptiveName"
+        const val msgPartStatePlural = "msgPartStatePlural"
         const val items = "msgPartItems"
         const val noItems = "msgPartNoItems"
         const val inventory = "msgPartInventory"
-        const val noInventory = "msgPartNoInventory"
+        const val noInventory = "msgPartNoInventory",
     }
 
     /**
@@ -117,7 +130,8 @@ object Keys {
     object Messages {
         const val msgUnknownCommand = "msgUnknownCommand"
         const val msgNoExit = "msgNoExit"
-        const val msgNoItem = "msgNoItem"
+        const val msgNoItemFound = "msgNoItemFound"
+        const val msgItemNotVisible = "msgItemNotVisible"
         const val msgNoInventoryItem = "msgNoInventoryItem"
         const val msgItemTaken = "msgItemTaken"
         const val msgItemDropped = "msgItemDropped"
@@ -125,9 +139,9 @@ object Keys {
         const val msgWelcome = "msgWelcome"
         const val msgIntroHelp = "msgIntroHelp"
         const val msgGoodbye = "msgGoodbye"
-        const val msgExitDefaultDescription = "msgExitDefaultDescription"
-        const val msgExitDescription = "msgExitDescription"
+        const val msgExitDetailedNoDescription = "msgExitDetailedNoDescription"
         const val msgExitDetailedDescription = "msgExitDetailedDescription"
+        const val msgExitDetailedNoDescriptionNoName = "msgExitDetailedNoDescriptionNoName"
         const val msgExitDetailedDescriptionNoName = "msgExitDetailedDescriptionNoName"
     }
 }

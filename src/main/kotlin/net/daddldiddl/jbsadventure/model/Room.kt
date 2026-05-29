@@ -1,54 +1,9 @@
 package net.daddldiddl.jbsadventure.model
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 
-import net.daddldiddl.jbsadventure.model.lang.*
-
-@Serializable
-data class RoomSurrogate(
-    val id: Int,
-    val name: Name,
-    val description: String,
-    @SerialName("Exits")
-    val exits: List<Exit>? = emptyList(),
-    @SerialName("ItemUsages")
-    val itemUsages: List<ItemUsage>? = emptyList()
-)
-
-/**
- * Custom serializer for [Room] that reads/writes the JSON array format
- * via [RoomSurrogate] while the runtime representation uses [MutableMap]s.
- */
-object RoomSerializer : KSerializer<Room> {
-    override val descriptor: SerialDescriptor = RoomSurrogate.serializer().descriptor
-
-    override fun deserialize(decoder: Decoder): Room {
-        val surrogate = decoder.decodeSerializableValue(RoomSurrogate.serializer())
-        return Room(
-            id = surrogate.id,
-            name = surrogate.name,
-            description = surrogate.description,
-            exits = surrogate.exits?.associateBy { it.direction } ?: emptyMap(),
-            itemUsages = surrogate.itemUsages
-        )
-    }
-
-    override fun serialize(encoder: Encoder, value: Room) {
-        val surrogate = RoomSurrogate(
-            id = value.id,
-            name = value.name,
-            description = value.description,
-            exits = value.exits?.values?.toList() ?: emptyList(),
-            itemUsages = value.itemUsages
-        )
-        encoder.encodeSerializableValue(RoomSurrogate.serializer(), surrogate)
-    }
-}
+import net.daddldiddl.jbsadventure.lang.Name
+import net.daddldiddl.jbsadventure.tools.serializers.*
 
 
 /**
@@ -62,15 +17,18 @@ object RoomSerializer : KSerializer<Room> {
 @Serializable(with = RoomSerializer::class)
 data class Room(
     val id: Int,
-    val name: Name,
+    override val name: Name,
     val description: String,
-    @SerialName("Exits")
     val exits: Map<String, Exit>? = emptyMap(),
-    @SerialName("ItemUsages")
     val itemUsages: List<ItemUsage>? = emptyList()
-) {
+) : NamedEntity
+{
     fun getVisibleExits(): List<Exit> {
-        exits?.values?.filter { it.isVisible() }
+        return exits?.values?.filter { it.isVisible() }
+    }
+
+    fun getItems(gameData: GameData): List<Item> {
+        return gameData.Items.values.filter { it.location == id }
     }
 
     /**
@@ -89,4 +47,8 @@ data class Room(
     fun debugName(): String {
         return "$name (id=$id)"
     }    
+
+    override fun toString(): String {
+        return name.name
+    }
 }

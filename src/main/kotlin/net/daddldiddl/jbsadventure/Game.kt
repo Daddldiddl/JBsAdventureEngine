@@ -1,7 +1,7 @@
 package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.model.lang.Keys
+import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.tools.*
 
 /**
@@ -27,13 +27,12 @@ class Game(private val gameData: GameData) {
      * first [processCommand] invocation.
      */
     fun printWelcome() {
-        val welcome = getWelcomeMessage()
+        val welcome = 
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
         CONSOLE.print(welcome, ConsoleColor.LIGHTGREEN)
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
-        CONSOLE.print(gameData.introductionMessage, ConsoleColor.WHITE)
         CONSOLE.print()
-        CONSOLE.print(LANG.get(Keys.msgIntro), ConsoleColor.WHITE)
+        CONSOLE.print(LANG.getgameData.introductionMessage, ConsoleColor.WHITE)
         CONSOLE.print()
         CONSOLE.print(LANG.getMessageTemplate(Keys.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
         CONSOLE.print()
@@ -172,19 +171,12 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("Examine what? e.g. 'examine key'")
         } else {
             val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getItemByNameAndRoom(itemName, currentRoom.id) 
-                    ?: gameData.getItemByNameAndRoom(itemName, Locations.INVENTORY)
+            val item = gameDat.getAllAccessibleItemsForRoom(currentRoom.id).find { it.matchesName(itemName) }
             if (item == null) {
-                CONSOLE.print("There is no '$itemName' here to examine.")
+                CONSOLE.print(LANG.getMessageTemplate(Keys.Messages.msgNoItemFound).replace(Keys.Placeholders.name, itemName))
             } else if (item.location != currentRoom.id && item.location != Locations.INVENTORY) {
-                CONSOLE.print("You don't see ${item.getArticle()} ${item.name} here to examine.")
+                CONSOLE.print(item.replacePlaceholdersName(LANG.getMessageTemplate(Keys.Messages.msgItemNotVisible)))
             } else {
-                if (item.usable == false) {
-                    CONSOLE.print(
-                            "${item.descriptionWithState(gameData)} It doesn't seem like you can use it right now."
-                    )
-                    return
-                }
                 CONSOLE.print(item.descriptionWithState(gameData))
             }
         }
@@ -202,16 +194,15 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("Use what? e.g. 'use key'")
         } else {
             val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getItemByNameAndRoom(itemName, currentRoom.id) 
-                    ?: gameData.getItemByNameAndRoom(itemName, Locations.INVENTORY)
+            val item = gameDat.getAllAccessibleItemsForRoom(currentRoom.id).find { it.matchesName(itemName) }
             if (item == null) {
-                CONSOLE.print("There is no '${itemName}' here to use.")
+                CONSOLE.print(LANG.getMessageTemplate(Keys.Messages.msgNoItemFound).replace(Keys.Placeholders.name, itemName))
             } else if (item.usable == false) {
-                CONSOLE.print("You can't use the ${item.name} right now.")
+                CONSOLE.print(item.replacePlaceholdersName(LANG.getMessageTemplate(Keys.Messages.msgItemNotUsable)))
             } else {
                 val usage = currentRoom.getItemUsage(item.id)
                 if (usage == null) {
-                    CONSOLE.print("You can't use the ${item.name} here.")
+                    CONSOLE.print(item.replacePlaceholdersName(LANG.getMessageTemplate(Keys.Messages.msgItemNotUsable)))
                 } else {
                     var itemUsed :Boolean = false
                     when (usage.action) {

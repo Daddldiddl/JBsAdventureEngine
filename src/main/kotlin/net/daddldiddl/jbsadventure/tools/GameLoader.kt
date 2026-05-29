@@ -3,7 +3,7 @@ package net.daddldiddl.jbsadventure.tools
 import kotlinx.serialization.json.Json
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.GameData
-import net.daddldiddl.jbsadventure.model.lang.*
+import net.daddldiddl.jbsadventure.lang.*
 import java.io.File
 
 /**
@@ -76,8 +76,8 @@ object GameLoader {
      */
     fun loadLanguageData(langCode: String): LanguageData {
         LOG.debug("Attempting to load language data for language code '$langCode'")
-        val localFile = File(pathneme = "./$langCode.json")
-        if (localFile.exits()) {
+        val localFile = File(pathname = "./$langCode.json")
+        if (localFile.exists()) {
             localFile.bufferedReader().use { reader ->
                 val text = reader.readText()
                 LOG.info("Loaded language data for language code '$langCode' from file system")

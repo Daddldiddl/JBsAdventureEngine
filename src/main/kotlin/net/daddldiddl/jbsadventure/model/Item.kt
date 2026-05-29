@@ -1,66 +1,37 @@
 package net.daddldiddl.jbsadventure.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.model.lang.*
+import net.daddldiddl.jbsadventure.lang.*
+import net.daddldiddl.jbsadventure.tools.serializers.*
 
-@Serializable
-data class ItemSurrogate(
-    val id: Int,
-    val name: Name,
-    val description: String,
-    val alternateNames: List<Name>,
-    val carriable: Boolean? = false,
-    val driveable: Boolean? = false,
-    val stateKey: String? = null,
-    var usable: Boolean = true,
-    var numberOfUses: Int? = null,
-    var location: Int,
-    val comment: String? = null,
-    val usages: List<ItemUsage>? = emptyList()
-)
-
-object ItemSerializer : KSerializer<Item> {
-    override val descriptor: SerialDescriptor = ItemSurrogate.serializer().descriptor
-
-    override fun deserialize(decoder: Decoder): Item {
-        val surrogate = decoder.decodeSerializableValue(ItemSurrogate.serializer())
-        return Item(
-            id = surrogate.id,
-            name = surrogate.name,
-            description = surrogate.description,
-            alternateNames = surrogate.alternateNames,
-            carriable = surrogate.carriable,
-            stateKey = surrogate.stateKey,
-            usable = surrogate.usable,
-            numberOfUses = surrogate.numberOfUses,
-            location = surrogate.location,
-            comment = surrogate.comment,
-            usages = surrogate.usages
-        )
-    }
-
-    override fun serialize(encoder: Encoder, value: Item) {
-        val surrogate = ItemSurrogate(
-            id = value.id,
-            name =value.name,
-            description = value.description,
-            alternateNames = value.alternateNames,
-            carriable = value.carriable,
-            stateKey = value.stateKey,
-            usable = value.usable,
-            numberOfUses = value.numberOfUses,
-            location = value.location,
-            comment = value.comment,
-            usages = value.usages
-        )
-        encoder.encodeSerializableValue(RoomSurrogate.serializer(), surrogate)
-    }
-
+@Serializable(with = ItemSerializer::class)
+data class Item : BaseItem {
+    constructor(
+        id: Int,
+        name: Name,
+        description: String,
+        carriable: Boolean? = false,
+        driveable: Boolean? = false,
+        stateKey: String? = null,
+        usable: Boolean = true,
+        numberOfUses: Int? = null,
+        location: Int,
+        comment: String? = null,
+        usages: List<ItemUsage>? = emptyList(),
+    ) : super(
+        id = id,
+        name = name,
+        description = description,
+        carriable = carriable,
+        driveable = driveable,
+        stateKey = stateKey,
+        usable = usable,
+        numberOfUses = numberOfUses,
+        location = location,
+        comment = comment,
+        usages = usages
+    )
 }
 
 /**
@@ -74,45 +45,77 @@ object ItemSerializer : KSerializer<Item> {
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-@Serializable(with = ItemSerializer::class)
-data class Item(
+open class BaseItem : NamedEntity (
+    // The unique identifier for this item.
     val id: Int,
-    val name: Name,
-    val description: String,
-    val alternateNames: List<Name> = emptyList(),
+    // The primary name of the item, used for display and matching player input.
+    override val name: Name,
+    // A description of the item, shown to the player when they examine it.
+    override val description: String ?= null,
+    // Indicates whether the player can pick up and carry this item in their inventory.
     val carriable: Boolean? = false,
+    // Indicates whether using this item can cause it to move with the player (e.g., a vehicle).
     val driveable: Boolean? = false,
+    // An optional key that links this item to a game state, allowing its description or behavior to change based on the current value of that state.
     val stateKey: String? = null,
+    // Indicates whether the item can currently be used by the player.
     var usable: Boolean = true,
+    // The number of times the item can be used before it becomes unusable.
     var numberOfUses: Int? = null,
-    var location: Int,
+    // The ID of the room where the item is currently located.
+    var location: Int = FixedLocations.NOT_ASSIGNED.value,
+    // An optional comment or note about the item, not shown to the player.
     val comment: String? = null,
+    // A list of usages that define what happens when the player uses this item in different rooms or contexts.
     val usages: List<ItemUsage>? = emptyList(),
-    val container: Container? = null
-) {
-    /**
-     * Checks if the given name matches this item, considering both the main name and any alternate names.
-     *
-     * @param name The name to check against this item.
-     * @return `true` if the name matches either the main name or any alternate names; `false` otherwise.
-     */
-    fun matchesName(lookupName: String): Boolean {
-        val lowerName = lookupName.lowercase()
-        return lowerName == this.name.name.lowercase() ||
-                alternateNames.any { it.lowercase() == lowerName }
-    }
-
-    fun descriptionWithState(gameData: GameData): String {
-        val state = stateKey?.let { gameData.getStateMap()[it] }
-        val usedescription = numberOfUses?.let { "${description.replace("<numberOfUses>", numberOfUses.toString())}" } 
-                ?: "${description}"
-        return if (state != null) "$usedescription\n${state.getDescriptionWithCurrentValue()}" else "$usedescription"
-
-    }
+) : NamedItemState
+{
     /**
      * Returns a debug-friendly name for the item, including its ID.
      */
     fun debugName(): String {
-        return "$name (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
+        return replacePlaceholdersName("<name> (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
     }
-}
+
+    override fun toString(): String {
+        return name.name
+    }
+
+    override fun getDescriptiveName(definite: Boolean): String {
+        val state = stateKey?.let { DATA.getStateForKey(it) }
+        if(state != null ) {
+            return LANG.getMessagePart(Keys.MessageParts.msgPartDescriptiveName)
+                .replace(Keys.Placeholders.article, LANG.getArticle(definite = definite))
+                .replace(Keys.Placeholders.state, state.currentValue)
+                .replace(Keys.Placeholders.name, name.name)
+                .trim()
+        }
+        return super.getDescriptiveName(definite)
+    }
+
+    fun getStateMessagePart(): String {
+        val state = stateKey?.let { DATA.getStateForKey(it) }
+        if(state != null ) {
+            return LANG.getMessagePart(Keys.MessageParts.msgPartState)
+                .replace(Keys.Placeholders.state, state.currentValue)
+                .replace(Keys.Placeholders.pronounSubject, getPronounSubject() ?: "")
+                .trim()
+        }
+        return ""
+    }
+
+    override fun getDetailedDescription(): String {
+        val stateMessagePart = getStateMessagePart()
+        val template = if (description != null) {
+            LANG.getMessage(Keys.Messages.msgItemDetailedDescription)
+        } else {
+            LANG.getMessage(Keys.Messages.msgItemDetailedDescriptionNoDescription)
+        }
+        return template
+            .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
+            .replace(Keys.Placeholders.description, description ?: "")
+            .replace(Keys.Placeholders.state, stateMessagePart)
+            .trim()
+    }}
+
+

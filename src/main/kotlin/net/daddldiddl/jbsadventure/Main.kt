@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.tools.*
 import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.model.lang.*
+import net.daddldiddl.jbsadventure.lang.*
 import net.daddldiddl.jbsadventure.tools.ConsoleColor
 import java.io.File
 

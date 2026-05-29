@@ -1,13 +1,15 @@
-package net.daddldiddl.jbsadventure.model.lang
+package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.SerialName
+
+import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LOG
-import net.daddldiddl.jbsadventure.model.GameData
-import kotlin.collections.List
+import net.daddldiddl.jbsadventure.model.*
 
 /**
  * Represents the data for a command, including its aliases and description.
@@ -26,26 +28,28 @@ data class PronounGroup(
     val pronounSubject: String,
     val pronounObject: String,
     val possessiveAdjective: String,
-    val possessiveNoun: String,
-    val definiteArticlePlural: String,
-    val indefiniteArticlePlural: String,
-    val pronounSubjectPlural: String,
-    val pronounObjectPlural: String,
-    val possessiveAdjectivePlural: String,
-    val possessiveNounPlural: String
+    val possessiveNoun: String
 )
 
 @Serializable
 data class LanguageDataSurrogate(
     val languageKey: String?,
     val defaultPronounGroupKey: String?,
+    @SerialName("PronounGroups")
     val pronounGroups: List<PronounGroup>,
+    @SerialName("Directions")
     val directions: Map<String, Set<String>>,
+    @SerialName("Commands")
     val commands: Map<String, CommandData>,
+    @SerialName("Messages")
     val messages: Map<String, String>,
+    @SerialName("Headings")
     val headings: Map<String, String>,
+    @SerialName("StateValues")
     val stateValues: Map<String, String>,
+    @SerialName("MessageParts")
     val messageParts: Map<String, String>,
+    @SerialName("PartsToIgnore")
     val partsToIgnore: Set<String>
 )
 
@@ -129,13 +133,7 @@ data class LanguageData(
                 possessiveNoun = "its",
                 pronounSubject = "it",
                 pronounObject = "it",
-                possessiveAdjective = "its",
-                definiteArticlePlural = "the",
-                indefiniteArticlePlural = "",
-                pronounSubjectPlural = "they",
-                pronounObjectPlural = "them",
-                possessiveAdjectivePlural = "their",
-                possessiveNounPlural = "theirs"
+                possessiveAdjective = "its"
             ) // no values at all
 
     init {
@@ -156,16 +154,10 @@ data class LanguageData(
     /**
      * Returns the appropriate article based on definiteness, plurality, and gender.
      */
-    fun getArticle(definite: Boolean = false, plural:Boolean? = false, genderKey: String ?= defaultPronoun.genderKey): String {
-        return when(plural?:false) {
-            false -> when (definite) {
-                true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
-                else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle
-            }
-            true -> when (definite) {
-                true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.definiteArticlePlural?: defaultPronoun.definiteArticlePlural
-                else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.indefiniteArticlePlural ?: defaultPronoun.indefiniteArticlePlural
-            }
+    fun getArticle(definite: Boolean = false, genderKey: String ?= defaultPronoun.genderKey): String {
+        return when (definite) {
+            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
+            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle
         }
     }
 
@@ -173,41 +165,30 @@ data class LanguageData(
      * Returns the appropriate subject pronoun based on plurality and gender.
      */
     fun getPronounSubject(plural:Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
-        return when(plural) {
-            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounSubjectPlural?: defaultPronoun.pronounSubjectPlural
-            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounSubject?: defaultPronoun.pronounSubject
-        }
+        return pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounSubject?: defaultPronoun.pronounSubject
     }
 
     /**
      * Returns the appropriate object pronoun based on plurality and gender.
      */
     fun getPronounObject(plural :Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
-        return when(plural) {
-            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounObjectPlural?: defaultPronoun.pronounObjectPlural
-            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounObject?: defaultPronoun.pronounObject
-        }
+        return pronounGroups[genderKey ?: defaultPronoun.genderKey]?.pronounObject?: defaultPronoun.pronounObject
     }
 
     /**
      * Returns the appropriate possessive adjective based on plurality and gender.
      */
     fun getPossessiveAdjective(plural :Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
-        return when(plural) {
-            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveAdjectivePlural?: defaultPronoun.possessiveAdjectivePlural
-            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveAdjective?: defaultPronoun.possessiveAdjective
-        }
+        return pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveAdjective?: defaultPronoun.possessiveAdjective
     }
 
     /**
      * Returns the appropriate possessive noun based on plurality and gender.
      */
     fun getPossessiveNoun(plural :Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
-        return when(plural) {
-            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveNounPlural?: defaultPronoun.possessiveNounPlural
-            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveNoun?: defaultPronoun.possessiveNoun
-        }
+        return pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveNoun?: defaultPronoun.possessiveNoun
     }
+
     /**
      * Returns the matching message template - may contain placeholders.
      */
@@ -229,16 +210,6 @@ data class LanguageData(
     }
 
     /**
-     * Returns the requested state value
-     */
-    fun getStateValue(key: String): String {
-        return stateValues[key] ?: run {
-            LOG.warn("Warning: No state value found for key '$key', returning key as value.")
-            return "Unknown state value key: $key"
-        }
-    }
-
-    /**
      * Returns the list of aliases for the given command, or an empty list if the command is not defined.
      */
     fun getCommandAliases(commandKey: String): List<String> {
@@ -250,13 +221,6 @@ data class LanguageData(
      */
     fun getCommandDescription(commandKey: String): String? {
         return commands[commandKey]?.description
-    }
-
-    /**
-     * Returns the list of direction aliases for the given direction, or an empty list if the direction is not defined.
-     */
-    fun getDirectionAliasesForKey(directionKey: String): List<String> {
-        return directions[directionKey]?.toList() ?: emptyList()
     }
 
     /**
@@ -316,8 +280,12 @@ data class LanguageData(
     }
     
     /**
-     * Returns the translation of a state value based on its key.
+     * Returns the translated state value for the given key, or the key itself if no translation is found.
      */
-    fun getStateValueFromKey(stateValueKey: String): String {
-        return stateValues[stateValueKey] ?: "<unknown state value key: '$stateValueKey'>"
+    fun getStateValueFromKey(key: String): String {
+        return DATA.States[key] ?: run {
+            LOG.warn("Warning: No state value found for key '$key', returning key as value.")
+            return "Unknown state value key: $key"
+        }
+    }
 }

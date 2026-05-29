@@ -1,11 +1,13 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.tools.serializers.*
 
 @Serializable
 data class Precondition(
     val requiredStateKey: String,
-    val requiredStateValues: Set<String>
+    val requiredStateValues: Set<String> = emptySet()
 )
 /**
  * Enum representing the different types of actions that can be performed in the game.
@@ -24,6 +26,8 @@ enum class ActionType {
     TransformIntoItem
 }
 
+
+
 /**
  * Represents an action that can be performed in the game, such as using an item or moving in a direction.
  *
@@ -33,11 +37,12 @@ enum class ActionType {
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
+@Serializable(with = ActionSerializer::class)
 open class Action(
     val type: ActionType,
-    val preconditions: List<Precondition>? = null,
+    val preconditions: List<Precondition> = emptyList(),
     val description: String? = null,
-    val comment: String? = null
+    val comment: String? = null,
     val actionDebug: String? = null) {
     /**
      * Checks if the action's state conditions are met based on the provided game state.
@@ -57,68 +62,72 @@ open class Action(
 
     public fun logActionExecution() {
         if (actionDebug != null) {
-            LOG.debug("Executing action: $actionDebug")
+            LOG.debug("Executing action: ${actionDebug}")
         }
     }
 }
 
 /**
- * Action representing a change in the game state, such as unlocking a door or activating a mechanism.
+ * Action representing a change in a global game state, such as 
+ * 'the bomb is armed' or 'the hordes of doom have been unleashed'
+ * - which then serves as a pre-requisite for other actions.
  */
-@Serializable
+@Serializable(with = ActionSerializer::class)
 data class ChangeStateAction(
     val changedStateKey: String,
     val newStateValue: String
 ) : Action(
     type = ActionType.ChangeState,
-    preconditions: List<Precondition>? = null,
-    description: String = "",
-    comment: String? = null,
-    actionDebug = "Changed state '$changedStateKey' from '$oldStateValue' to '$newStateValue'."
+    preconditions = emptyList(),
+    description = "",
+    comment = null,
+    actionDebug = "Changed state '$changedStateKey' to '$newStateValue'."
 )
 
 /**
- * Action representing a transformation of one item into another, such as using a key to create an open door.
+ * Action representing the movement of the player to a different room.
  */
-@Serializable
+@Serializable(with = ActionSerializer::class)
 data class MoveToAction(
     val moveToRoomId: Int
 ) : Action(
     type = ActionType.MoveTo,
-    preconditions: List<Precondition>? = null,
-    description: String? = "",
-    comment: String? = null,
+    preconditions = emptyList(),
+    description = "",
+    comment = null,
     actionDebug = "Moved player to room with id $moveToRoomId."
 )
 
 /**
- * Action representing a change in the room location of an item, such as moving an item to a different room.
+ * Action representing a change in the room location of an item,
+ * such as moving some items to a different room, a container, or the inventory.
  */
-@Serializable
+@Serializable(with = ActionSerializer::class)
 data class SetItemRoomAction(
     val affectedItemIds : List<Int>,
     val moveToRoomId: Int
 ) : Action(
     type = ActionType.SetItemRoom,
-    preconditions: List<Precondition>? = null,
-    description: String? = "",
-    comment: String? = null,
+    preconditions = emptyList(),
+    description = "",
+    comment = null,
     actionDebug = "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId."
 )
 
 /**
- * Action representing a transformation of one item into another, such as using a key to create an open door.
+ * Action representing a transformation of one item into another,
+ * e.g. transforming an empty pot into a pot of hot coffee.
  */
-@Serializable
+@Serializable(with = ActionSerializer::class)
 data class TransformIntoItemAction(
-    val itemIds: List<Int>,
+    val affectedItemIds: List<Int>,
     val transformsIntoItemIds: List<Int>
 ) : Action(
     type = ActionType.TransformIntoItem,
-    preconditions: List<Precondition>? = null,
-    description: String? = "",
-    comment: String? = null,
-    actionDebug = "Transformed items ${itemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}."
+    preconditions = emptyList(),
+    description = "",
+    comment = null,
+    actionDebug = "Transformed items ${affectedItemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}."
 )
 
 
