@@ -1,9 +1,12 @@
 package net.daddldiddl.jbsadventure.model
-package net.daddldiddl.jbsadventure.model.lang
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.DATA
+import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.tools.serializers.ItemSerializer
 
-interface ContainerEntity : OpenLockEnabledNamedEntity{
+interface ContainerEntity : OpenLockEnabledNamedEntity {
     val containedItems: MutableList<Int>
 
     fun addItem(itemId: Int) {
@@ -14,8 +17,13 @@ interface ContainerEntity : OpenLockEnabledNamedEntity{
         containedItems.addAll(itemIds)
     }
 
-    fun removetem(itemId: Int) {
+    fun removeItem(itemId: Int) {
         containedItems.remove(itemId)
+    }
+
+    // Backward-compatible alias for the old typoed method name.
+    fun removetem(itemId: Int) {
+        removeItem(itemId)
     }
 
     fun removeItems(itemIds: List<Int>) {
@@ -34,66 +42,65 @@ interface ContainerEntity : OpenLockEnabledNamedEntity{
         return containedItems.toList()
     }
 
-    fun containsItem(Item: Item): Boolean {
-        return containsItem(Item.id)
+    fun containsItem(item: Item): Boolean {
+        return containsItem(item.id)
     }
 
     fun getContainedItems(): List<Item> {
-        return containedItems.toList()
+        return containedItems.mapNotNull { DATA.getItemById(it) }
     }
-
 }
 
-
 @Serializable(with = ItemSerializer::class)
-data class Container : BaseItem, ContainerEntity {
+class Container(
+    id: Int,
+    name: Name,
+    description: String?,
+    carriable: Boolean? = false,
+    driveable: Boolean? = false,
+    stateKey: String? = null,
+    usable: Boolean = true,
+    numberOfUses: Int? = null,
+    location: Int,
+    comment: String? = null,
+    usages: List<ItemUsage>? = emptyList(),
+    override val containedItems: MutableList<Int> = mutableListOf(),
+    override var open: Boolean = false,
+    override var locked: Boolean = false,
+) : Item(
+    id = id,
+    name = name,
+    description = description,
+    carriable = carriable,
+    driveable = driveable,
+    stateKey = stateKey,
+    usable = usable,
+    numberOfUses = numberOfUses,
+    location = location,
+    comment = comment,
+    usages = usages,
+), ContainerEntity {
 
-
-    constructor(
-        val id: Int,
-        name: Name,
-        description: String,
-        carriable: Boolean? = false,
-        driveable: Boolean? = false,
-        stateKey: String? = null,
-        usable: Boolean = true,
-        numberOfUses: Int? = null,
-        location: Int,
-        comment: String? = null,
-        usages: List<ItemUsage>? = emptyList(),
-        override val containedItems: MutableList<Int> = mutableListOf()
-    ) : BaseItem(
-        id = id,
-        name = name,
-        description = description,
-        carriable = carriable,
-        driveable = driveable,
-        stateKey = stateKey,
-        usable = usable,
-        numberOfUses = numberOfUses,
-        location = location,
-        comment = comment,
-        usages = usages
-    )
-    {
-
-    override fun getDescriptiveName(definite: Boolean): String {
-        return LANG.getMessagePart(Keys.MessageParts.msgPartDescriptiveName))
-            .replace(Keys.Placeholders.article, LANG.getArticle(definite = definite))
-            .replace(Keys.Placeholders.state, getOpenLockedState())
-            .replace(Keys.Placeholders.name, name.name)
+    override fun getDescriptiveName() {
+        super<ContainerEntity>.getDescriptiveName()
     }
 
-    override fun getDescriptionWithState(gameData: GameData): String {
-        var message = super.getDescriptionWithState(gameData)
-        if(isOpen() && !isEmpty()) {
-            val containedItemNames = getContainedItems().joinToString(", ") { it.getDescriptiveName() }
-            message += "\n${LANG.getMessage(Keys.Messages.msgContainerContents).replace(Keys.Placeholders.placeholderItems, containedItemNames)}"
-        } else if (isOpen() && isEmpty()) {
-            message += "\n${replacePlaceholdersName(LANG.getMessage(Keys.Messages.msgContainerEmpty))}"
-        } else {
-            message += "\n${getMessagePartOpenLockedState()}"
+    override fun getDetailedDescription(): String {
+        val base = super<Item>.getDetailedDescription()
+        if (!isOpen()) {
+            return base
         }
-        return replacePlaceholdersSubject(replacePlaceholdersName(message))
+
+        val containedItemNames = getContainedItems().joinToString(", ") { it.getDescriptiveName() }
+        val details = if (containedItemNames.isBlank()) {
+            LANG.getMessageTemplate("msgContainerEmpty")
+                .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
+        } else {
+            LANG.getMessageTemplate("msgContainerContents")
+                .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
+                .replace(Keys.Placeholders.items, containedItemNames)
+        }
+
+        return "$base\n$details".trim()
     }
 }

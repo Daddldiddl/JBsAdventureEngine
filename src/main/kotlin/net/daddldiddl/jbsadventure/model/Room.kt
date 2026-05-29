@@ -2,7 +2,6 @@ package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
 
-import net.daddldiddl.jbsadventure.lang.Name
 import net.daddldiddl.jbsadventure.tools.serializers.*
 
 
