@@ -43,7 +43,7 @@ object Keys {
      * Defines the standard commands used in the game and their corresponding keys for language data.
      * Each command can have multiple aliases defined in the language data.
      */
-    object Commands {
+    object Command {
         // general commands
         const val help = "help"
         const val quit = "quit"
@@ -64,7 +64,7 @@ object Keys {
      * Defines the placeholders used in messages and their corresponding keys for language data.
      * Placeholders are used for dynamic content in messages.
      */
-    object Placeholders {    
+    object StandIn {
         const val name = "<name>"
         const val article = "<article>"
         const val definiteName = "<definiteName>"
@@ -86,11 +86,9 @@ object Keys {
         const val detailedExit = "<detailedExit>"
         const val pronounSubject = "<pronounSubject>"
         const val pronounObject = "<pronounObject>"
-        const val pronounSubjectPlural = "<pronounSubjectPlural>"
-        const val pronounObjectPlural = "<pronounObjectPlural>"
     }
 
-    object StateValues {
+    object StateValue {
         const val locked = "stateLocked"
         const val open = "stateOpen"
         const val closed = "stateClosed"
@@ -111,7 +109,7 @@ object Keys {
      * Defines the message parts used in messages and their corresponding keys for language data.
      * Message parts are reusable components of messages that can be combined to create full messages.
      */
-    object MessageParts {
+    object Part {
         const val exits = "msgPartExits"
         const val noExits = "msgPartNoExits"
         const val msgPartState = "msgPartState"
@@ -120,19 +118,21 @@ object Keys {
         const val items = "msgPartItems"
         const val noItems = "msgPartNoItems"
         const val inventory = "msgPartInventory"
-        const val noInventory = "msgPartNoInventory",
+        const val noInventory = "msgPartNoInventory"
     }
 
     /**
      * Defines the messages used in the game and their corresponding keys for language data.
      * Messages are the main text displayed to the player during the game.
      */
-    object Messages {
+    object Message {
         const val msgUnknownCommand = "msgUnknownCommand"
         const val msgNoExit = "msgNoExit"
         const val msgNoItemFound = "msgNoItemFound"
         const val msgItemNotVisible = "msgItemNotVisible"
         const val msgNoInventoryItem = "msgNoInventoryItem"
+        const val msgContainerEmpty = "msgContainerEmpty"
+        const val msgContainerContent = "msgContainerContent"
         const val msgItemTaken = "msgItemTaken"
         const val msgItemDropped = "msgItemDropped"
         const val msgItemNotUsable = "msgItemNotUsable"

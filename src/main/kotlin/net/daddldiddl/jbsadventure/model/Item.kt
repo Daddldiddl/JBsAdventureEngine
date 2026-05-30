@@ -24,6 +24,10 @@ open class Item(
     val usages: List<ItemUsage>? = emptyList(),
 ) : NamedEntity {
 
+    companion object Constants {
+        const val NOTASSIGNED_LOCATION: Int = 0
+    }
+
     fun debugName(): String {
         return replacePlaceholdersName(
             "<name> (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
@@ -34,13 +38,23 @@ open class Item(
         return name.name
     }
 
-    override fun getDescriptiveName(definite: Boolean): String {
+    // Compatibility wrapper for older call sites.
+    fun matchesName(lookupName: String): Boolean {
+        return nameMatches(lookupName)
+    }
+
+    // Compatibility wrapper for older call sites.
+    fun getArticle(definite: Boolean? = false): String {
+        return LANG.getArticle(definite = definite == true, genderKey = name.genderKey)
+    }
+
+    override fun getDescriptiveName(definite: Boolean?): String {
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if (state != null) {
-            return LANG.getMessagePart(Keys.MessageParts.msgPartDescriptiveName)
-                .replace(Keys.Placeholders.article, LANG.getArticle(definite = definite))
-                .replace(Keys.Placeholders.state, state.currentValue)
-                .replace(Keys.Placeholders.name, name.name)
+            return LANG.getMessagePart(Keys.Part.msgPartDescriptiveName)
+                .replace(Keys.StandIn.article, LANG.getArticle(definite = definite == true))
+                .replace(Keys.StandIn.state, state.currentValue)
+                .replace(Keys.StandIn.name, name.name)
                 .trim()
         }
         return super.getDescriptiveName(definite)
@@ -49,26 +63,31 @@ open class Item(
     fun getStateMessagePart(): String {
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if (state != null) {
-            return LANG.getMessagePart(Keys.MessageParts.msgPartState)
-                .replace(Keys.Placeholders.state, state.currentValue)
-                .replace(Keys.Placeholders.pronounSubject, getPronounSubject() ?: "")
+            return LANG.getMessagePart(Keys.Part.msgPartState)
+                .replace(Keys.StandIn.state, state.currentValue)
+                .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
                 .trim()
         }
         return ""
     }
 
+    // Compatibility wrapper for older call sites.
+    fun descriptionWithState(gameData: GameData): String {
+        return getDetailedDescription()
+    }
+
     override fun getDetailedDescription(): String {
         val stateMessagePart = getStateMessagePart()
         val template = if (description != null) {
-            LANG.getMessageTemplate("msgItemDetailedDescription")
+            LANG.getMessage("msgItemDetailedDescription")
         } else {
-            LANG.getMessageTemplate("msgItemDetailedDescriptionNoDescription")
+            LANG.getMessage("msgItemDetailedDescriptionNoDescription")
         }
         return template
-            .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
-            .replace(Keys.Placeholders.description, description ?: "")
-            .replace(Keys.Placeholders.stateDescription, stateMessagePart)
-            .replace(Keys.Placeholders.state, stateMessagePart)
+            .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+            .replace(Keys.StandIn.description, description ?: "")
+            .replace(Keys.StandIn.stateDescription, stateMessagePart)
+            .replace(Keys.StandIn.state, stateMessagePart)
             .trim()
     }
 }

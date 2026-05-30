@@ -120,7 +120,7 @@ data class LanguageData(
     /**
      * Returns the matching message template - may contain placeholders.
      */
-    fun getMessageTemplate(key: String): String {
+    fun getMessage(key: String): String {
         return messages[key] ?: run {
             LOG.warn("Warning: No message found for key '$key', returning key as message.")
             return "Unknown message key: $key"
@@ -167,7 +167,7 @@ data class LanguageData(
      * Returns whether the command is either an alias for the GO command or a direction
      */
     fun isMoveCommand(input: String): Boolean {
-        if(commands[Keys.Commands.go]?.aliases?.contains(input) ?: false) {
+        if(commands[Keys.Command.go]?.aliases?.contains(input) ?: false) {
             return true
         }
         if (getAllDirectionAliases().contains(input)) {

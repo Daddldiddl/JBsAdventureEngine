@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.tools.serializers.*
-impotrt net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.LOG
 
 @Serializable(with = GameDataSerializer::class)
 data class GameData(
@@ -73,7 +73,7 @@ data class GameData(
      * Returns a list of all items in the player's inventory.
      */
     fun getInventoryItems(): List<Item> {
-        return getItemsForRoom(FixedLocations.INVENTORY.value)
+        return getItemsForRoom(FixedLocation.INVENTORY.value)
     }
 
     /**
@@ -112,7 +112,7 @@ data class GameData(
      */
     fun getItemContainer(itemId: Int): Container? {
         val item = Items[itemId] ?: return null
-        if(item.location == FixedLocations.CONTAINER.value) {
+        if(item.location == FixedLocation.CONTAINER.value) {
             return getContainerList().find { it.containsItem(itemId) }
         }
         return null
@@ -130,7 +130,7 @@ data class GameData(
      */
     fun getAccessibleItemByNameAndRoom(name: String, roomId: Int): Item? {
         return getAllAccessibleItemsForRoom(roomId).find {
-            it.matchesName(name)
+            it.nameMatches(name)
         }
     }
 

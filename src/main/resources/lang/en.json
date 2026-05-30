@@ -89,7 +89,7 @@
         "msgItemDropped": "You drop <definiteName>.",
         "msgItemNotUsable": "You can't use <definiteName> right now.",
         "msgItemDetailedDescription": "<description>. <stateDescription>",
-        "msgContainerContents": "<definiteName> contains: <items>.",
+        "msgContainerContent": "<definiteName> contains: <items>.",
         "msgContainerEmpty": "<definiteName> is empty.",
         "msgWelcome": "Welcome to <title>!",
         "msgGoodbye": "Thanks for playing <title>! Goodbye!",

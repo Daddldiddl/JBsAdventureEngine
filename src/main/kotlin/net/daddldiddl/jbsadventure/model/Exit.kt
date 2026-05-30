@@ -22,14 +22,15 @@ class Exit (
     override var locked: Boolean = false,
     override val description: String? = null,
     var blocked: Boolean = false,
-    val itemUsages: List<ItemUsage>? = null
+    var blockedDescription: String? = null,
+    val itemUsages: List<ItemUsage>? = null,
     val visible: Boolean = true
 ) : OpenLockEnabledNamedEntity {
     /**
      * Returns a descriptive name for the exit, using the exit's name if available, or falling back to the direction's display name.
      * If [definite] is `true`, the name will be returned in its definite form (e.g., "the north exit"); otherwise, it will be returned in its indefinite form (e.g., "a north exit").
      */
-    override fun getDescriptiveName(definite: Boolean = false): String {
+    override fun getDescriptiveName(definite: Boolean?): String {
         var descriptiveName = direction
         if (name != null) {
             descriptiveName = super.getDescriptiveName(definite)
@@ -38,29 +39,36 @@ class Exit (
     }
 
     override fun getDetailedDescription(): String {
-        val template = when (description){
+        val desc = if(blocked) blockedDescription else description
+        val template = when (desc){
             null -> when(name) {
-                null -> Lang.getMessage(Keys.Messages,msgExitDetailedNoDescriptionNoName)
-                else -> LANG.getMessage(Keys.Messages.msgExitDetailedNoDescription)
+                null -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescriptionNoName)
+                else -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescription)
             }
             else -> when(name) {
-                null -> LANG.getMessage(Keys.Messages.msgExitDetailedDescriptionNoName)
-                else -> LANG.getMessage(Keys.Messages.msgExitDetailedDescription)
+                null -> LANG.getMessage(Keys.Message.msgExitDetailedDescriptionNoName)
+                else -> LANG.getMessage(Keys.Message.msgExitDetailedDescription)
             }
         }
         var message = template
-            .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = false))
-            .replace(Keys.Placeholders.direction, LANG.getDirectionAliasFromKey(direction))
-            .replace(Keys.Placeholders.description, description)
+            .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = false))
+            .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
+            .replace(Keys.StandIn.description, desc ?: "")
             .trim()
-        if(exitState.isLocked() || exitState.isClosed()) {
+        if(blocked){
+            message = LANG.getMessagePart(Keys.Part.msgPartState)
+                .replace(Keys.StandIn.state, LANG.getStateValueFromKey(Keys.StateValue.blocked))
+                .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
+                .trim()
+        }
+        else if(isLocked() || isClosed()) {
            message = "$message ${getMessagePartOpenLockedState()}"
         }
         return replacePlaceholdersName(message).trim()
     }
 
     override fun isOpen(): Boolean {
-        return open && blovckerf
+        return open && !blocked
     }
 
     override fun toString(): String {

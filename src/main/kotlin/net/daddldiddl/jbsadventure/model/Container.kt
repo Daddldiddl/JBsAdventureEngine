@@ -49,6 +49,10 @@ interface ContainerEntity : OpenLockEnabledNamedEntity {
     fun getContainedItems(): List<Item> {
         return containedItems.mapNotNull { DATA.getItemById(it) }
     }
+
+    override fun getDescriptiveName(definite: Boolean?): String {
+        return super.getDescriptiveName(definite)
+    }
 }
 
 @Serializable(with = ItemSerializer::class)
@@ -81,8 +85,8 @@ class Container(
     usages = usages,
 ), ContainerEntity {
 
-    override fun getDescriptiveName() {
-        super<ContainerEntity>.getDescriptiveName()
+    override fun getDescriptiveName(definite: Boolean?): String {
+        return super<ContainerEntity>.getDescriptiveName(definite)
     }
 
     override fun getDetailedDescription(): String {
@@ -93,12 +97,12 @@ class Container(
 
         val containedItemNames = getContainedItems().joinToString(", ") { it.getDescriptiveName() }
         val details = if (containedItemNames.isBlank()) {
-            LANG.getMessageTemplate("msgContainerEmpty")
-                .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
+            LANG.getMessage(Keys.Message.msgContainerEmpty)
+                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
         } else {
-            LANG.getMessageTemplate("msgContainerContents")
-                .replace(Keys.Placeholders.definiteName, getDescriptiveName(definite = true))
-                .replace(Keys.Placeholders.items, containedItemNames)
+            LANG.getMessage(Keys.Message.msgContainerContent)
+                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+                .replace(Keys.StandIn.items, containedItemNames)
         }
 
         return "$base\n$details".trim()

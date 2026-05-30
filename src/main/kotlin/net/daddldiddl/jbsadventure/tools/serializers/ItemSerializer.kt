@@ -13,7 +13,7 @@ import net.daddldiddl.jbsadventure.lang.*
 data class ItemSurrogate(
     val id: Int,
     val name: Name,
-    val description: String,
+    val description: String? = null,
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
@@ -48,9 +48,10 @@ object ItemSerializer : KSerializer<Item> {
             if(surrogate.containedItems != null) {
                 container.addItems(surrogate.containedItems)
             }
-            return container as Item
-        }   
-        else return Item(
+            return container
+        }
+
+        return Item(
             id = surrogate.id,
             name = surrogate.name,
             description = surrogate.description,
@@ -77,7 +78,7 @@ object ItemSerializer : KSerializer<Item> {
             numberOfUses = value.numberOfUses,
             location = value.location,
             comment = value.comment,
-            isContainer = value.isContainer(),
+            isContainer = value is Container,
             containedItems = if (value is ContainerEntity) value.getContainedItemIds() else null,
             usages = value.usages
         )

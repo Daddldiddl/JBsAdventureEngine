@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import net.daddldiddl.jbsadventure.LANG
 
 import net.daddldiddl.jbsadventure.model.*
 import net.daddldiddl.jbsadventure.lang.*
@@ -14,8 +15,9 @@ data class ExitSurrogate (
     val direction: String,
     val targetRoomId: Int,
     val name: Name? = null,
-    val exitState: ExitState = ExitState(),
     val description: String? = null,
+    val blocked: Boolean? = null,
+    val blockedDescription: String? = null,
     val itemUsages: List<ItemUsage>? = null
 )
 
@@ -31,10 +33,12 @@ object ExitSerializer : KSerializer<Exit>{
         return Exit(
             direction = surrogate.direction,
             targetRoomId = surrogate.targetRoomId,
-            name = surrogate.name,
-            exitState = surrogate.exitState,
+            name = surrogate.name ?: Name(LANG.getDirectionAliasFromKey(surrogate.direction)),
             description = surrogate.description,
-            itemUsages = surrogate.itemUsages)
+            blocked = surrogate.blocked ?: false,
+            blockedDescription = surrogate.description,
+            itemUsages = surrogate.itemUsages ?: emptyList()
+        )
     }
 
     override fun serialize(encoder: Encoder, value: Exit) {
@@ -42,8 +46,9 @@ object ExitSerializer : KSerializer<Exit>{
             direction = value.direction,
             targetRoomId = value.targetRoomId,
             name = value.name,
-            exitState = value.exitState,
             description = value.description,
+            blocked = value.blocked,
+            blockedDescription = value.blockedDescription,
             itemUsages = value.itemUsages
         )
         encoder.encodeSerializableValue(ExitSurrogate.serializer(), surrogate)

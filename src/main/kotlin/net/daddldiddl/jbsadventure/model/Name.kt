@@ -22,17 +22,17 @@ interface NamedEntity {
         get() = "^[aeouiAEOUI]".toRegex()
 
     fun replacePlaceholdersName(msg: String): String {
-        return msg.replace(Keys.Placeholders.name, name.name)
-        .replace(Keys.Placeholders.indefiniteName, getIndefiniteName())
-        .replace(Keys.Placeholders.definiteName, getDefiniteName())
+        return msg.replace(Keys.StandIn.name, name.name)
+        .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
+        .replace(Keys.StandIn.definiteName, getDefiniteName())
     }
 
     fun replacePlaceholderSubjectPronoun(msg: String): String {
-        return msg.replace(Keys.Placeholders.pronounSubject, getPronounSubject() ?: "")
+        return msg.replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
     }
 
     fun replacePlaceholderObjectPronoun(msg: String): String {
-        return msg.replace(Keys.Placeholders.pronounObject, getPronounObject() ?: "")
+        return msg.replace(Keys.StandIn.pronounObject, getPronounObject() ?: "")
     }
 
     /**
@@ -89,9 +89,9 @@ interface NamedEntity {
     }
 
     fun getMessagePartState(stateValue: String): String {
-        val msgPart = LANG.getMessagePart(if (name.isPlural) Keys.MessageParts.msgPartStatePlural else Keys.MessageParts.msgPartState)
-            .replace(Keys.Placeholders.state, stateValue)
-            .replace(Keys.Placeholders.pronounSubject, getPronounSubject() ?: "").trim()
+        val msgPart = LANG.getMessagePart(if (name.isPlural) Keys.Part.msgPartStatePlural else Keys.Part.msgPartState)
+            .replace(Keys.StandIn.state, stateValue)
+            .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "").trim()
 
         return startUpperCase(msgPart)
     }
@@ -106,8 +106,8 @@ interface NamedEntity {
         else return inputTrimmed.replaceFirstChar { it.uppercase() }
     }
 
-    fun getDescriptiveName(definite:Boolean = false): String {
-        return if (definite) getDefiniteName() else getIndefiniteName()
+    fun getDescriptiveName(definite: Boolean? = false): String {
+        return if (definite == true) getDefiniteName() else getIndefiniteName()
     }
 
     fun getDetailedDescription(): String {

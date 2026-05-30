@@ -1,16 +1,20 @@
 package net.daddldiddl.jbsadventure.model
 
 import net.daddldiddl.jbsadventure.LANG
-import net.daddldiddl.jbsadventure.Keys
+import net.daddldiddl.jbsadventure.lang.Keys
 
 interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
     fun getMessagePartOpenLockedState(): String {
         return getMessagePartState(getOpenLockState())
     }
 
-    fun getDescriptiveName(definite: Boolean = false): String {
-        var string = ""
-        return get
+    override fun getDescriptiveName(definite: Boolean?): String {
+        val template = LANG.getMessage(Keys.Part.msgPartDescriptiveName)
+        return trimEmptySpaces(template
+            .replace(Keys.StandIn.state, getOpenLockState())
+            .replace(Keys.StandIn.article, LANG.getArticle(definite = false))
+            .replace(Keys.StandIn.name, name.name)
+            .trim())
     }
 }
 
@@ -64,10 +68,10 @@ interface OpenLockEnabledEntity {
 
     fun getOpenLockState(): String {
         return when {
-            isLocked() && isClosed() -> LANG.getStateValueFromKey(Keys.StateValues.lockedClosed)
-            isLocked() && isOpen() -> LANG.getStateValueFromKey(Keys.StateValues.lockedOpen)
-            isClosed() -> LANG.getStateValueFromKey(Keys.StateValues.closed)
-            else -> LANG.getStateValueFromKey(Keys.StateValues.open)
+            isLocked() && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.lockedClosed)
+            isLocked() && isOpen() -> LANG.getStateValueFromKey(Keys.StateValue.lockedOpen)
+            isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.closed)
+            else -> LANG.getStateValueFromKey(Keys.StateValue.open)
         }
     }
 
