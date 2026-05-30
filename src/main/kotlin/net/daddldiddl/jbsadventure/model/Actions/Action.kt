@@ -5,6 +5,11 @@ import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.ActionSerializer
 import java.lang.Thread.sleep
 
+/**
+ * Preconditions that must be fulfilled before an action is allowed to execute.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 @Serializable
 data class Precondition(
     val requiredStateKey: String,
@@ -65,8 +70,10 @@ abstract class Action(
         }
     }
 
+    /** Executes the action against the given runtime game data. */
     abstract fun execute(gameData: GameData): Boolean
 
+    /** Sleeps for [delayInMillis] if this action defines an execution delay. */
     fun delayIfRequired() {
         if (delayInMillis != null) {
             LOG.debug("Delaying $type Action by ${String.format("%.3f", delayInMillis / 1000f)} seconds...")
@@ -74,12 +81,14 @@ abstract class Action(
         }
     }
 
+    /** Writes optional debug info for action execution. */
     fun logActionExecution() {
         if (actionDebug != null) {
             LOG.debug("Executing action: ${actionDebug}")
         }
     }
 
+    /** Validates all configured preconditions against current game state values. */
     fun checkPreconditions(gameData: GameData): Boolean {
         for (precondition in preconditions) {
             val state = gameData.getStateByKey(precondition.requiredStateKey)
@@ -116,6 +125,7 @@ data class ChangeStateAction(
     actionDebug = "Changed state '$changedStateKey' to '$newStateValue'.",
     delayInMillis = null
 ){
+    /** Updates the configured state key with the new value when valid. */
     override fun execute(gameData: GameData): Boolean {
         val state = gameData.getStateByKey(changedStateKey)
         if (state != null && checkPreconditions(gameData)) {
@@ -147,6 +157,7 @@ data class MoveToAction(
     actionDebug = "Moved player to room with id $moveToRoomId.",
     delayInMillis = null
 ){
+    /** Moves the player to the configured target room when possible. */
     override fun execute(gameData: GameData): Boolean {
         val room = gameData.getRoomById(moveToRoomId)
         if (room != null && checkPreconditions(gameData)) {
@@ -175,6 +186,7 @@ data class SetItemRoomAction(
     actionDebug = "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId.",
     delayInMillis = null
 ){
+    /** Relocates configured items to the configured destination room/location. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
             return false
@@ -203,6 +215,7 @@ data class TransformIntoItemAction(
     actionDebug = "Transformed items ${affectedItemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}.",
     delayInMillis = null
 ){
+    /** Replaces configured source items with target items at source locations. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
             return false
@@ -264,6 +277,7 @@ data class ModifyExitAction(
     }.",
     delayInMillis = null
 ){
+    /** Applies selective open/lock/blocked/visibility changes to one room exit. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
             return false

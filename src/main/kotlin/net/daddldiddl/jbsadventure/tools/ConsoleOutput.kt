@@ -42,24 +42,29 @@ public enum class ConsoleColor(private val code: String) {
  * See LICENSE file in the project root for full license information.
  */
 class ConsoleOutput {
+    /** Prints a message in default color and mirrors it to the log. */
     public fun print(message: String?) {
         print(message, ConsoleColor.WHITE)
     }
 
+    /** Prints a message in the specified color and mirrors it to the log. */
     public fun print(message: String?, color: ConsoleColor) {
         println("$color$message${ConsoleColor.RESET}")
         LOG.console(message ?: "")
     }
 
+    /** Prints an empty line to console and log. */
     public fun print() {
         println()
         LOG.console("")
     }
 
+    /** Prints a warning-styled message. */
     public fun warn(message: String?) {
         print(message, ConsoleColor.LIGHTRED)
     }
 
+    /** Prints a log line using a level-dependent color without writing file logs. */
     public fun printLog(message: String, level: LogLevel) {
             val colorCode = when (level) {
                 LogLevel.DEBUG -> "${ConsoleColor.BLUE}" // Blue

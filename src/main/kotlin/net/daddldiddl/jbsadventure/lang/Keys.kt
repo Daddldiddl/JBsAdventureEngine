@@ -9,6 +9,11 @@ object Keys {
     const val languageKey = "languageKey"
     const val languageKeyEn = "en"
 
+    /**
+     * Key constants for pronoun-group configuration and defaults.
+     *
+     * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+     */
     object Pronouns {
         /** The key for the defaultPronounGroupKey - used to decide the default pronoun group from the language data */
         const val defaultPronounGroupKey = "defaultPronounGroupKey"
@@ -90,6 +95,11 @@ object Keys {
         const val pronounObject = "<pronounObject>"
     }
 
+    /**
+     * State-value key constants for open/closed/locked text mappings.
+     *
+     * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+     */
     object StateValue {
         const val locked = "stateLocked"
         const val open = "stateOpen"

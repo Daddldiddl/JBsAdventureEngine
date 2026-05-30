@@ -22,10 +22,12 @@ data class Room(
     val itemUsages: List<ItemUsage>? = emptyList()
 ) : NamedEntity
 {
+    /** Returns all exits currently marked as visible. */
     fun getVisibleExits(): List<Exit> {
         return exits.orEmpty().values.filter { it.visible }
     }
 
+    /** Returns all items currently located in this room. */
     fun getItems(gameData: GameData): List<Item> {
         return gameData.getItemsForRoom(id)
     }
@@ -47,6 +49,7 @@ data class Room(
         return "$name (id=$id)"
     }    
 
+    /** Returns the plain room name for compact debug output. */
     override fun toString(): String {
         return name.name
     }

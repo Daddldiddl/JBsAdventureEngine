@@ -51,7 +51,7 @@ open class Item(
     override fun getDescriptiveName(definite: Boolean?): String {
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if (state != null) {
-            return LANG.getMessagePart(Keys.Part.msgPartDescriptiveName)
+            return LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
                 .replace(Keys.StandIn.article, LANG.getArticle(definite = definite == true))
                 .replace(Keys.StandIn.state, state.currentValue)
                 .replace(Keys.StandIn.name, name.name)
@@ -63,7 +63,7 @@ open class Item(
     fun getStateMessagePart(): String {
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if (state != null) {
-            return LANG.getMessagePart(Keys.Part.msgPartState)
+            return LANG.getTemplate(Keys.Part.msgPartState)
                 .replace(Keys.StandIn.state, state.currentValue)
                 .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
                 .trim()
@@ -79,9 +79,9 @@ open class Item(
     override fun getDetailedDescription(): String {
         val stateMessagePart = getStateMessagePart()
         val template = if (description != null) {
-            LANG.getMessage("msgItemDetailedDescription")
+            LANG.getTemplate("msgItemDetailedDescription")
         } else {
-            LANG.getMessage("msgItemDetailedDescriptionNoDescription")
+            LANG.getTemplate("msgItemDetailedDescriptionNoDescription")
         }
         return template
             .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))

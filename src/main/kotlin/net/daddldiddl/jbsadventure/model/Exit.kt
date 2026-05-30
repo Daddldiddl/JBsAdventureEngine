@@ -39,8 +39,8 @@ class Exit (
     override fun getDetailedDescription(): String {
         val desc = if(blocked) blockedDescription else description
         val template = when (desc) {
-            null -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescription)
-            else -> LANG.getMessage(Keys.Message.msgExitDetailedDescription)
+            null -> LANG.getTemplate(Keys.Message.msgExitDetailedNoDescription)
+            else -> LANG.getTemplate(Keys.Message.msgExitDetailedDescription)
         }
         var message = template
             .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = false))
@@ -48,7 +48,7 @@ class Exit (
             .replace(Keys.StandIn.description, desc ?: "")
             .trim()
         if(blocked){
-            message = LANG.getMessagePart(Keys.Part.msgPartState)
+            message = LANG.getTemplate(Keys.Part.msgPartState)
                 .replace(Keys.StandIn.state, LANG.getStateValueFromKey(Keys.StateValue.blocked))
                 .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
                 .trim()

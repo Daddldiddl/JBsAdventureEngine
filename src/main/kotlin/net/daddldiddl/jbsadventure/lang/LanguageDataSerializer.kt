@@ -8,6 +8,13 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.daddldiddl.jbsadventure.model.GameData
 
+/**
+ * Surrogate model for language JSON files.
+ *
+ * Mirrors serialized field names and keeps runtime model classes independent from JSON shape.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 @Serializable
 data class LanguageDataSurrogate(
     val languageKey: String?,
@@ -31,13 +38,14 @@ data class LanguageDataSurrogate(
 )
 
 /**
- * Custom serializer for [GameData] that reads/writes the JSON array format
- * via [LanguageDataSurrogate] while the runtime representation uses [MutableMap]s.
+ * Custom serializer for [LanguageData] that maps between JSON structure and runtime model.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-
 object LanguageDataSerializer : KSerializer<LanguageData> {
     override val descriptor: SerialDescriptor = LanguageDataSurrogate.serializer().descriptor
 
+    /** Decodes JSON data into the runtime [LanguageData] representation. */
     override fun deserialize(decoder: Decoder): LanguageData {
         val surrogate = decoder.decodeSerializableValue(LanguageDataSurrogate.serializer())
         return LanguageData(
@@ -54,6 +62,7 @@ object LanguageDataSerializer : KSerializer<LanguageData> {
         )
     }
 
+    /** Encodes runtime [LanguageData] into the surrogate JSON structure. */
     override fun serialize(encoder: Encoder, value: LanguageData) {
         val surrogate = LanguageDataSurrogate(
             languageKey = value.languageKey,

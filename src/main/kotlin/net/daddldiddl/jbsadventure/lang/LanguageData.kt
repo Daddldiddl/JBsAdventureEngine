@@ -7,6 +7,8 @@ import net.daddldiddl.jbsadventure.LOG
 
 /**
  * Represents the data for a command, including its aliases and description.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 @Serializable
 data class CommandData(
@@ -14,6 +16,11 @@ data class CommandData(
     val description: String
 )
 
+/**
+ * Defines one pronoun group used for localized naming and placeholder replacement.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 @Serializable
 data class PronounGroup(
     val genderKey: String,
@@ -28,6 +35,8 @@ data class PronounGroup(
 
 /**
  * Represents the data for the language, including directions, commands, messages, and other game-related text.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 @Serializable(with = LanguageDataSerializer::class)
 data class LanguageData(
@@ -118,22 +127,21 @@ data class LanguageData(
     }
 
     /**
-     * Returns the matching message template - may contain placeholders.
+     * Returns the matching template for a message key.
+     *
+     * Keys starting with `msgPart` are resolved from `messageParts`.
+     * All other keys are resolved from `messages`.
      */
-    fun getMessage(key: String): String {
+    fun getTemplate(key: String): String {
+        if (key.startsWith("msgPart")) {
+            return messageParts[key] ?: run {
+                LOG.warn("Warning: No message part found for key '$key', returning key as message.")
+                return "Unknown message part key: $key"
+            }
+        }
         return messages[key] ?: run {
             LOG.warn("Warning: No message found for key '$key', returning key as message.")
             return "Unknown message key: $key"
-        }
-    }
-
-    /**
-     * Returns the matching messagePart template - may contain placeholders.
-     */
-    fun getMessagePart(key: String): String {
-        return messageParts[key] ?: run {
-            LOG.warn("Warning: No message part found for key '$key', returning key as message part.")
-            return "Unknown message part key: $key"
         }
     }
 
@@ -211,7 +219,7 @@ data class LanguageData(
      * Returns the translated state value for the given key, or the key itself if no translation is found.
      */
     fun getStateValueFromKey(key: String): String {
-        return DATA.States[key]?.currentValue ?: run {
+        return stateValues[key] ?: run {
             LOG.warn("Warning: No state value found for key '$key', returning key as value.")
             return "Unknown state value key: $key"
         }

@@ -17,6 +17,7 @@ class Game(private val gameData: GameData) {
 
     private var running = true
 
+    /** Logs current room and room items for debugging purposes. */
     fun currentStateDebug() {
         LOG.debug("Current room: ${DATA.currentRoom.name} (id=${DATA.currentRoom.id}), containing items: ${gameData.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}")
     }
@@ -26,14 +27,14 @@ class Game(private val gameData: GameData) {
      * first [processCommand] invocation.
      */
     fun printWelcome() {
-        val welcome = LANG.getMessage(Keys.Message.msgWelcome).replace(Keys.StandIn.title, gameData.title)
+        val welcome = LANG.getTemplate(Keys.Message.msgWelcome).replace(Keys.StandIn.title, gameData.title)
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
         CONSOLE.print(welcome, ConsoleColor.LIGHTGREEN)
         CONSOLE.print("=".repeat(welcome.length), ConsoleColor.LIGHTGREEN)
         CONSOLE.print()
         CONSOLE.print(gameData.introductionMessage, ConsoleColor.WHITE)
         CONSOLE.print()
-        CONSOLE.print(LANG.getMessage(Keys.Message.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
+        CONSOLE.print(LANG.getTemplate(Keys.Message.msgIntroHelp), ConsoleColor.LIGHTYELLOW)
         CONSOLE.print()
         describeRoom()
         CONSOLE.print()
@@ -44,7 +45,7 @@ class Game(private val gameData: GameData) {
      */
     fun printGoodbye() {
         CONSOLE.print(
-            LANG.getMessage(Keys.Message.msgGoodbye)
+            LANG.getTemplate(Keys.Message.msgGoodbye)
                 .replace(Keys.StandIn.title, gameData.title),
             ConsoleColor.LIGHTGREEN
         )
@@ -66,8 +67,9 @@ class Game(private val gameData: GameData) {
     /**
      * Parses and dispatches a single line of player input to the appropriate handler.
      *
-     * Recognised top-level commands: `go`/`move`/direction shortcuts, `look`, `examine`, `use`,
-     * `help`, and `quit`.
+     * Recognised top-level commands include movement (`go`/direction aliases),
+     * item interaction (`examine`, `use`, `take`, `drop`, `open`, `close`),
+     * utility commands (`inventory`, `help`, `save`, `load`) and `quit`.
      *
      * @param input The raw input string entered by the player.
      */
@@ -121,7 +123,6 @@ class Game(private val gameData: GameData) {
             in LANG.getCommandAliases(Keys.Command.load) -> {
                 loadGame()
             }
-            // ignore blank input
             else -> {
                 if(parts.size == 1 && parts[0].isBlank()) {
                     return
@@ -154,14 +155,14 @@ class Game(private val gameData: GameData) {
         val part0: String = parts[0].lowercase()
         if (parts.size == 1) {
             if (part0 in LANG.getAllDirectionAliases()) {
-                move(part0)
+                move(LANG.getDirectionKeyFromAlias(part0))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
         } else {
             val part1 = parts[1].lowercase()
             if (part1 in LANG.getAllDirectionAliases()) {
-                move(part1)
+                move(LANG.getDirectionKeyFromAlias(part1))
             } else {
                 CONSOLE.print("Go where? e.g. 'go north'")
             }
@@ -182,9 +183,9 @@ class Game(private val gameData: GameData) {
             val itemName = parts.drop(1).joinToString(" ")
             val item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
             if (item == null) {
-                CONSOLE.print(LANG.getMessage(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
+                CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
             } else if (item.location != DATA.currentRoom.id && item.location != FixedLocation.INVENTORY.value) {
-                CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotVisible)))
+                CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotVisible)))
             } else {
                 CONSOLE.print(item.descriptionWithState(gameData))
             }
@@ -192,7 +193,7 @@ class Game(private val gameData: GameData) {
     }
 
     /**
-     * Handles the `use` command, applying the item's [ItemUsage] action if one is defined for the
+     * Handles the `use` command, applying the item's [ItemUsage] actions if one is defined for the
      * current room.
      *
      * @param parts The tokenised command; words after the verb are joined to form the item name.
@@ -207,17 +208,17 @@ class Game(private val gameData: GameData) {
         val itemName = parts.drop(1).joinToString(" ")
         val item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
         if (item == null) {
-            CONSOLE.print(LANG.getMessage(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
             return
         }
         if (item.usable == false) {
-            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotUsable)))
             return
         }
 
         val usage = DATA.currentRoom.getItemUsage(item.id)
         if (usage == null) {
-            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotUsable)))
             return
         }
 
@@ -251,7 +252,7 @@ class Game(private val gameData: GameData) {
         }
 
         if (!itemUsed) {
-            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotUsable)))
             return
         }
 
@@ -273,6 +274,7 @@ class Game(private val gameData: GameData) {
         }
     }
 
+    /** Handles taking an accessible item from the current room into the inventory. */
     private fun handlePickup(parts: List<String>) {
         LOG.debug("Handling pickup request")
         if (parts.size < 2) {
@@ -283,15 +285,16 @@ class Game(private val gameData: GameData) {
             if (item == null) {
                 CONSOLE.print("There is no '${itemName}' here to pickup.")
             } else if (item.carriable == false) {
-                CONSOLE.print("You can't pickup the ${item.name}.")
+                CONSOLE.print("You can't pickup ${item.getDescriptiveName(definite = true)}.")
             } else {
                 LOG.debug("Setting location of item '${item.debugName()}' to INVENTORY_LOCATION due to pickup")
                 gameData.setItemLocation(item.id, FixedLocation.INVENTORY.value)
-                CONSOLE.print("You picked up the ${item.name}.")
+                CONSOLE.print("You picked up ${item.getDescriptiveName(definite = true)}.")
             }
         }
     }
 
+    /** Handles dropping an inventory item into the current room. */
     private fun handleDrop(parts: List<String>) {
         LOG.debug("Handling drop request")
         if (parts.size < 2) {
@@ -304,24 +307,27 @@ class Game(private val gameData: GameData) {
             } else {
                 LOG.debug("Setting location of item '${item.debugName()}' to '${DATA.currentRoom.debugName()}' due to drop")
                 gameData.setItemLocation(item.id, DATA.currentRoom.id)
-                CONSOLE.print("You dropped the ${item.name}.")
+                CONSOLE.print("You dropped ${item.getDescriptiveName(definite = true)}.")
             }
         }
     }
 
+    /** Prints the player's inventory using localized templates. */
     private fun handleInventory() {
         LOG.debug("Handling inventory request")
-        val itemList = gameData.getItemsForRoom(FixedLocation.INVENTORY.value).joinToString(", ") { "${it.getArticle()} ${it.name}" }
+        val itemList = gameData.getItemsForRoom(FixedLocation.INVENTORY.value)
+            .joinToString(", ") { it.getDescriptiveName(definite = false) }
         if(itemList.isEmpty()) {
-            CONSOLE.print(LANG.getMessagePart(Keys.Part.noInventory), ConsoleColor.CYAN)
+            CONSOLE.print(LANG.getTemplate(Keys.Part.noInventory), ConsoleColor.CYAN)
         } else {
             CONSOLE.print(
-                LANG.getMessagePart(Keys.Part.inventory).replace(Keys.StandIn.items, itemList),
+                LANG.getTemplate(Keys.Part.inventory).replace(Keys.StandIn.items, itemList),
                 ConsoleColor.CYAN
             )
         }
     }
 
+    /** Resolves an exit by direction alias first, then by exit name/alias. */
     private fun findExitInCurrentRoom(input: String): Exit? {
         val roomExits = DATA.currentRoom.exits.orEmpty()
         val directionKey = LANG.getDirectionKeyFromAlias(input)
@@ -332,12 +338,18 @@ class Game(private val gameData: GameData) {
         return roomExits.values.find { it.nameMatches(input) }
     }
 
+    /**
+     * Handles opening/closing for containers and exits in the current room context.
+     *
+     * Resolution order is: matching item (container first) -> matching exit.
+     */
     private fun handleOpenClose(parts: List<String>, open: Boolean) {
         val verb = if (open) "open" else "close"
         LOG.debug("Handling '$verb' command with parts: $parts")
 
+        /** Resolves and fills a localized open/close message template. */
         fun msg(key: String, name: String? = null): String {
-            var value = LANG.getMessage(key)
+            var value = LANG.getTemplate(key)
                 .replace(Keys.StandIn.command, verb)
             if (name != null) {
                 value = value.replace(Keys.StandIn.name, name)
@@ -482,7 +494,8 @@ class Game(private val gameData: GameData) {
         } else {
             CONSOLE.print("There are no exits.", ConsoleColor.LIGHTGREEN)
         }
-        val itemList = gameData.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.getArticle()} ${it.name}" }
+        val itemList = gameData.getItemsForRoom(DATA.currentRoom.id)
+            .joinToString(", ") { it.getDescriptiveName(definite = false) }
         if (itemList.isNotEmpty()) {
             CONSOLE.print("Items: $itemList", ConsoleColor.LIGHTGREEN)
         }

@@ -31,6 +31,7 @@ object ItemSerializer : KSerializer<Item> {
 
     override fun deserialize(decoder: Decoder): Item {
         val surrogate = decoder.decodeSerializableValue(ItemSurrogate.serializer())
+        // Item and Container share one array in JSON; discriminator is `isContainer`.
         if(surrogate.isContainer == true) {
             val container = Container(
                 id = surrogate.id,
@@ -67,6 +68,7 @@ object ItemSerializer : KSerializer<Item> {
     }
 
     override fun serialize(encoder: Encoder, value: Item) {
+        // Always emit the discriminator fields so runtime type can be reconstructed.
         val surrogate = ItemSurrogate(
             id = value.id,
             name =value.name,

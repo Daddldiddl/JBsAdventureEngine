@@ -4,6 +4,11 @@ import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.tools.serializers.*
 import net.daddldiddl.jbsadventure.LOG
 
+/**
+ * Central runtime game model containing rooms, items, global states and player position.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 @Serializable(with = GameDataSerializer::class)
 data class GameData(
     val title: String,

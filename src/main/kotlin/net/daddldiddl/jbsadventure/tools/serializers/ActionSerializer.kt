@@ -40,6 +40,7 @@ object ActionSerializer : KSerializer<Action> {
 
     override fun deserialize(decoder: Decoder): Action {
         val surrogate = decoder.decodeSerializableValue(ActionSurrogate.serializer())
+        // Keep deserialization tolerant while old and new JSON fields may coexist.
         return when (surrogate.type) {
             ActionType.ChangeState -> ChangeStateAction(
                 changedStateKey = surrogate.changedStateKey!!,
@@ -50,6 +51,7 @@ object ActionSerializer : KSerializer<Action> {
             )
             ActionType.SetItemRoom -> SetItemRoomAction(
                 affectedItemIds = surrogate.affectedItemIds!!,
+                // Prefer the new field, but accept the old moveToRoomId for compatibility.
                 moveToRoomId = surrogate.moveToRoomIdForItems ?: surrogate.moveToRoomId!!
             )
             ActionType.TransformIntoItem -> TransformIntoItemAction(

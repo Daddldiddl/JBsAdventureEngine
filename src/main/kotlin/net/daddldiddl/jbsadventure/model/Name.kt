@@ -4,6 +4,11 @@ import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.*
 
+/**
+ * Localizable name metadata for entities.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 @Serializable
 data class Name(
     val name: String,
@@ -14,6 +19,11 @@ data class Name(
     constructor(name: String, aliases: List<String>) : this(name, aliases, LANG.defaultPronoun.genderKey, false)
 }
 
+/**
+ * Base interface for named, describable game entities with language-aware helpers.
+ *
+ * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
+ */
 interface NamedEntity {
     val name: Name
     val description: String?
@@ -21,16 +31,19 @@ interface NamedEntity {
     private val regexVocalStart: Regex
         get() = "^[aeouiAEOUI]".toRegex()
 
+    /** Replaces `<name>` placeholders with entity-specific values. */
     fun replacePlaceholdersName(msg: String): String {
         return msg.replace(Keys.StandIn.name, name.name)
         .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
         .replace(Keys.StandIn.definiteName, getDefiniteName())
     }
 
+    /** Replaces subject-pronoun placeholder in a message template. */
     fun replacePlaceholderSubjectPronoun(msg: String): String {
         return msg.replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
     }
 
+    /** Replaces object-pronoun placeholder in a message template. */
     fun replacePlaceholderObjectPronoun(msg: String): String {
         return msg.replace(Keys.StandIn.pronounObject, getPronounObject() ?: "")
     }
@@ -88,28 +101,33 @@ interface NamedEntity {
                 name.aliases.any { it.lowercase() == lowerName }
     }
 
+    /** Builds a localized message part describing the current state value. */
     fun getMessagePartState(stateValue: String): String {
-        val msgPart = LANG.getMessagePart(if (name.isPlural) Keys.Part.msgPartStatePlural else Keys.Part.msgPartState)
+        val msgPart = LANG.getTemplate(if (name.isPlural) Keys.Part.msgPartStatePlural else Keys.Part.msgPartState)
             .replace(Keys.StandIn.state, stateValue)
             .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "").trim()
 
         return startUpperCase(msgPart)
     }
 
+    /** Normalizes and collapses whitespace in localized output text. */
     fun trimEmptySpaces(input: String): String {
         return input.trim().replace("\\s+".toRegex(), " ")
     }
 
+    /** Returns text with an uppercased first character after trimming. */
     fun startUpperCase(input: String) : String {
         val inputTrimmed = trimEmptySpaces(input)
         if(inputTrimmed.isEmpty()) return inputTrimmed
         else return inputTrimmed.replaceFirstChar { it.uppercase() }
     }
 
+    /** Returns either definite or indefinite descriptive entity name. */
     fun getDescriptiveName(definite: Boolean? = false): String {
         return if (definite == true) getDefiniteName() else getIndefiniteName()
     }
 
+    /** Returns a formatted, sentence-cased detailed description. */
     fun getDetailedDescription(): String {
         return startUpperCase(description  ?: "")
     }

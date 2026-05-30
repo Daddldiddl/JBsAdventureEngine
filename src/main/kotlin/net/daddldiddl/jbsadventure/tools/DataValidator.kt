@@ -55,6 +55,7 @@ object DataValidator {
     fun validate(gameData: GameData): Boolean {
         var isValid = true
         LOG.debug("Validating game data...")
+
         // Check that all room exits point to valid room IDs
         for (room in gameData.getRoomList()) {
             for ((direction, exit) in room.exits.orEmpty()) {
@@ -66,6 +67,7 @@ object DataValidator {
                 }
             }
         }
+
         // Check that all items reference valid states and locations
         for (item in gameData.getItemList()) {
             // Check that the item references a valid state key (if any)
@@ -96,6 +98,7 @@ object DataValidator {
                 }
             }
         }
+
         // Check that all rooms with item usage have valid properties(e.g., target room IDs, item
         // IDs)
         for (room in gameData.getRoomList()) {
@@ -117,6 +120,7 @@ object DataValidator {
                         isValid = false
                     }
 
+                    // Validate action-specific references and value constraints.
                     when (action) {
                         is ChangeStateAction -> {
                             val state = gameData.getStateByKey(action.changedStateKey)
