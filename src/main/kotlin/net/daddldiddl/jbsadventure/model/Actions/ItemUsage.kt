@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * Describes how a specific item can be used within a room and what effect that has.
  *
- * An [ItemUsage] is attached to a [Room] and links an item (by [itemId]) to an [action]
- * and the [description] shown to the player upon use.
+ * An [ItemUsage] is attached to a [Room] and links an item (by [itemId])
+ * to one or multiple [actions] that are executed upon use.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */

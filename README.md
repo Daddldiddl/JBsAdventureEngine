@@ -13,6 +13,16 @@ I used Copilot to setup the base project (I can't be arsed to write a pom.xml, s
 
 ## Running adventures
 
+### Build commands
+
+Standard build (no Dokka/docs generation):
+
+`mvn -DskipTests package`
+
+Build including API docs via Dokka:
+
+`mvn -DskipTests -Pdocs package`
+
 Requires Java 21 or newer to run (all dependencies are included in the jar). Start with:
 
 `java -jar jbs-adventure-engine.jar`
@@ -46,10 +56,10 @@ Currently planned/in the works:
 
 What may be coming in the far future:
 
-- maybe add NPCs as additional object cathegory with dialog options?
+- maybe add NPCs as additional object category with dialog options?
 - add a stats (and combat?) system to allow for a 'roleplay-like' experience
 
-These are the basic ideas - this is not going to be a continous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+These are the basic ideas - this is not going to be a continuous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
 
 What I'm currently working on in the current dev branch (in varying stages of completion):
 - I8N is currently the main focus of this rework as it hugely affects the class structure

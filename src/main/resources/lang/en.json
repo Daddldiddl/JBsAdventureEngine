@@ -97,7 +97,17 @@
         "msgExitDetailedNoDescription": "You see <indefiniteName> leading <direction>.",
         "msgExitDetailedDescriptionNoName": "You see an exit leading <direction>. <description>",
         "msgExitDetailedNoDescriptionNoName": "You can go <direction> from here.",  
-        "msgExitDetailedDescription": "You see <indefiniteName> leading <direction>. <description>"
+        "msgExitDetailedDescription": "You see <indefiniteName> leading <direction>. <description>",
+        "msgOpenCloseWhat": "<command> what? e.g. '<command> door'",
+        "msgDoesNotSupportOpenClose": "The <name> does not support open/close.",
+        "msgAlreadyOpen": "The <name> is already open.",
+        "msgAlreadyClosed": "The <name> is already closed.",
+        "msgTargetLocked": "The <name> is locked.",
+        "msgOpenSuccess": "You open the <name>.",
+        "msgCloseSuccess": "You close the <name>.",
+        "msgOpenFailed": "You can't open the <name>.",
+        "msgCloseFailed": "You can't close the <name>.",
+        "msgNoTargetToOpenClose": "There is no '<name>' here to <command>."
     },
     "MessageParts": {
         "msgPartDescriptiveName": "<article> <state> <name>",

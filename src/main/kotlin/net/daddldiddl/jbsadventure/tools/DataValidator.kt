@@ -8,6 +8,35 @@ import net.daddldiddl.jbsadventure.model.*
  */
 object DataValidator {
 
+    private val fixedLocationValues: Set<Int> = enumValues<FixedLocation>().map { it.value }.toSet()
+
+    private fun isValidLocation(location: Int, gameData: GameData): Boolean {
+        return location in fixedLocationValues || gameData.getRoomMap().containsKey(location)
+    }
+
+    private fun validateActionPreconditions(room: Room, action: Action, gameData: GameData): Boolean {
+        var isValid = true
+        for (precondition in action.preconditions) {
+            val state = gameData.getStateByKey(precondition.requiredStateKey)
+            if (state == null) {
+                LOG.warn(
+                    "Room '${room.id}' has an action '${action.type}' with precondition referencing non-existent state '${precondition.requiredStateKey}'"
+                )
+                isValid = false
+                continue
+            }
+
+            val invalidValues = precondition.requiredStateValues.filter { it !in state.possibleValues }
+            if (invalidValues.isNotEmpty()) {
+                LOG.warn(
+                    "Room '${room.id}' has an action '${action.type}' with invalid precondition values ${invalidValues.joinToString(", ")} for state '${precondition.requiredStateKey}'"
+                )
+                isValid = false
+            }
+        }
+        return isValid
+    }
+
     /**
      * Performs validation checks on a [GameData] instance to identify potential issues such as:
      * 
@@ -28,7 +57,7 @@ object DataValidator {
         LOG.debug("Validating game data...")
         // Check that all room exits point to valid room IDs
         for (room in gameData.getRoomList()) {
-            for ((direction, exit) in room.exits) {
+            for ((direction, exit) in room.exits.orEmpty()) {
                 if (!gameData.getRoomMap().containsKey(exit.targetRoomId)) {
                     LOG.warn(
                             "Room '${room.id}' has an exit '$direction' pointing to non-existent room ID '$exit.targetRoomId'"
@@ -47,17 +76,17 @@ object DataValidator {
             }
             // Check that the item is located in a valid room (if any)
             val location = item.location
-            if (location !in Locations.fixedValues() && !gameData.getRoomMap().containsKey(location)) {
+            if (!isValidLocation(location, gameData)) {
                 LOG.warn(
                         "Item '${item.id}' has a usage referencing non-existent room ID '$location'"
                 )
                 isValid = false
             }
             // check that an Item with location CONTAINER has exactly one container containing it
-            if(location == Locations.CONTAINER.value){
-                val containers = gameData.getItemMap().values
-                    .filter{it.container?.containedItems!!.contains(item.id)}
-                    .map{it.id}
+            if (location == FixedLocation.CONTAINER.value) {
+                val containers = gameData.getContainerList()
+                    .filter { it.containsItem(item.id) }
+                    .map { it.id }
                 if (containers.isEmpty()){
                     LOG.warn("Item '${item.id}' has no container")
                     isValid = false
@@ -71,59 +100,105 @@ object DataValidator {
         // IDs)
         for (room in gameData.getRoomList()) {
             for (usage: ItemUsage in room.itemUsages ?: emptyList()) {
-                // Check if the item usages reference valid state keys (if any)
-                val stateKey = usage.stateKey
-                if (stateKey != null) {
-                    if (!gameData.getStateMap().containsKey(stateKey)) {
-                        LOG.warn(
-                                "Room '${room.id}' has an item usage (itemId ${usage.itemId}) referencing non-existent state '$stateKey'"
-                        )
+                if (!gameData.getItemMap().containsKey(usage.itemId)) {
+                    LOG.warn(
+                        "Room '${room.id}' has an item usage referencing non-existent itemId '${usage.itemId}'"
+                    )
+                    isValid = false
+                }
+
+                if (usage.actions.isEmpty()) {
+                    LOG.warn("Room '${room.id}' has an item usage (itemId ${usage.itemId}) without actions")
+                    isValid = false
+                }
+
+                for (action in usage.actions) {
+                    if (!validateActionPreconditions(room, action, gameData)) {
                         isValid = false
-                    } else {
-                        val state = gameData.getStateByKey(stateKey)
-                        if (state != null) {
-                            // If the usage specifies old/new state values, check that they are
-                            // valid for the referenced state
-                            if (usage.oldStateValue != null &&
-                                            !state.possibleValues.contains(usage.oldStateValue)
-                            ) {
+                    }
+
+                    when (action) {
+                        is ChangeStateAction -> {
+                            val state = gameData.getStateByKey(action.changedStateKey)
+                            if (state == null) {
                                 LOG.warn(
-                                        "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with invalid oldStateValue '${usage.oldStateValue}' for state '$stateKey'"
+                                    "Room '${room.id}' has a ChangeState action (itemId ${usage.itemId}) referencing non-existent state '${action.changedStateKey}'"
                                 )
                                 isValid = false
-                            }
-                            if (usage.newStateValue != null &&
-                                            !state.possibleValues.contains(usage.newStateValue)
-                            ) {
+                            } else if (action.newStateValue !in state.possibleValues) {
                                 LOG.warn(
-                                        "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with invalid newStateValue '${usage.newStateValue}' for state '$stateKey'"
+                                    "Room '${room.id}' has a ChangeState action (itemId ${usage.itemId}) with invalid newStateValue '${action.newStateValue}' for state '${action.changedStateKey}'"
                                 )
                                 isValid = false
                             }
                         }
-                    }
-                }
-                // If the usage involves moving to another room or setting an item's location, check
-                // that the target room ID exists
-                if (usage.action == ItemAction.MoveTo || usage.action == ItemAction.SetItemRoom) {
-                    val targetRoomId = usage.moveToRoomId
-                    if (targetRoomId != null && !gameData.getRoomMap().containsKey(targetRoomId)) {
-                        LOG.warn(
-                                "Room '${room.id}' has an item usage with action '${usage.action}' referencing non-existent target room ID '$targetRoomId'"
-                        )
-                        isValid = false
-                    }
-                }
-                // If the usage involves changing an item's state, check that the affected item ID
-                // exists
-                if (usage.action == ItemAction.ChangeState) {
-                    val affectedItemId = usage.affectedItemId
-                    if (affectedItemId != null && !gameData.getItemMap().containsKey(affectedItemId)
-                    ) {
-                        LOG.warn(
-                                "Room '${room.id}' has an item usage with action 'ChangeState' referencing non-existent affected item ID '$affectedItemId'"
-                        )
-                        isValid = false
+
+                        is MoveToAction -> {
+                            if (!gameData.getRoomMap().containsKey(action.moveToRoomId)) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a MoveTo action (itemId ${usage.itemId}) referencing non-existent target room ID '${action.moveToRoomId}'"
+                                )
+                                isValid = false
+                            }
+                        }
+
+                        is SetItemRoomAction -> {
+                            if (!isValidLocation(action.moveToRoomId, gameData)) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a SetItemRoom action (itemId ${usage.itemId}) referencing invalid location '${action.moveToRoomId}'"
+                                )
+                                isValid = false
+                            }
+                            for (affectedItemId in action.affectedItemIds) {
+                                if (!gameData.getItemMap().containsKey(affectedItemId)) {
+                                    LOG.warn(
+                                        "Room '${room.id}' has a SetItemRoom action (itemId ${usage.itemId}) referencing non-existent affected item ID '$affectedItemId'"
+                                    )
+                                    isValid = false
+                                }
+                            }
+                        }
+
+                        is TransformIntoItemAction -> {
+                            for (affectedItemId in action.affectedItemIds) {
+                                if (!gameData.getItemMap().containsKey(affectedItemId)) {
+                                    LOG.warn(
+                                        "Room '${room.id}' has a TransformIntoItem action (itemId ${usage.itemId}) referencing non-existent source item ID '$affectedItemId'"
+                                    )
+                                    isValid = false
+                                }
+                            }
+                            for (transformedItemId in action.transformsIntoItemIds) {
+                                if (!gameData.getItemMap().containsKey(transformedItemId)) {
+                                    LOG.warn(
+                                        "Room '${room.id}' has a TransformIntoItem action (itemId ${usage.itemId}) referencing non-existent target item ID '$transformedItemId'"
+                                    )
+                                    isValid = false
+                                }
+                            }
+                        }
+
+                        is ModifyExitAction -> {
+                            val targetRoom = gameData.getRoomById(action.roomId)
+                            if (targetRoom == null) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a ModifyExit action (itemId ${usage.itemId}) referencing non-existent room ID '${action.roomId}'"
+                                )
+                                isValid = false
+                            } else if (!targetRoom.exits.orEmpty().containsKey(action.direction)) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a ModifyExit action (itemId ${usage.itemId}) referencing unknown direction '${action.direction}' in room '${action.roomId}'"
+                                )
+                                isValid = false
+                            }
+                        }
+
+                        else -> {
+                            LOG.warn(
+                                "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with unsupported action type '${action.type}'"
+                            )
+                            isValid = false
+                        }
                     }
                 }
             }

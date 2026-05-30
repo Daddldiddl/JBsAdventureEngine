@@ -17,17 +17,17 @@ import net.daddldiddl.jbsadventure.tools.serializers.*
 data class Room(
     val id: Int,
     override val name: Name,
-    val description: String,
+    override val description: String,
     val exits: Map<String, Exit>? = emptyMap(),
     val itemUsages: List<ItemUsage>? = emptyList()
 ) : NamedEntity
 {
     fun getVisibleExits(): List<Exit> {
-        return exits?.values?.filter { it.isVisible() }
+        return exits.orEmpty().values.filter { it.visible }
     }
 
     fun getItems(gameData: GameData): List<Item> {
-        return gameData.Items.values.filter { it.location == id }
+        return gameData.getItemsForRoom(id)
     }
 
     /**

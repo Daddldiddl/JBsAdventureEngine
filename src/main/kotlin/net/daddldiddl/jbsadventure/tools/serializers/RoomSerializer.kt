@@ -31,7 +31,7 @@ object RoomSerializer : KSerializer<Room> {
             id = surrogate.id,
             name = surrogate.name,
             description = surrogate.description,
-            exits = surrogate.exits?.associateBy { it.direction } ?: emptyMap(),
+            exits = surrogate.exits.associateBy { it.direction },
             itemUsages = surrogate.itemUsages ?: emptyList()
         )
     }

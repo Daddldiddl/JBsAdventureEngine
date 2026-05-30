@@ -13,6 +13,18 @@ data class GameData(
     private val Items: MutableMap<Int, Item>,
     val States: MutableMap<String, State>
 ) {
+    private lateinit var _currentRoom: Room
+    var currentRoom: Room
+        get() = if (::_currentRoom.isInitialized) {
+            _currentRoom
+        } else {
+            Rooms.keys.sorted().firstOrNull()?.let { Rooms[it] }
+                ?: throw IllegalStateException("No rooms defined in game data")
+        }
+        set(value) {
+            _currentRoom = value
+        }
+
     /**
      * Returns a map of all rooms in the game, keyed by their ID.
      */
@@ -80,7 +92,7 @@ data class GameData(
      * Returns a list of all items in open containers in the specified room.
      */
     fun getOpenContainerItemsForRoom(roomId: Int): List<Item> {
-        return getOpenContainersForRoom(roomId).flatMap { container -> container.getContainedItems() }
+        return getOpenContainersForRoom(roomId).flatMap { container -> container.getContainedItemObjects() }
     }
 
     /**
@@ -104,7 +116,9 @@ data class GameData(
      * Returns a list of all open containers in the specified room.
      */
     fun getOpenContainersForRoom(roomId: Int): List<Container> {
-        return Items.values.filter { it.location == roomId && it is Container && (it as Container).isOpen() }.map { it as Container }
+        return Items.values
+            .filterIsInstance<Container>()
+            .filter { it.location == roomId && it.isOpen() }
     }
 
     /**

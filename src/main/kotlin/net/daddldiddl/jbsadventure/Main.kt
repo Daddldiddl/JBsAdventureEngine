@@ -26,20 +26,37 @@ fun main(args: Array<String>) {
         return
     }
 
-    // read other command line parameters   
-    val debugMode = args.contains("--consoleDebug")
-    val writeToFile = args.contains("--log")    
-    val logLevel = if(debugMode) LogLevel.DEBUG 
-            else LogLevel.INFO
-    val langCode = if (args.contains("--lang")) args.getOrNull(args.indexOf("--lang") + 1) ?: "en" else "en"
+    // load persisted config first; command-line arguments then override selected values.
+    val effectiveConfig = Config.current.copy()
+    if (args.contains("--consoleDebug")) {
+        effectiveConfig.writeLogToConsole = true
+        effectiveConfig.logLevel = LogLevel.DEBUG
+    }
+    if (args.contains("--log")) {
+        effectiveConfig.writeFileLog = true
+    }
+    if (args.contains("--logDebug")) {
+        effectiveConfig.writeFileLog = true
+        effectiveConfig.logLevel = LogLevel.DEBUG
+    }
+    if (args.contains("--lang")) {
+        effectiveConfig.languageCode = args.getOrNull(args.indexOf("--lang") + 1) ?: effectiveConfig.languageCode
+    }
+
     val dataFilePath = if (args.contains("--data")) args.getOrNull(args.indexOf("--data") + 1) else null
 
     // initialize global variables
-    LOG = SimpleFileLog(consoleLogEnabled = debugMode, writeToFile = writeToFile, logLevel = logLevel)
+    LOG = SimpleFileLog(
+        consoleLogEnabled = effectiveConfig.writeLogToConsole,
+        writeToFile = effectiveConfig.writeFileLog,
+        logLevel = effectiveConfig.logLevel
+    )
     CONSOLE = ConsoleOutput()
-    LANG = GameLoader.loadLanguageData(langCode)
+    LANG = GameLoader.loadLanguageData(effectiveConfig.languageCode)
+    Config.current = effectiveConfig
+    Config.save()
 
-    LOG.info("JB's Adventure Engine starting up (Debug mode: $debugMode, Write to file: $writeToFile, Log level: $logLevel, Language: $langCode)")
+    LOG.info("JB's Adventure Engine starting up (Console debug: ${effectiveConfig.writeLogToConsole}, Write to file: ${effectiveConfig.writeFileLog}, Log level: ${effectiveConfig.logLevel}, Language: ${effectiveConfig.languageCode})")
     LOG.debug("Command line arguments: ${args.joinToString(" ")}")
 
     // load game data

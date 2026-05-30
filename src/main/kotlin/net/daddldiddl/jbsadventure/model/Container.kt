@@ -4,9 +4,13 @@ import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
-import net.daddldiddl.jbsadventure.tools.serializers.ItemSerializer
 
 interface ContainerEntity : OpenLockEnabledNamedEntity {
+    override val supportsOpenClose: Boolean
+        get() = true
+    override val supportsLockUnlock: Boolean
+        get() = false
+
     val containedItems: MutableList<Int>
 
     fun addItem(itemId: Int) {
@@ -46,7 +50,7 @@ interface ContainerEntity : OpenLockEnabledNamedEntity {
         return containsItem(item.id)
     }
 
-    fun getContainedItems(): List<Item> {
+    fun getContainedItemObjects(): List<Item> {
         return containedItems.mapNotNull { DATA.getItemById(it) }
     }
 
@@ -55,7 +59,6 @@ interface ContainerEntity : OpenLockEnabledNamedEntity {
     }
 }
 
-@Serializable(with = ItemSerializer::class)
 class Container(
     id: Int,
     name: Name,
@@ -95,7 +98,7 @@ class Container(
             return base
         }
 
-        val containedItemNames = getContainedItems().joinToString(", ") { it.getDescriptiveName() }
+        val containedItemNames = getContainedItemObjects().joinToString(", ") { it.getDescriptiveName() }
         val details = if (containedItemNames.isBlank()) {
             LANG.getMessage(Keys.Message.msgContainerEmpty)
                 .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))

@@ -18,37 +18,29 @@ class Exit (
     val direction: String,
     val targetRoomId: Int,
     override val name: Name = Name(LANG.getDirectionAliasFromKey(direction)),
+    override val supportsOpenClose: Boolean = false,
+    override val supportsLockUnlock: Boolean = false,
     override var open: Boolean = true,
     override var locked: Boolean = false,
     override val description: String? = null,
+    var visible: Boolean = true,
     var blocked: Boolean = false,
     var blockedDescription: String? = null,
-    val itemUsages: List<ItemUsage>? = null,
-    val visible: Boolean = true
+    val itemUsages: List<ItemUsage>? = null
 ) : OpenLockEnabledNamedEntity {
     /**
      * Returns a descriptive name for the exit, using the exit's name if available, or falling back to the direction's display name.
      * If [definite] is `true`, the name will be returned in its definite form (e.g., "the north exit"); otherwise, it will be returned in its indefinite form (e.g., "a north exit").
      */
     override fun getDescriptiveName(definite: Boolean?): String {
-        var descriptiveName = direction
-        if (name != null) {
-            descriptiveName = super.getDescriptiveName(definite)
-        }
-        return descriptiveName
+        return super.getDescriptiveName(definite)
     }
 
     override fun getDetailedDescription(): String {
         val desc = if(blocked) blockedDescription else description
-        val template = when (desc){
-            null -> when(name) {
-                null -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescriptionNoName)
-                else -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescription)
-            }
-            else -> when(name) {
-                null -> LANG.getMessage(Keys.Message.msgExitDetailedDescriptionNoName)
-                else -> LANG.getMessage(Keys.Message.msgExitDetailedDescription)
-            }
+        val template = when (desc) {
+            null -> LANG.getMessage(Keys.Message.msgExitDetailedNoDescription)
+            else -> LANG.getMessage(Keys.Message.msgExitDetailedDescription)
         }
         var message = template
             .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = false))

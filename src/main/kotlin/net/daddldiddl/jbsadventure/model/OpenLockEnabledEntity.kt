@@ -19,6 +19,12 @@ interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
 }
 
 interface OpenLockEnabledEntity {
+    // Defaults for entities that do not support these interactions.
+    val supportsOpenClose: Boolean
+        get() = false
+    val supportsLockUnlock: Boolean
+        get() = false
+
     var open: Boolean
     var locked: Boolean
 

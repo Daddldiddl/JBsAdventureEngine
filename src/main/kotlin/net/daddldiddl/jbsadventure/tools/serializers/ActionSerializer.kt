@@ -6,9 +6,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.lang.*
 
 @Serializable
 private data class ActionSurrogate(
@@ -26,9 +24,15 @@ private data class ActionSurrogate(
     val moveToRoomIdForItems: Int? = null,
     // for transform into item actions:
     val transformsIntoItemIds: List<Int>? = null,
+    // for ModifyExit actrions
+    val roomId: Int? = null,
+    val direction: String? = null,
+    val blocked: Boolean? = null,
+    val visible: Boolean? = null,
+    val locked: Boolean? = null,
+    val open: Boolean? = null,
     // for set room and transform actions:
-    val affectedItemIds: List<Int>? = null,
-
+    val affectedItemIds: List<Int>? = null
 )
 
 object ActionSerializer : KSerializer<Action> {
@@ -39,45 +43,27 @@ object ActionSerializer : KSerializer<Action> {
         return when (surrogate.type) {
             ActionType.ChangeState -> ChangeStateAction(
                 changedStateKey = surrogate.changedStateKey!!,
-                newStateValue = surrogate.newStateValue!!,
-                preconditions = surrogate.preconditions,
-                description = surrogate.description,
-                comment = surrogate.comment,
-                actionDebug = surrogate.actionDebug
+                newStateValue = surrogate.newStateValue!!
             )
             ActionType.MoveTo -> MoveToAction(
-                moveToRoomId = surrogate.moveToRoomId!!,
-                preconditions = surrogate.preconditions,
-                description = surrogate.description,
-                comment = surrogate.comment,
-                actionDebug = surrogate.actionDebug
+                moveToRoomId = surrogate.moveToRoomId!!
             )
             ActionType.SetItemRoom -> SetItemRoomAction(
                 affectedItemIds = surrogate.affectedItemIds!!,
-                moveToRoomId = surrogate.moveToRoomIdForItems!!,
-                preconditions = surrogate.preconditions,
-                description = surrogate.description,
-                comment = surrogate.comment,
-                actionDebug = surrogate.actionDebug
+                moveToRoomId = surrogate.moveToRoomIdForItems ?: surrogate.moveToRoomId!!
             )
             ActionType.TransformIntoItem -> TransformIntoItemAction(
                 affectedItemIds = surrogate.affectedItemIds!!,
-                transformsIntoItemIds = surrogate.transformsIntoItemIds!!,
-                preconditions = surrogate.preconditions,
-                description = surrogate.description,
-                comment = surrogate.comment,
-                actionDebug = surrogate.actionDebug
+                transformsIntoItemIds = surrogate.transformsIntoItemIds!!
             )
-            else -> {
-                LOG.error("Unknown action type '${surrogate.type}' encountered during deserialization. Returning a default no-op action.")
-                return Action(
-                    type = surrogate.type,
-                    preconditions = surrogate.preconditions,
-                    description = surrogate.description,
-                    comment = surrogate.comment,
-                    actionDebug = surrogate.actionDebug
-                )
-            }
+            ActionType.ModifyExit -> ModifyExitAction(
+                roomId = surrogate.roomId!!,
+                direction = surrogate.direction!!,
+                blocked = surrogate.blocked,
+                visible = surrogate.visible,
+                locked = surrogate.locked,
+                open = surrogate.open
+            )
         }
     }
 
@@ -117,6 +103,19 @@ object ActionSerializer : KSerializer<Action> {
                 actionDebug = value.actionDebug,
                 affectedItemIds = value.affectedItemIds,
                 transformsIntoItemIds = value.transformsIntoItemIds
+            )
+            is ModifyExitAction -> ActionSurrogate(
+                type = value.type,
+                preconditions = value.preconditions,
+                description = value.description,
+                comment = value.comment,
+                actionDebug = value.actionDebug,
+                roomId = value.roomId,
+                direction = value.direction,
+                blocked = value.blocked,
+                visible = value.visible,
+                locked = value.locked,
+                open = value.open
             )
             else -> throw IllegalArgumentException("Unsupported action type '${value.type}' encountered during serialization.")
         }

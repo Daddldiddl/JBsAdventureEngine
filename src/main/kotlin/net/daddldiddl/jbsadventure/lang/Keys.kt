@@ -58,6 +58,8 @@ object Keys {
         const val use = "use"
         const val drop = "drop"
         const val examine = "examine"
+        const val open = "open"
+        const val close = "close"
     }
 
     /**
@@ -143,5 +145,15 @@ object Keys {
         const val msgExitDetailedDescription = "msgExitDetailedDescription"
         const val msgExitDetailedNoDescriptionNoName = "msgExitDetailedNoDescriptionNoName"
         const val msgExitDetailedDescriptionNoName = "msgExitDetailedDescriptionNoName"
+        const val msgOpenCloseWhat = "msgOpenCloseWhat"
+        const val msgDoesNotSupportOpenClose = "msgDoesNotSupportOpenClose"
+        const val msgAlreadyOpen = "msgAlreadyOpen"
+        const val msgAlreadyClosed = "msgAlreadyClosed"
+        const val msgTargetLocked = "msgTargetLocked"
+        const val msgOpenSuccess = "msgOpenSuccess"
+        const val msgCloseSuccess = "msgCloseSuccess"
+        const val msgOpenFailed = "msgOpenFailed"
+        const val msgCloseFailed = "msgCloseFailed"
+        const val msgNoTargetToOpenClose = "msgNoTargetToOpenClose"
     }
 }

@@ -8,18 +8,17 @@ import net.daddldiddl.jbsadventure.tools.*
  * Main game controller that manages state, processes player commands, and drives the game loop.
  *
  * On construction the game loads all rooms and items from the supplied [GameData]. The caller
- * should invoke [outputWelcome] once, then repeatedly call [processCommand] with each line of player input
+ * should invoke [printWelcome] once, then repeatedly call [processCommand] with each line of player input
  * until [isRunning] returns `false`.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 class Game(private val gameData: GameData) {
-    private var currentRoom: Room =
-            gameData.getRoomById(1) ?: error("Starting room (id=1) not found in data.json")
+
     private var running = true
 
     fun currentStateDebug() {
-        LOG.debug("Current room: ${currentRoom.name} (id=${currentRoom.id}), containing items: ${gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}")
+        LOG.debug("Current room: ${DATA.currentRoom.name} (id=${DATA.currentRoom.id}), containing items: ${gameData.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}")
     }
 
     /**
@@ -74,7 +73,7 @@ class Game(private val gameData: GameData) {
      */
     fun processCommand(input: String) {
         CONSOLE.print()
-        var parts = cleanupAndFilterInput(input)
+        val parts = cleanupAndFilterInput(input)
         if(parts.isEmpty()) {
             return
         }
@@ -97,6 +96,12 @@ class Game(private val gameData: GameData) {
             }
             in LANG.getCommandAliases(Keys.Command.drop) -> {
                 handleDrop(parts)
+            }
+            in LANG.getCommandAliases(Keys.Command.open) -> {
+                handleOpenClose(parts, open = true)
+            }
+            in LANG.getCommandAliases(Keys.Command.close) -> {
+                handleOpenClose(parts, open = false)
             }
             in LANG.getCommandAliases(Keys.Command.inventory) -> {
                 handleInventory()
@@ -123,7 +128,7 @@ class Game(private val gameData: GameData) {
                 } else {
                     CONSOLE.warn("Unknown command: \"${parts.first()}\".\nType 'help' for a list of commands.")
                 }
-                
+
             }
         }
         CONSOLE.print()
@@ -175,10 +180,10 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("Examine what? e.g. 'examine key'")
         } else {
             val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getAllAccessibleItemsForRoom(currentRoom.id).find { it.matchesName(itemName) }
+            val item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
             if (item == null) {
                 CONSOLE.print(LANG.getMessage(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
-            } else if (item.location != currentRoom.id && item.location != FixedLocation.INVENTORY.value) {
+            } else if (item.location != DATA.currentRoom.id && item.location != FixedLocation.INVENTORY.value) {
                 CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotVisible)))
             } else {
                 CONSOLE.print(item.descriptionWithState(gameData))
@@ -196,120 +201,75 @@ class Game(private val gameData: GameData) {
         LOG.debug("Handling use command with parts: $parts")
         if (parts.size < 2) {
             CONSOLE.print("Use what? e.g. 'use key'")
-        } else {
-            val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getAllAccessibleItemsForRoom(currentRoom.id).find { it.matchesName(itemName) }
-            if (item == null) {
-                CONSOLE.print(LANG.getMessage(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
-            } else if (item.usable == false) {
-                CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
-            } else {
-                val usage = currentRoom.getItemUsage(item.id)
-                if (usage == null) {
-                    CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
-                } else {
-                    var itemUsed :Boolean = false
-                    when (usage.action) {
-                        ItemAction.MoveTo -> {
-                            val targetRoomId =
-                                    usage.moveToRoomId
-                                            ?: error("moveTo action requires moveToRoomId")
-                            LOG.debug(
-                                    "Moving player from room '${currentRoom.debugName()}' to room '${gameData.getRoomById(targetRoomId)?.debugName()}' due to use of item '${item.debugName()}'"
-                            )
-                            currentRoom =
-                                    gameData.getRoomById(targetRoomId)
-                                            ?: error(
-                                                    "Target room $targetRoomId not found in data.json"
-                                            )
-                            if (item.driveable == true) {
-                                // If the item is driveable, we assume it moves with the player to
-                                // the new room.
-                                LOG.debug(
-                                        "Setting item '${item.debugName()}' location to '${gameData.getRoomById(targetRoomId)?.debugName()}' due to being used to move the player"
-                                )
-                                gameData.setItemLocation(item.id, targetRoomId)
-                            }
-                            itemUsed = true
-                        }
-                        ItemAction.SetItemRoom -> {
-                            val targetRoomId: Int =
-                                    usage.moveToRoomId
-                                            ?: error("SetItemRoom action requires moveToRoomId")
-                            val itemToMoveId: Int =
-                                    usage.affectedItemId
-                                            ?: error("SetItemRoom action requires affectedItemId")
-                            val itemToMove =
-                                    gameData.getItemById(itemToMoveId)
-                                            ?: error(
-                                                    "Item with id $itemToMoveId not found in data.json"
-                                            )
-                            LOG.debug(
-                                    "Setting item '${itemToMove.debugName()}' location to '${gameData.getRoomById(targetRoomId)?.debugName()}' due to use of item '${item.debugName()}'"
-                            )
-                            gameData.setItemLocation(itemToMoveId, targetRoomId)
-                            itemUsed = true
-                        }
-                        ItemAction.ChangeState -> {
-                            val stateKey: String =
-                                    usage.stateKey ?: error("ChangeState action requires stateKey")
-                            val newStateValue: String =
-                                    usage.newStateValue
-                                            ?: error("ChangeState action requires newStateValue")
-                            val oldStateValue: String =
-                                    usage.oldStateValue
-                                            ?: error("ChangeState action requires oldStateValue")
-                            val affectedItemId: Int =
-                                    usage.affectedItemId
-                                            ?: error("ChangeState action requires affectedItemId")
-                            val state: State =
-                                    usage.getState(gameData.getStateMap())
-                                            ?: error(
-                                                    "State with key '$stateKey' not found in data.json"
-                                            )
-                            val affectedItem =
-                                    usage.getAffectedItem(gameData.getItemMap())
-                                            ?: error(
-                                                    "Affected item with id $affectedItemId not found in data.json"
-                                            )
-                            if (usage.isStateChangeValid(gameData.getStateMap())) {
-                                LOG.debug(
-                                        "Changing state '$stateKey' of item '${affectedItem.debugName()}' to '$newStateValue' due to use of item '${item.debugName()}'"
-                                )
-                                state.currentValue = newStateValue
-                                if (usage.becomesUsable == true) {
-                                    LOG.debug(
-                                            "Setting item '${affectedItem.debugName()}' usable=true due to state change from using item '${item.debugName()}'"
-                                    )
-                                    affectedItem.usable = true
-                                }
-                                itemUsed = true
-                            } else {
-                                CONSOLE.print("The ${affectedItem.name} is not ${oldStateValue}.")
-                            }
-                        }
-                        else -> {
-                            CONSOLE.print("Unknown action '${usage.action}' for item usage.")
-                        }
-                    }
-                    if (itemUsed){
-                        CONSOLE.print(usage.description)
-                        if(usage.consumeUsedItem == true) {
-                            if(item.numberOfUses != null) {
-                                item.numberOfUses = item.numberOfUses!! - 1
-                                LOG.debug("Decrementing numberOfUses of item '${item.debugName()}'} by one due to use action)")
-                            }
-                            if(item.numberOfUses == null || item.numberOfUses!! <= 0) {
-                                LOG.debug("Removing item '${item.debugName()}' due to being consumed by use action)")
-                                item.location = Item.Constants.NOTASSIGNED_LOCATION
-                            }
-                        }
-                        if(usage.action == ItemAction.MoveTo) {
-                            describeRoom()
-                        }
-                    }
+            return
+        }
+
+        val itemName = parts.drop(1).joinToString(" ")
+        val item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
+        if (item == null) {
+            CONSOLE.print(LANG.getMessage(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
+            return
+        }
+        if (item.usable == false) {
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            return
+        }
+
+        val usage = DATA.currentRoom.getItemUsage(item.id)
+        if (usage == null) {
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            return
+        }
+
+        var itemUsed = false
+        var movedToAnotherRoom = false
+
+        for (action in usage.actions) {
+            if (!action.canExecute(gameData)) {
+                LOG.debug("Skipping action '${action.type}' for item '${item.debugName()}' because preconditions are not met")
+                continue
+            }
+
+            val executed = action.execute(gameData)
+            if (!executed) {
+                LOG.debug("Action '${action.type}' for item '${item.debugName()}' failed during execution")
+                continue
+            }
+
+            itemUsed = true
+            if (action.type == ActionType.MoveTo) {
+                movedToAnotherRoom = true
+                if (item.driveable == true) {
+                    LOG.debug("Keeping driveable item '${item.debugName()}' with player in room '${gameData.currentRoom.debugName()}'")
+                    gameData.setItemLocation(item.id, gameData.currentRoom.id)
                 }
             }
+
+            if (!action.description.isNullOrBlank()) {
+                CONSOLE.print(action.description)
+            }
+        }
+
+        if (!itemUsed) {
+            CONSOLE.print(item.replacePlaceholdersName(LANG.getMessage(Keys.Message.msgItemNotUsable)))
+            return
+        }
+
+        if (usage.becomesUsable == true) {
+            item.usable = true
+        }
+        if (usage.consumeUsedItem == true) {
+            if (item.numberOfUses != null) {
+                item.numberOfUses = item.numberOfUses!! - 1
+                LOG.debug("Decrementing numberOfUses of item '${item.debugName()}' by one due to use action")
+            }
+            if (item.numberOfUses == null || item.numberOfUses!! <= 0) {
+                LOG.debug("Removing item '${item.debugName()}' due to being consumed by use action")
+                item.location = Item.NOTASSIGNED_LOCATION
+            }
+        }
+        if (movedToAnotherRoom) {
+            describeRoom()
         }
     }
 
@@ -319,7 +279,7 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("Pickup what? e.g. 'pickup key'")
         } else {
             val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getAccessibleItemByNameAndRoom(itemName, currentRoom.id)
+            val item = gameData.getAccessibleItemByNameAndRoom(itemName, DATA.currentRoom.id)
             if (item == null) {
                 CONSOLE.print("There is no '${itemName}' here to pickup.")
             } else if (item.carriable == false) {
@@ -342,8 +302,8 @@ class Game(private val gameData: GameData) {
             if (item == null) {
                 CONSOLE.print("You are not carrying a '$itemName'.")
             } else {
-                LOG.debug("Setting location of item '${item.debugName()}' to '${currentRoom.debugName()}' due to drop")
-                gameData.setItemLocation(item.id, currentRoom.id)
+                LOG.debug("Setting location of item '${item.debugName()}' to '${DATA.currentRoom.debugName()}' due to drop")
+                gameData.setItemLocation(item.id, DATA.currentRoom.id)
                 CONSOLE.print("You dropped the ${item.name}.")
             }
         }
@@ -362,11 +322,102 @@ class Game(private val gameData: GameData) {
         }
     }
 
+    private fun findExitInCurrentRoom(input: String): Exit? {
+        val roomExits = DATA.currentRoom.exits.orEmpty()
+        val directionKey = LANG.getDirectionKeyFromAlias(input)
+        val byDirection = roomExits[directionKey]
+        if (byDirection != null) {
+            return byDirection
+        }
+        return roomExits.values.find { it.nameMatches(input) }
+    }
+
+    private fun handleOpenClose(parts: List<String>, open: Boolean) {
+        val verb = if (open) "open" else "close"
+        LOG.debug("Handling '$verb' command with parts: $parts")
+
+        fun msg(key: String, name: String? = null): String {
+            var value = LANG.getMessage(key)
+                .replace(Keys.StandIn.command, verb)
+            if (name != null) {
+                value = value.replace(Keys.StandIn.name, name)
+            }
+            return value
+        }
+
+        if (parts.size < 2) {
+            CONSOLE.print(msg(Keys.Message.msgOpenCloseWhat))
+            return
+        }
+
+        val targetName = parts.drop(1).joinToString(" ")
+
+        val matchingItem = gameData
+            .getAllAccessibleItemsForRoom(DATA.currentRoom.id)
+            .find { it.matchesName(targetName) }
+
+        val containerItem = matchingItem as? ContainerEntity
+
+        if (containerItem is ContainerEntity) {
+            val containerDisplayName = containerItem.name.name
+            if (!containerItem.supportsOpenClose) {
+                CONSOLE.print(msg(Keys.Message.msgDoesNotSupportOpenClose, containerDisplayName))
+                return
+            }
+            if (open) {
+                when {
+                    containerItem.isOpen() -> CONSOLE.print(msg(Keys.Message.msgAlreadyOpen, containerDisplayName))
+                    containerItem.isLocked() -> CONSOLE.print(msg(Keys.Message.msgTargetLocked, containerDisplayName))
+                    containerItem.open() -> CONSOLE.print(msg(Keys.Message.msgOpenSuccess, containerDisplayName))
+                    else -> CONSOLE.print(msg(Keys.Message.msgOpenFailed, containerDisplayName))
+                }
+            } else {
+                when {
+                    containerItem.isClosed() -> CONSOLE.print(msg(Keys.Message.msgAlreadyClosed, containerDisplayName))
+                    containerItem.close() -> CONSOLE.print(msg(Keys.Message.msgCloseSuccess, containerDisplayName))
+                    else -> CONSOLE.print(msg(Keys.Message.msgCloseFailed, containerDisplayName))
+                }
+            }
+            return
+        }
+
+        if (matchingItem != null) {
+            CONSOLE.print(msg(Keys.Message.msgDoesNotSupportOpenClose, matchingItem.name.name))
+            return
+        }
+
+        val exit = findExitInCurrentRoom(targetName)
+        if (exit != null) {
+            val exitDisplayName = LANG.getDirectionAliasFromKey(exit.direction)
+            if (!exit.supportsOpenClose) {
+                CONSOLE.print(msg(Keys.Message.msgOpenFailed, exitDisplayName))
+                return
+            }
+            if (open) {
+                when {
+                    exit.isOpen() -> CONSOLE.print(msg(Keys.Message.msgAlreadyOpen, exitDisplayName))
+                    exit.isLocked() -> CONSOLE.print(msg(Keys.Message.msgTargetLocked, exitDisplayName))
+                    exit.open() -> CONSOLE.print(msg(Keys.Message.msgOpenSuccess, exitDisplayName))
+                    else -> CONSOLE.print(msg(Keys.Message.msgOpenFailed, exitDisplayName))
+                }
+            } else {
+                when {
+                    exit.isClosed() -> CONSOLE.print(msg(Keys.Message.msgAlreadyClosed, exitDisplayName))
+                    exit.close() -> CONSOLE.print(msg(Keys.Message.msgCloseSuccess, exitDisplayName))
+                    else -> CONSOLE.print(msg(Keys.Message.msgCloseFailed, exitDisplayName))
+                }
+            }
+            return
+        }
+
+        CONSOLE.print(msg(Keys.Message.msgNoTargetToOpenClose, targetName))
+    }
+
 
     /** Saves the current game state (player location and all item locations) to `savegame.json`. */
     private fun saveGame() {
         LOG.info("Saving game state...")
-        SaveManager.save(gameData, currentRoom)
+        SaveManager.save(gameData, DATA.currentRoom)
         CONSOLE.print("Game saved.")
     }
 
@@ -381,7 +432,7 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("No saved game found.")
             return
         }
-        currentRoom =
+        DATA.currentRoom =
                 gameData.getRoomById(state.currentRoomId)
                         ?: error("Saved room id=${state.currentRoomId} not found in data.json")
         CONSOLE.print("Game loaded.")
@@ -394,8 +445,8 @@ class Game(private val gameData: GameData) {
      * @param direction The direction to travel (e.g. `"north"`, `"up"`).
      */
     private fun move(direction: String) {
-        LOG.debug("Attempting to move from '${currentRoom.debugName()}' in direction '$direction'")
-        val exits = currentRoom.exits ?: emptyMap()
+        LOG.debug("Attempting to move from '${DATA.currentRoom.debugName()}' in direction '$direction'")
+        val exits = DATA.currentRoom.exits ?: emptyMap()
         if (exits.isEmpty()) {
             CONSOLE.print("There are no exits from this room.")
             return
@@ -409,7 +460,7 @@ class Game(private val gameData: GameData) {
             CONSOLE.print("You can't go $direction from here (Room $nextRoomId not found).")
             return
         }
-        currentRoom =
+        DATA.currentRoom =
                 gameData.getRoomById(nextRoomId)
                         ?: error("Room with id $nextRoomId not found in data.json")
         describeRoom()
@@ -420,18 +471,18 @@ class Game(private val gameData: GameData) {
      * stdout.
      */
     private fun describeRoom() {
-        LOG.debug("Describing room '${currentRoom.debugName()}' with id ${currentRoom.id}")
-        CONSOLE.print("-".repeat(currentRoom.name.name.length), ConsoleColor.LIGHTCYAN)
-        CONSOLE.print(currentRoom.name.name, ConsoleColor.LIGHTCYAN)
-        CONSOLE.print("-".repeat(currentRoom.name.name.length), ConsoleColor.LIGHTCYAN)
-        CONSOLE.print(currentRoom.description, ConsoleColor.WHITE)
-        val exitList = (currentRoom.exits ?: emptyMap()).keys.joinToString(", ")
+        LOG.debug("Describing room '${DATA.currentRoom.debugName()}' with id ${DATA.currentRoom.id}")
+        CONSOLE.print("-".repeat(DATA.currentRoom.name.name.length), ConsoleColor.LIGHTCYAN)
+        CONSOLE.print(DATA.currentRoom.name.name, ConsoleColor.LIGHTCYAN)
+        CONSOLE.print("-".repeat(DATA.currentRoom.name.name.length), ConsoleColor.LIGHTCYAN)
+        CONSOLE.print(DATA.currentRoom.description, ConsoleColor.WHITE)
+        val exitList = (DATA.currentRoom.exits ?: emptyMap()).keys.joinToString(", ")
         if(exitList.isNotEmpty()) {
             CONSOLE.print("Exits: $exitList", ConsoleColor.LIGHTYELLOW)
         } else {
             CONSOLE.print("There are no exits.", ConsoleColor.LIGHTGREEN)
         }
-        val itemList = gameData.getItemsForRoom(currentRoom.id).joinToString(", ") { "${it.getArticle()} ${it.name}" }
+        val itemList = gameData.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.getArticle()} ${it.name}" }
         if (itemList.isNotEmpty()) {
             CONSOLE.print("Items: $itemList", ConsoleColor.LIGHTGREEN)
         }
@@ -450,6 +501,8 @@ class Game(private val gameData: GameData) {
             Keys.Command.use,
             Keys.Command.take,
             Keys.Command.drop,
+            Keys.Command.open,
+            Keys.Command.close,
             Keys.Command.inventory,
             Keys.Command.go,
             Keys.Command.save,
