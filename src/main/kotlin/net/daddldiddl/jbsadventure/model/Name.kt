@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
-import net.daddldiddl.jbsadventure.lang.*
+import net.daddldiddl.jbsadventure.lang.Keys
 
 /**
  * Localizable name metadata for entities.

@@ -1,8 +1,8 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.tools.serializers.*
 import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.tools.serializers.GameDataSerializer
 
 /**
  * Central runtime game model containing rooms, items, global states and player position.
@@ -56,13 +56,6 @@ data class GameData(
      */
     fun getVisibleExitsForRoom(roomId: Int): List<Exit> {
         return getRoomById(roomId)?.exits?.values?.filter { it.visible } ?: emptyList()
-    }
-
-    /**
-     * Returns a list of all accessible (visible AND open) exits in the specified room.
-     */
-    fun getAccessibleExitsForRoom(roomId: Int): List<Exit> {
-        return getVisibleExitsForRoom(roomId).filter { it.isOpen() }
     }
 
     /**
@@ -157,6 +150,12 @@ data class GameData(
      * Sets the location of the item with the specified ID.
      */
     fun setItemLocation(itemId: Int, locationId: Int) {
+        // Keep container membership and item location in sync when an item is moved.
+        getContainerList().forEach { container ->
+            if (container.containsItem(itemId)) {
+                container.removeItem(itemId)
+            }
+        }
         Items[itemId]?.location = locationId
     }
 

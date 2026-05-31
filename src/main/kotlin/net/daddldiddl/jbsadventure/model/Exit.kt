@@ -1,12 +1,10 @@
 
 package net.daddldiddl.jbsadventure.model
 
-import net.daddldiddl.jbsadventure.LANG
-import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.lang.*
-import net.daddldiddl.jbsadventure.tools.serializers.*
-
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.tools.serializers.ExitSerializer
 
 /**
  * Represents an exit from a room in a specific direction, leading to another room.
@@ -66,4 +64,11 @@ class Exit (
     override fun toString(): String {
         return getDescriptiveName()
     }
+
+    fun debugName(): String {
+        return replacePlaceholdersName(
+            "Exit <name> leading $direction"
+        )
+    }
+
 }

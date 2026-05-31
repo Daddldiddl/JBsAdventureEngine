@@ -1,16 +1,8 @@
 package net.daddldiddl.jbsadventure.tools
 
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
-import net.daddldiddl.jbsadventure.model.SaveState
-import net.daddldiddl.jbsadventure.model.ItemSaveState
-import net.daddldiddl.jbsadventure.model.ExitSaveState
-import net.daddldiddl.jbsadventure.model.Room
-import net.daddldiddl.jbsadventure.model.GameData
-import net.daddldiddl.jbsadventure.model.Container
-import net.daddldiddl.jbsadventure.model.FixedLocation
 import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.model.*
 import java.io.File
 
 /**
@@ -104,10 +96,19 @@ object SaveManager {
             }
         }
 
-        // Ensure location flag and container lists are in sync after restore.
+        // Ensure location flag and container lists are in sync after restore,
+        // but do not override explicit non-container locations from itemStates.
         gameData.getContainerList().forEach { container ->
             container.getContainedItemIds().forEach { containedItemId ->
-                gameData.setItemLocation(containedItemId, FixedLocation.CONTAINER.value)
+                val explicitLocation = state.itemStates[containedItemId]?.location
+                if (explicitLocation == FixedLocation.CONTAINER.value) {
+                    gameData.setItemLocation(containedItemId, FixedLocation.CONTAINER.value)
+                    if (!container.containsItem(containedItemId)) {
+                        container.addItem(containedItemId)
+                    }
+                } else if (explicitLocation != null && explicitLocation != FixedLocation.CONTAINER.value) {
+                    container.removeItem(containedItemId)
+                }
             }
         }
 

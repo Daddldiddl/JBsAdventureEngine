@@ -1,11 +1,11 @@
 package net.daddldiddl.jbsadventure.tools
 
+import net.daddldiddl.jbsadventure.CONSOLE
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import net.daddldiddl.jbsadventure.CONSOLE
 
 public enum class LogLevel(val priority: Int) {
     ERROR(5), WARN(4), INFO(3), CONSOLE(2), DEBUG(1)

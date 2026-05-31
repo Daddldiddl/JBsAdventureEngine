@@ -5,9 +5,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-
-import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.lang.*
+import net.daddldiddl.jbsadventure.model.Exit
+import net.daddldiddl.jbsadventure.model.ItemUsage
+import net.daddldiddl.jbsadventure.model.Name
+import net.daddldiddl.jbsadventure.model.Room
 
 @Serializable
 private data class RoomSurrogate(

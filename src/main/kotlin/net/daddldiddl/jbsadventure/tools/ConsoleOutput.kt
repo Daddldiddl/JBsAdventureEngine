@@ -1,7 +1,6 @@
 package net.daddldiddl.jbsadventure.tools
 
 import net.daddldiddl.jbsadventure.LOG
-import net.daddldiddl.jbsadventure.tools.LogLevel
 
 /**
  * Enum representing console colors for text output.

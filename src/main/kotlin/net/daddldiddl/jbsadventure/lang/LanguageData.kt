@@ -1,9 +1,8 @@
 package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
-
-import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.model.NamedEntity
 
 /**
  * Represents the data for a command, including its aliases and description.
@@ -88,10 +87,19 @@ data class LanguageData(
         }
     }
 
+    fun getArticle(definite :Boolean = false, namedEntity: NamedEntity): String {
+        return getArticle(definite = definite, isPlural = namedEntity.name.isPlural, genderKey = namedEntity.name.genderKey)
+    }
+
     /**
      * Returns the appropriate article based on definiteness, plurality, and gender.
      */
-    fun getArticle(definite: Boolean = false, genderKey: String ?= defaultPronoun.genderKey): String {
+    fun getArticle(definite: Boolean = false, isPlural: Boolean = false, genderKey: String ?= defaultPronoun.genderKey): String {
+        if(languageKey == Keys.languageKeyEn && !definite && !isPlural) {
+            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
+            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
+            return if (genderKey != null && genderKey.matches(Regex("^[aeiouAEIOU].*"))) "an" else "a"
+        }
         return when (definite) {
             true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
             else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle

@@ -31,7 +31,9 @@ enum class ActionType {
     /** Transforms one or multiple items into other items. */
     TransformIntoItem,
     /** Changes lock/open/blocked state of an exit. */
-    ModifyExit
+    ModifyExit,
+    /** Changes lock/open/blocked state of an exit. */
+    ModifyContainer
 }
 
 
@@ -116,14 +118,19 @@ abstract class Action(
  */
 data class ChangeStateAction(
     val changedStateKey: String,
-    val newStateValue: String
+    val newStateValue: String,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
 ) : Action(
     type = ActionType.ChangeState,
-    preconditions = emptyList(),
-    description = "",
-    comment = null,
-    actionDebug = "Changed state '$changedStateKey' to '$newStateValue'.",
-    delayInMillis = null
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Changed state '$changedStateKey' to '$newStateValue'.",
+    delayInMillis = configuredDelayInMillis
 ){
     /** Updates the configured state key with the new value when valid. */
     override fun execute(gameData: GameData): Boolean {
@@ -149,13 +156,18 @@ data class ChangeStateAction(
  */
 data class MoveToAction(
     val moveToRoomId: Int,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
 ) : Action(
     type = ActionType.MoveTo,
-    preconditions = emptyList(),
-    description = "",
-    comment = null,
-    actionDebug = "Moved player to room with id $moveToRoomId.",
-    delayInMillis = null
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Moved player to room with id $moveToRoomId.",
+    delayInMillis = configuredDelayInMillis
 ){
     /** Moves the player to the configured target room when possible. */
     override fun execute(gameData: GameData): Boolean {
@@ -177,14 +189,19 @@ data class MoveToAction(
  */
 data class SetItemRoomAction(
     val affectedItemIds : List<Int>,
-    val moveToRoomId: Int
+    val moveToRoomId: Int,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
 ) : Action(
     type = ActionType.SetItemRoom,
-    preconditions = emptyList(),
-    description = "",
-    comment = null,
-    actionDebug = "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId.",
-    delayInMillis = null
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId.",
+    delayInMillis = configuredDelayInMillis
 ){
     /** Relocates configured items to the configured destination room/location. */
     override fun execute(gameData: GameData): Boolean {
@@ -206,14 +223,19 @@ data class SetItemRoomAction(
  */
 data class TransformIntoItemAction(
     val affectedItemIds: List<Int>,
-    val transformsIntoItemIds: List<Int>
+    val transformsIntoItemIds: List<Int>,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
 ) : Action(
     type = ActionType.TransformIntoItem,
-    preconditions = emptyList(),
-    description = "",
-    comment = null,
-    actionDebug = "Transformed items ${affectedItemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}.",
-    delayInMillis = null
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Transformed items ${affectedItemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}.",
+    delayInMillis = configuredDelayInMillis
 ){
     /** Replaces configured source items with target items at source locations. */
     override fun execute(gameData: GameData): Boolean {
@@ -245,13 +267,18 @@ data class ModifyExitAction(
     val open: Boolean?,
     val locked: Boolean?,
     val blocked: Boolean?,
-    val visible: Boolean?
+    val visible: Boolean?,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
 ) : Action(
     type = ActionType.ModifyExit,
-    preconditions = emptyList(),
-    description = "",
-    comment = null,
-    actionDebug = "Changed Exit $roomId, $direction to: ${
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Changed Exit $roomId, $direction to: ${
         listOf(
             when (open) {
                 true -> ("open")
@@ -275,7 +302,7 @@ data class ModifyExitAction(
             }
         ).filter{!it.isBlank()}.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
     }.",
-    delayInMillis = null
+    delayInMillis = configuredDelayInMillis
 ){
     /** Applies selective open/lock/blocked/visibility changes to one room exit. */
     override fun execute(gameData: GameData): Boolean {
@@ -286,10 +313,89 @@ data class ModifyExitAction(
         val room = gameData.getRoomById(roomId) ?: return false
         val exit = room.exits?.get(direction) ?: return false
 
+        if(!exit.supportsOpenClose && open != null) {
+            LOG.warn("${exit.debugName()} does not support open/close, but action attempted to set open to $open.")
+            return false
+        }
+        if(!exit.supportsLockUnlock && locked != null) {
+            LOG.warn("${exit.debugName()} does not support lock/unlock, but action attempted to set locked to $locked.")
+            return false
+        }
+        if(open == null && locked == null){
+            LOG.warn("The ModifyContainer action for ${exit.debugName()} has no values for locked or open!")
+            return false
+        }
         if (open != null) exit.open = open
         if (locked != null) exit.locked = locked
         if (blocked != null) exit.blocked = blocked
         if (visible != null) exit.visible = visible
+        logActionExecution()
+        return true
+    }
+}
+
+/**
+ * Action representing a transformation of one item into another,
+ * e.g. transforming an empty pot into a pot of hot coffee.
+ */
+data class ModifyContainerAction(
+    val containerId: Int,
+    val open: Boolean?,
+    val locked: Boolean?,
+    val configuredPreconditions: List<Precondition> = emptyList(),
+    val configuredDescription: String? = null,
+    val configuredComment: String? = null,
+    val configuredActionDebug: String? = null,
+    val configuredDelayInMillis: Long? = null
+) : Action(
+    type = ActionType.ModifyContainer,
+    preconditions = configuredPreconditions,
+    description = configuredDescription,
+    comment = configuredComment,
+    actionDebug = configuredActionDebug ?: "Changed container $containerId to: ${
+        listOf(
+            when (open) {
+                true -> ("open")
+                false -> "closed"
+                null -> ""
+            },
+            when (locked) {
+                true -> ("locked")
+                false -> "unlocked"
+                null -> ""
+            }
+        ).filter{!it.isBlank()}.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
+    }.",
+    delayInMillis = configuredDelayInMillis
+){
+    /** Applies selective open/lock/blocked/visibility changes to one room exit. */
+    override fun execute(gameData: GameData): Boolean {
+        if (!checkPreconditions(gameData)) {
+            return false
+        }
+        val item = gameData.getItemById(containerId)?: return false
+        if(item !is Container) {
+            LOG.warn("Attempted to execute ModifyContainerAction on ${item.debugName()}, but it is not a container.")
+            return false
+        }
+        val container = item
+        if(!container.supportsOpenClose && open != null) {
+            LOG.warn("${container.debugName()} does not support open/close, but action attempted to set open to $open.")
+            return false
+        }
+        if(!container.supportsLockUnlock && locked != null) {
+            LOG.warn("${container.debugName()} does not support lock/unlock, but action attempted to set locked to $locked.")
+            return false
+        }
+        if(open == null && locked == null){
+            LOG.warn("The ModifyContainer action for ${container.debugName()} has no values for locked or open!")
+            return false
+        }
+
+        delayIfRequired()
+
+        if (open != null) container.open = open
+        if (locked != null) container.locked = locked
         logActionExecution()
         return true
     }

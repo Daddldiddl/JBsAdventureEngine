@@ -15,6 +15,7 @@ private data class ActionSurrogate(
     val description: String? = null,
     val comment: String? = null,
     val actionDebug: String? = null,
+    val delayInMillis: Long? = null,
     // for change state actions:
     val changedStateKey: String? = null,
     val newStateValue: String? = null,
@@ -31,6 +32,8 @@ private data class ActionSurrogate(
     val visible: Boolean? = null,
     val locked: Boolean? = null,
     val open: Boolean? = null,
+    // for ModifyContainer actions:
+    val containerId: Int? = null,
     // for set room and transform actions:
     val affectedItemIds: List<Int>? = null
 )
@@ -44,19 +47,39 @@ object ActionSerializer : KSerializer<Action> {
         return when (surrogate.type) {
             ActionType.ChangeState -> ChangeStateAction(
                 changedStateKey = surrogate.changedStateKey!!,
-                newStateValue = surrogate.newStateValue!!
+                newStateValue = surrogate.newStateValue!!,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
             )
             ActionType.MoveTo -> MoveToAction(
-                moveToRoomId = surrogate.moveToRoomId!!
+                moveToRoomId = surrogate.moveToRoomId!!,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
             )
             ActionType.SetItemRoom -> SetItemRoomAction(
                 affectedItemIds = surrogate.affectedItemIds!!,
                 // Prefer the new field, but accept the old moveToRoomId for compatibility.
-                moveToRoomId = surrogate.moveToRoomIdForItems ?: surrogate.moveToRoomId!!
+                moveToRoomId = surrogate.moveToRoomIdForItems ?: surrogate.moveToRoomId!!,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
             )
             ActionType.TransformIntoItem -> TransformIntoItemAction(
                 affectedItemIds = surrogate.affectedItemIds!!,
-                transformsIntoItemIds = surrogate.transformsIntoItemIds!!
+                transformsIntoItemIds = surrogate.transformsIntoItemIds!!,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
             )
             ActionType.ModifyExit -> ModifyExitAction(
                 roomId = surrogate.roomId!!,
@@ -64,7 +87,22 @@ object ActionSerializer : KSerializer<Action> {
                 blocked = surrogate.blocked,
                 visible = surrogate.visible,
                 locked = surrogate.locked,
-                open = surrogate.open
+                open = surrogate.open,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
+            )
+            ActionType.ModifyContainer -> ModifyContainerAction(
+                containerId = surrogate.containerId!!,
+                open = surrogate.open,
+                locked = surrogate.locked,
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
             )
         }
     }
@@ -77,6 +115,7 @@ object ActionSerializer : KSerializer<Action> {
                 description = value.description,
                 comment = value.comment,
                 actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
                 changedStateKey = value.changedStateKey,
                 newStateValue = value.newStateValue
             )
@@ -86,6 +125,7 @@ object ActionSerializer : KSerializer<Action> {
                 description = value.description,
                 comment = value.comment,
                 actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
                 moveToRoomId = value.moveToRoomId
             )
             is SetItemRoomAction -> ActionSurrogate(
@@ -94,6 +134,7 @@ object ActionSerializer : KSerializer<Action> {
                 description = value.description,
                 comment = value.comment,
                 actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
                 affectedItemIds = value.affectedItemIds,
                 moveToRoomIdForItems = value.moveToRoomId
             )
@@ -103,6 +144,7 @@ object ActionSerializer : KSerializer<Action> {
                 description = value.description,
                 comment = value.comment,
                 actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
                 affectedItemIds = value.affectedItemIds,
                 transformsIntoItemIds = value.transformsIntoItemIds
             )
@@ -112,10 +154,22 @@ object ActionSerializer : KSerializer<Action> {
                 description = value.description,
                 comment = value.comment,
                 actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
                 roomId = value.roomId,
                 direction = value.direction,
                 blocked = value.blocked,
                 visible = value.visible,
+                locked = value.locked,
+                open = value.open
+            )
+            is ModifyContainerAction -> ActionSurrogate(
+                type = value.type,
+                preconditions = value.preconditions,
+                description = value.description,
+                comment = value.comment,
+                actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis,
+                containerId = value.containerId,
                 locked = value.locked,
                 open = value.open
             )

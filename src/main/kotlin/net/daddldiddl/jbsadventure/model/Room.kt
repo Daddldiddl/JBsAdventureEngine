@@ -1,8 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
-
-import net.daddldiddl.jbsadventure.tools.serializers.*
+import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
 
 
 /**
