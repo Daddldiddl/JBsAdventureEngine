@@ -151,7 +151,8 @@ class PreconditionExit (
         if(room.exits == null || room.exits[direction] == null){
             return false
         }
-        if(blocked == null || open == null || locked == null || visible == null){
+        // At least one property must be specified for the precondition to be meaningful
+        if(blocked == null && open == null && locked == null && visible == null){
             return false
         }
         return true

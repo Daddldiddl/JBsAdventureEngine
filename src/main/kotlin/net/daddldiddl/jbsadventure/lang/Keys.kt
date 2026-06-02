@@ -180,5 +180,8 @@ object Keys {
         const val msgCloseFailed = "msgCloseFailed"
         const val msgNoTargetToOpenClose = "msgNoTargetToOpenClose"
         const val msgNoDoorOrContainerFound = "msgNoDoorOrContainerFound"
+        const val msgExitBlocked = "msgExitBlocked"
+        const val msgExitLocked = "msgExitLocked"
+        const val msgExitClosed = "msgExitClosed"
     }
 }

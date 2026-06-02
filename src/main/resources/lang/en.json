@@ -123,7 +123,10 @@
         "msgCloseSuccess": "You close <name>.",
         "msgOpenFailed": "You can't open <name>.",
         "msgCloseFailed": "You can't close <name>.",
-        "msgNoTargetToOpenClose": "There is no '<name>' here to <command>."
+        "msgNoTargetToOpenClose": "There is no '<name>' here to <command>.",
+        "msgExitBlocked": "The way <direction> is blocked.",
+        "msgExitLocked": "<definiteName> is locked.",
+        "msgExitClosed": "<definiteName> is closed."
     },
     "MessageParts": {
         "msgPartDescriptiveName": "<article> <state> <name>",

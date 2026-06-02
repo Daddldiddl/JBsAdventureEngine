@@ -42,7 +42,7 @@ class Container(
 
     /** Returns a descriptive display name including open/lock state text. */
     override fun getDescriptiveName(definite: Boolean?): String {
-        return getDescriptiveName(definite)
+        return super<OpenLockEnabledNamedEntity>.getDescriptiveName(definite)
     }
 
     /** Returns base description and, if open, details about contained items. */

@@ -178,6 +178,21 @@ object DataValidator {
                             }
                         }
 
+                        is ModifyContainerAction -> {
+                            val container = gameData.getItemById(action.containerId)
+                            if (container == null) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a ModifyContainer action (itemId ${usage.itemId}) referencing non-existent container ID '${action.containerId}'"
+                                )
+                                isValid = false
+                            } else if (container !is Container) {
+                                LOG.warn(
+                                    "Room '${room.id}' has a ModifyContainer action (itemId ${usage.itemId}) referencing item ID '${action.containerId}' which is not a container"
+                                )
+                                isValid = false
+                            }
+                        }
+
                         else -> {
                             LOG.warn(
                                 "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with unsupported action type '${action.type}'"

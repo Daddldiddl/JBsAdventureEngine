@@ -95,13 +95,36 @@
             ],
             "itemUsages": [
                 {
+                    "itemId": 16,
+                    "actions": [
+                        {
+                            "type": "ModifyContainer",
+                            "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
+                            "containerId": 15,
+                            "open": true,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionItem",
+                                    "itemId": 16,
+                                    "location": -1
+                                },
+                                {
+                                    "type": "PreconditionContainer",
+                                    "itemId": 15,
+                                    "locked": true
+                                }
+                            ]
+                        }
+                    ],
+                    "consumeUsedItem": false
+                },{
                     "itemId": 14,
                     "actions": [
                         {
                             "type": "ModifyContainer",
                             "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
-                            "affectedItemIds": [15],
-                            "openContainer": true,
+                            "containerId": 15,
+                            "open": true,
                             "preconditions": [
                                 {
                                     "type": "PreconditionItem",
@@ -286,7 +309,7 @@
                     "blockDescription": "A passage leading east that was previously blocked the cave-in."
                 }
             ],
-            "ItemUsages": [
+            "itemUsages": [
                 {
                     "itemId": 14,
                     "actions": [
@@ -294,7 +317,7 @@
                             "type": "ModifyExit",
                             "description": "You place the stick of dynamite among the rubble, light the fuse and quickly take cover.\nAfter a moment, the dynamite explodes, blasting away the rubble and clearing the passage to the east.",
                             "direction": "east",
-                            "targetRoomId": 8,
+                            "roomId": 8,
                             "blocked": false,
                             "newName": {
                                 "name": "passage leading east",

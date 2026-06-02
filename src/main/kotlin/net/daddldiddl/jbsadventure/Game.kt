@@ -465,8 +465,30 @@ class Game(private val gameData: GameData) {
             )
             return
         }
-        val nextRoomId = exits[direction]?.targetRoomId
-        if (nextRoomId == null || !gameData.getRoomMap().containsKey(nextRoomId)) {
+        val exit = exits[direction]
+        if (exit == null) {
+            CONSOLE.print(
+                LANG.getTemplate(Keys.Message.msgNoExit)
+                    .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
+            )
+            return
+        }
+        if (!exit.isOpen()) {
+            val message = if (exit.blocked) {
+                exit.blockedDescription ?: LANG.getTemplate(Keys.Message.msgExitBlocked)
+                    .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
+            } else if (exit.isLocked()) {
+                LANG.getTemplate(Keys.Message.msgExitLocked)
+                    .replace(Keys.StandIn.definiteName, exit.getDescriptiveName(definite = true))
+            } else {
+                LANG.getTemplate(Keys.Message.msgExitClosed)
+                    .replace(Keys.StandIn.definiteName, exit.getDescriptiveName(definite = true))
+            }
+            CONSOLE.print(message)
+            return
+        }
+        val nextRoomId = exit.targetRoomId
+        if (!gameData.getRoomMap().containsKey(nextRoomId)) {
             CONSOLE.print(
                 LANG.getTemplate(Keys.Message.msgExitTargetRoomMissing)
                     .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
