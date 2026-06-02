@@ -5,41 +5,102 @@ import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
 
 /**
- * Capability interface for container-like entities that can hold other item IDs.
+ * Runtime container item implementation.
+ *
+ * Behaves like an item plus open/close and contained-item handling.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-interface ContainerEntity : OpenLockEnabledNamedEntity {
+class Container(
+    id: Int,
+    name: Name,
+    description: String?,
+    carriable: Boolean? = false,
+    driveable: Boolean? = false,
+    stateKey: String? = null,
+    usable: Boolean = true,
+    numberOfUses: Int? = null,
+    location: Int,
+    comment: String? = null,
+    usages: List<ItemUsage>? = emptyList(),
+    override var open: Boolean = false,
+    override var locked: Boolean = false,
+    val containedItems: MutableList<Int> = mutableListOf(),
+) : Item(
+    id = id,
+    name = name,
+    description = description,
+    carriable = carriable,
+    driveable = driveable,
+    stateKey = stateKey,
+    usable = usable,
+    numberOfUses = numberOfUses,
+    location = location,
+    comment = comment,
+    usages = usages,
+), OpenLockEnabledNamedEntity {
+
+    /** Returns a descriptive display name including open/lock state text. */
+    override fun getDescriptiveName(definite: Boolean?): String {
+        return getDescriptiveName(definite)
+    }
+
+    /** Returns base description and, if open, details about contained items. */
+    override fun getDetailedDescription(): String {
+        val base = super<Item>.getDetailedDescription()
+        if (!isOpen()) {
+            return base
+        }
+
+        val containedItemNames = getContainedItems(DATA).joinToString(", ") { it.getDescriptiveName() }
+        val details = if (containedItemNames.isBlank()) {
+            LANG.getTemplate(Keys.Message.msgContainerEmpty)
+                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+        } else {
+            LANG.getTemplate(Keys.Message.msgContainerContent)
+                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+                .replace(Keys.StandIn.items, containedItemNames)
+        }
+
+        return "$base\n$details".trim()
+    }
+
+    /** Resolves and returns currently contained item objects from global game data. */
+    fun getContainedItems(gameData: GameData): List<Item> {
+        return gameData.getContainerItems(id)
+    }
+
     override val supportsOpenClose: Boolean
         get() = true
     override val supportsLockUnlock: Boolean
         get() = false
 
-    val containedItems: MutableList<Int>
-
     /** Adds one item ID to this container. */
-    fun addItem(itemId: Int) {
-        containedItems.add(itemId)
+    fun addItem(itemId: Int, gameData: GameData) {
+        addItems(listOf(itemId), gameData)
     }
 
     /** Adds multiple item IDs to this container. */
-    fun addItems(itemIds: List<Int>) {
+    fun addItems(itemIds: List<Int>, gameData: GameData) {
+        val items: List<Item> = gameData.getItemList().filter { it.id in itemIds }
         containedItems.addAll(itemIds)
+        for (item in items) {
+            item.location = FixedLocation.CONTAINER.value
+        }
     }
 
     /** Removes one item ID from this container. */
-    fun removeItem(itemId: Int) {
-        containedItems.remove(itemId)
-    }
-
-    // Backward-compatible alias for the old typoed method name.
-    fun removetem(itemId: Int) {
-        removeItem(itemId)
+    fun removeItem(itemId: Int, gameData: GameData) {
+        removeItems(listOf(itemId), gameData)
     }
 
     /** Removes multiple item IDs from this container. */
-    fun removeItems(itemIds: List<Int>) {
+    fun removeItems(itemIds: List<Int>, gameData: GameData) {
+        val items: List<Item> = gameData.getItemList().filter { it.id in itemIds }
         containedItems.removeAll(itemIds)
+        for (item in items) {
+            item.location = FixedLocation.NOT_ASSIGNED.value
+        }
     }
 
     /** Returns whether this container currently holds the given item ID. */
@@ -60,76 +121,5 @@ interface ContainerEntity : OpenLockEnabledNamedEntity {
     /** Returns whether this container currently holds the given [Item]. */
     fun containsItem(item: Item): Boolean {
         return containsItem(item.id)
-    }
-
-    /** Resolves and returns currently contained item objects from global game data. */
-    fun getContainedItemObjects(): List<Item> {
-        return containedItems.mapNotNull { DATA.getItemById(it) }
-    }
-
-    override fun getDescriptiveName(definite: Boolean?): String {
-        return super.getDescriptiveName(definite)
-    }
-}
-
-/**
- * Runtime container item implementation.
- *
- * Behaves like an item plus open/close and contained-item handling.
- *
- * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
- */
-class Container(
-    id: Int,
-    name: Name,
-    description: String?,
-    carriable: Boolean? = false,
-    driveable: Boolean? = false,
-    stateKey: String? = null,
-    usable: Boolean = true,
-    numberOfUses: Int? = null,
-    location: Int,
-    comment: String? = null,
-    usages: List<ItemUsage>? = emptyList(),
-    override val containedItems: MutableList<Int> = mutableListOf(),
-    override var open: Boolean = false,
-    override var locked: Boolean = false,
-) : Item(
-    id = id,
-    name = name,
-    description = description,
-    carriable = carriable,
-    driveable = driveable,
-    stateKey = stateKey,
-    usable = usable,
-    numberOfUses = numberOfUses,
-    location = location,
-    comment = comment,
-    usages = usages,
-), ContainerEntity {
-
-    /** Returns a descriptive display name including open/lock state text. */
-    override fun getDescriptiveName(definite: Boolean?): String {
-        return super<ContainerEntity>.getDescriptiveName(definite)
-    }
-
-    /** Returns base description and, if open, details about contained items. */
-    override fun getDetailedDescription(): String {
-        val base = super<Item>.getDetailedDescription()
-        if (!isOpen()) {
-            return base
-        }
-
-        val containedItemNames = getContainedItemObjects().joinToString(", ") { it.getDescriptiveName() }
-        val details = if (containedItemNames.isBlank()) {
-            LANG.getTemplate(Keys.Message.msgContainerEmpty)
-                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
-        } else {
-            LANG.getTemplate(Keys.Message.msgContainerContent)
-                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
-                .replace(Keys.StandIn.items, containedItemNames)
-        }
-
-        return "$base\n$details".trim()
     }
 }

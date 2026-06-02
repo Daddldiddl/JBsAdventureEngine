@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LOG
-import net.daddldiddl.jbsadventure.model.NamedEntity
+import net.daddldiddl.jbsadventure.tools.serializers.LanguageDataSerializer
 
 /**
  * Represents the data for a command, including its aliases and description.
@@ -12,8 +12,13 @@ import net.daddldiddl.jbsadventure.model.NamedEntity
 @Serializable
 data class CommandData(
     val aliases: List<String>,
-    val description: String
-)
+    val description: String,
+    val adjective: String? = null,
+    val verb: String? = null
+) {
+    fun verb(): String = verb ?: aliases.first()
+    fun adjective(): String = adjective ?: aliases.first()
+}
 
 /**
  * Defines one pronoun group used for localized naming and placeholder replacement.
@@ -84,25 +89,6 @@ data class LanguageData(
         // there were pronoun groups, but no default one, so we add the default one as fallback with the expected default key if it doesn't match the provided default key
         else if(defaultPronounGroupKey != defaultPronoun.genderKey) {
             pronounGroups[defaultPronounGroupKey] = defaultPronoun
-        }
-    }
-
-    fun getArticle(definite :Boolean = false, namedEntity: NamedEntity): String {
-        return getArticle(definite = definite, isPlural = namedEntity.name.isPlural, genderKey = namedEntity.name.genderKey)
-    }
-
-    /**
-     * Returns the appropriate article based on definiteness, plurality, and gender.
-     */
-    fun getArticle(definite: Boolean = false, isPlural: Boolean = false, genderKey: String ?= defaultPronoun.genderKey): String {
-        if(languageKey == Keys.languageKeyEn && !definite && !isPlural) {
-            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
-            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
-            return if (genderKey != null && genderKey.matches(Regex("^[aeiouAEIOU].*"))) "an" else "a"
-        }
-        return when (definite) {
-            true -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.definiteArticle ?: defaultPronoun.definiteArticle
-            else -> pronounGroups[genderKey ?: defaultPronoun.genderKey]?.indefiniteArticle ?: defaultPronoun.indefiniteArticle
         }
     }
 

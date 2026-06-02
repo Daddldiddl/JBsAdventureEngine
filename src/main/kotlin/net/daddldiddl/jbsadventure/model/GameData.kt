@@ -86,11 +86,15 @@ data class GameData(
         return getItemsForRoom(FixedLocation.INVENTORY.value)
     }
 
+    fun getContainerById(id: Int): Container? {
+        return Items[id] as Container?
+    }
+
     /**
      * Returns a list of all items in open containers in the specified room.
      */
     fun getOpenContainerItemsForRoom(roomId: Int): List<Item> {
-        return getOpenContainersForRoom(roomId).flatMap { container -> container.getContainedItemObjects() }
+        return getOpenContainersForRoom(roomId).flatMap { container -> getContainerItems(container.id) }
     }
 
     /**
@@ -106,16 +110,16 @@ data class GameData(
     /**
      * Returns a list of all containers in the game.
      */
-    fun getContainerList(): List<Container> {
-        return Items.values.filter { it is Container }.map { it as Container }
-    }
+    val Containers: Map<Int, Container>
+        get() {
+            return Items.values.filterIsInstance<Container>().associateBy { it.id }
+        }
 
     /**
      * Returns a list of all open containers in the specified room.
      */
     fun getOpenContainersForRoom(roomId: Int): List<Container> {
-        return Items.values
-            .filterIsInstance<Container>()
+        return Containers.values
             .filter { it.location == roomId && it.isOpen() }
     }
 
@@ -125,9 +129,17 @@ data class GameData(
     fun getItemContainer(itemId: Int): Container? {
         val item = Items[itemId] ?: return null
         if(item.location == FixedLocation.CONTAINER.value) {
-            return getContainerList().find { it.containsItem(itemId) }
+            return Containers.values.find { it.containsItem(itemId) }
         }
         return null
+    }
+
+    fun getContainerItems(containerId: Int): List<Item> {
+        val container: Container? = Containers[containerId]
+        if(container != null) {
+            return container.getContainedItemIds().map { Items[it] }.filterNotNull()
+        }
+        return emptyList()
     }
 
     /**
@@ -151,9 +163,9 @@ data class GameData(
      */
     fun setItemLocation(itemId: Int, locationId: Int) {
         // Keep container membership and item location in sync when an item is moved.
-        getContainerList().forEach { container ->
+        Containers.values.forEach { container ->
             if (container.containsItem(itemId)) {
-                container.removeItem(itemId)
+                container.removeItem(itemId, this)
             }
         }
         Items[itemId]?.location = locationId

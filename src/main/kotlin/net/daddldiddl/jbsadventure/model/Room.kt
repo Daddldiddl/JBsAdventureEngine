@@ -1,7 +1,10 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.DATA
+import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
+import kotlin.collections.orEmpty
 
 
 /**
@@ -15,8 +18,8 @@ import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
 @Serializable(with = RoomSerializer::class)
 data class Room(
     val id: Int,
-    override val name: Name,
-    override val description: String,
+    override var name: Name,
+    override var description: String?,
     val exits: Map<String, Exit>? = emptyMap(),
     val itemUsages: List<ItemUsage>? = emptyList()
 ) : NamedEntity
@@ -41,11 +44,23 @@ data class Room(
         return itemUsages?.find { it.itemId == itemId }
     }
 
+    /** Resolves an exit by direction alias first, then by exit name/alias. */
+    fun findExitByAlias(input: String): Exit? {
+        val roomExits = exits.orEmpty()
+        val directionKey = LANG.getDirectionKeyFromAlias(input)
+        val byDirection = roomExits[directionKey]
+        if (byDirection != null) {
+            return byDirection
+        }
+        return roomExits.values.find { it.nameMatches(input) }
+    }
+
+
     /**
      * Returns a debug-friendly name for the room, including its ID.
      */
     fun debugName(): String {
-        return "$name (id=$id)"
+        return "'${name.name}' (id=$id)"
     }    
 
     /** Returns the plain room name for compact debug output. */

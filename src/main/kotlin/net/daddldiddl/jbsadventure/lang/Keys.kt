@@ -65,6 +65,8 @@ object Keys {
         const val examine = "examine"
         const val open = "open"
         const val close = "close"
+        const val lock = "lock"
+        const val unlock = "unlock"
     }
 
     /**
@@ -177,5 +179,6 @@ object Keys {
         const val msgOpenFailed = "msgOpenFailed"
         const val msgCloseFailed = "msgCloseFailed"
         const val msgNoTargetToOpenClose = "msgNoTargetToOpenClose"
+        const val msgNoDoorOrContainerFound = "msgNoDoorOrContainerFound"
     }
 }

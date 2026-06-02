@@ -25,11 +25,22 @@ data class Name(
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 interface NamedEntity {
-    val name: Name
-    val description: String?
+    var name: Name
+    var description: String?
 
     private val regexVocalStart: Regex
         get() = "^[aeouiAEOUI]".toRegex()
+
+    /**
+     * Returns the appropriate article based on definiteness, plurality, and gender.
+     */
+    fun getArticle(definite: Boolean = false): String {
+        return when (definite) {
+            true -> LANG.pronounGroups[name.genderKey]?.definiteArticle ?: LANG.defaultPronoun.definiteArticle
+            else -> LANG.pronounGroups[name.genderKey]?.indefiniteArticle ?: LANG.defaultPronoun.indefiniteArticle
+        }
+    }
+
 
     /** Replaces `<name>` placeholders with entity-specific values. */
     fun replacePlaceholdersName(msg: String): String {
@@ -52,8 +63,7 @@ interface NamedEntity {
      * Returns the name of the entity in its indefinite form, including the appropriate article based on the language's grammar rules.
      */
     fun getIndefiniteName(): String {
-        val englishException = (!name.isPlural && LANG.languageKey == Keys.languageKeyEn && name.name.matches(regex = regexVocalStart))
-        val article: String = if (englishException) "an" else LANG.getArticle(definite=false, genderKey = name.genderKey)
+        val article: String = getArticle(definite=false)
         return trimEmptySpaces("$article ${name.name}".trim())
     }
 
@@ -61,7 +71,7 @@ interface NamedEntity {
      * Returns the name of the entity in its definite form, including the appropriate article based on the language's grammar rules.
      */
     fun getDefiniteName(): String {
-        return trimEmptySpaces("${LANG.getArticle(definite=true, genderKey = name.genderKey)} ${name.name}".trim())
+        return trimEmptySpaces("${getArticle(definite=true)} ${name.name}".trim())
     }
 
     /**
@@ -102,7 +112,7 @@ interface NamedEntity {
     }
 
     /** Builds a localized message part describing the current state value. */
-    fun getMessagePartState(stateValue: String): String {
+    fun getStateMessage(stateValue: String): String {
         val msgPart = LANG.getTemplate(if (name.isPlural) Keys.Part.msgPartStatePlural else Keys.Part.msgPartState)
             .replace(Keys.StandIn.state, stateValue)
             .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "").trim()

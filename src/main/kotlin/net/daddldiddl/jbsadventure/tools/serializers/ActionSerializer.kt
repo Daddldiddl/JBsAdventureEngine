@@ -7,6 +7,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.actions.*
 
 @Serializable
 private data class ActionSurrogate(
@@ -25,7 +26,7 @@ private data class ActionSurrogate(
     val moveToRoomIdForItems: Int? = null,
     // for transform into item actions:
     val transformsIntoItemIds: List<Int>? = null,
-    // for ModifyExit actrions
+    // for ModifyExit actions
     val roomId: Int? = null,
     val direction: String? = null,
     val blocked: Boolean? = null,
@@ -35,7 +36,9 @@ private data class ActionSurrogate(
     // for ModifyContainer actions:
     val containerId: Int? = null,
     // for set room and transform actions:
-    val affectedItemIds: List<Int>? = null
+    val affectedItemIds: List<Int>? = null,
+    // for modify actions
+    val newName: Name? = null
 )
 
 object ActionSerializer : KSerializer<Action> {
@@ -88,11 +91,12 @@ object ActionSerializer : KSerializer<Action> {
                 visible = surrogate.visible,
                 locked = surrogate.locked,
                 open = surrogate.open,
+                newName = surrogate.newName,
                 configuredPreconditions = surrogate.preconditions ?: emptyList(),
                 configuredDescription = surrogate.description,
                 configuredComment = surrogate.comment,
                 configuredActionDebug = surrogate.actionDebug,
-                configuredDelayInMillis = surrogate.delayInMillis
+                configuredDelayInMillis = surrogate.delayInMillis,
             )
             ActionType.ModifyContainer -> ModifyContainerAction(
                 containerId = surrogate.containerId!!,
@@ -160,7 +164,8 @@ object ActionSerializer : KSerializer<Action> {
                 blocked = value.blocked,
                 visible = value.visible,
                 locked = value.locked,
-                open = value.open
+                open = value.open,
+                newName = value.newName
             )
             is ModifyContainerAction -> ActionSurrogate(
                 type = value.type,

@@ -69,8 +69,8 @@ object SaveManager {
         val state = json.decodeFromString<SaveState>(file.readText())
 
         // Reset container memberships before rebuilding them from the save snapshot.
-        gameData.getContainerList().forEach { container ->
-            container.removeItems(container.getContainedItemIds())
+        gameData.Containers.values.forEach { container ->
+            container.removeItems(container.getContainedItemIds(), gameData)
         }
 
         state.itemStates.forEach { (itemId, itemState) ->
@@ -83,7 +83,7 @@ object SaveManager {
             if (container != null) {
                 itemState.open?.let { container.open = it }
                 itemState.locked?.let { container.locked = it }
-                itemState.containedItemIds?.let { container.addItems(it) }
+                itemState.containedItemIds?.let { container.addItems(it, gameData) }
             }
         }
 
@@ -92,22 +92,22 @@ object SaveManager {
             val containerId = itemState.currentContainerId ?: return@forEach
             val container = gameData.getItemById(containerId) as? Container ?: return@forEach
             if (!container.containsItem(itemId)) {
-                container.addItem(itemId)
+                container.addItem(itemId, gameData)
             }
         }
 
         // Ensure location flag and container lists are in sync after restore,
         // but do not override explicit non-container locations from itemStates.
-        gameData.getContainerList().forEach { container ->
+        gameData.Containers.values.forEach { container ->
             container.getContainedItemIds().forEach { containedItemId ->
                 val explicitLocation = state.itemStates[containedItemId]?.location
                 if (explicitLocation == FixedLocation.CONTAINER.value) {
                     gameData.setItemLocation(containedItemId, FixedLocation.CONTAINER.value)
                     if (!container.containsItem(containedItemId)) {
-                        container.addItem(containedItemId)
+                        container.addItem(containedItemId, gameData)
                     }
                 } else if (explicitLocation != null && explicitLocation != FixedLocation.CONTAINER.value) {
-                    container.removeItem(containedItemId)
+                    container.removeItem(containedItemId, gameData)
                 }
             }
         }

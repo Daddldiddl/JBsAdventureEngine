@@ -12,8 +12,8 @@ import net.daddldiddl.jbsadventure.tools.serializers.ItemSerializer
 @Serializable(with = ItemSerializer::class)
 open class Item(
     val id: Int,
-    override val name: Name,
-    override val description: String?,
+    override var name: Name,
+    override var description: String?,
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
@@ -24,13 +24,9 @@ open class Item(
     val usages: List<ItemUsage>? = emptyList(),
 ) : NamedEntity {
 
-    companion object Constants {
-        const val NOTASSIGNED_LOCATION: Int = 0
-    }
-
     fun debugName(): String {
-        return replacePlaceholdersName(
-            "<name> (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
+        return trimEmptySpaces(
+            "'${name.name}' (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
         )
     }
 
@@ -43,21 +39,27 @@ open class Item(
         return nameMatches(lookupName)
     }
 
-    // Compatibility wrapper for older call sites.
-    fun getArticle(definite: Boolean? = false): String {
-        return LANG.getArticle(definite = definite == true, genderKey = name.genderKey)
-    }
-
+    /** Returns a descriptive name including translated open/lock state. */
     override fun getDescriptiveName(definite: Boolean?): String {
+        val definiteArticle = definite == true
+        var template = LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
         val state = stateKey?.let { DATA.getStateByKey(it) }
-        if (state != null) {
-            return LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
-                .replace(Keys.StandIn.article, LANG.getArticle(definite = definite == true))
-                .replace(Keys.StandIn.state, state.currentValue)
-                .replace(Keys.StandIn.name, name.name)
-                .trim()
+        if(state != null) {
+            template = template
+                    .replace(Keys.StandIn.state, state.currentValue)
+                    .replace(Keys.StandIn.name, name.name)
+                    .trim()
+        } else {
+            return super.getDescriptiveName(definiteArticle)
         }
-        return super.getDescriptiveName(definite)
+        var article = getArticle(definite = definiteArticle)
+        if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
+            val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
+            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
+            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
+            article = if (nameWithoutArticle.subSequence(0,0).matches(Regex("[aeiouAEIOU]"))) "an" else "a"
+        }
+        return trimEmptySpaces(template.replace(Keys.StandIn.article, article).trim())
     }
 
     fun getStateMessagePart(): String {

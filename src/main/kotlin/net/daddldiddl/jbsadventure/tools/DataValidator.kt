@@ -2,6 +2,7 @@ package net.daddldiddl.jbsadventure.tools
 
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.actions.*
 
 /**
  * Provides validation checks for deserialized data.
@@ -12,29 +13,6 @@ object DataValidator {
 
     private fun isValidLocation(location: Int, gameData: GameData): Boolean {
         return location in fixedLocationValues || gameData.getRoomMap().containsKey(location)
-    }
-
-    private fun validateActionPreconditions(room: Room, action: Action, gameData: GameData): Boolean {
-        var isValid = true
-        for (precondition in action.preconditions) {
-            val state = gameData.getStateByKey(precondition.requiredStateKey)
-            if (state == null) {
-                LOG.warn(
-                    "Room '${room.id}' has an action '${action.type}' with precondition referencing non-existent state '${precondition.requiredStateKey}'"
-                )
-                isValid = false
-                continue
-            }
-
-            val invalidValues = precondition.requiredStateValues.filter { it !in state.possibleValues }
-            if (invalidValues.isNotEmpty()) {
-                LOG.warn(
-                    "Room '${room.id}' has an action '${action.type}' with invalid precondition values ${invalidValues.joinToString(", ")} for state '${precondition.requiredStateKey}'"
-                )
-                isValid = false
-            }
-        }
-        return isValid
     }
 
     /**
@@ -86,7 +64,7 @@ object DataValidator {
             }
             // check that an Item with location CONTAINER has exactly one container containing it
             if (location == FixedLocation.CONTAINER.value) {
-                val containers = gameData.getContainerList()
+                val containers = gameData.Containers.values
                     .filter { it.containsItem(item.id) }
                     .map { it.id }
                 if (containers.isEmpty()){
@@ -116,7 +94,10 @@ object DataValidator {
                 }
 
                 for (action in usage.actions) {
-                    if (!validateActionPreconditions(room, action, gameData)) {
+                    if(action.validatePreconditions(gameData)) {
+                        LOG.warn(
+                            "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with unsatisfied preconditions, which may prevent the action from executing as intended"
+                        )
                         isValid = false
                     }
 

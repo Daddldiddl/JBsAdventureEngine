@@ -48,7 +48,7 @@ class ConsoleOutput {
 
     /** Prints a message in the specified color and mirrors it to the log. */
     public fun print(message: String?, color: ConsoleColor) {
-        println("$color$message${ConsoleColor.RESET}")
+        println("$color${wrapText(message, 80)}${ConsoleColor.RESET}")
         LOG.console(message ?: "")
     }
 
@@ -72,6 +72,28 @@ class ConsoleOutput {
                 LogLevel.INFO -> "${ConsoleColor.GREEN}"  // Green
                 else -> "${ConsoleColor.RESET}" // Reset
             }
-            println("$colorCode$message${ConsoleColor.RESET}") // Reset color after printing
+            println("$colorCode${wrapText(message, 120)}${ConsoleColor.RESET}") // Reset color after printing
+    }
+
+    private fun wrapText(text: String?, width :Int): String {
+        if(text == null || text.isEmpty()) return ""
+        val words = text.split(Regex("\\s+"))
+        val builder = StringBuilder()
+        var lineLength = 0
+        var firstWord = true
+        for (word in words) {
+            if ((lineLength + word.length + if (lineLength > 0) 1 else 0) > width && !firstWord) {
+                builder.append(System.lineSeparator())
+                lineLength = 0
+                firstWord = false
+            }
+            if (lineLength > 0) {
+                builder.append(" ")
+                lineLength++
+            }
+            builder.append(word)
+            lineLength += word.length
+        }
+        return builder.toString()
     }
 }

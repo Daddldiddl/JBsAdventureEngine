@@ -3,18 +3,9 @@ package net.daddldiddl.jbsadventure.model
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.ActionSerializer
+import net.daddldiddl.jbsadventure.model.actions.*
 import java.lang.Thread.sleep
 
-/**
- * Preconditions that must be fulfilled before an action is allowed to execute.
- *
- * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
- */
-@Serializable
-data class Precondition(
-    val requiredStateKey: String,
-    val requiredStateValues: Set<String> = emptySet()
-)
 /**
  * Enum representing the different types of actions that can be performed in the game.
  * 
@@ -62,13 +53,12 @@ abstract class Action(
      * @param gameData The current game data containing the state information.
      * @return `true` if the action can be executed (i.e., conditions are met or no conditions specified); `false` otherwise.
      */
-    fun canExecute(gameData: GameData): Boolean {
+    fun checkPreconditions(gameData: GameData): Boolean {
         if (preconditions.isEmpty()) {
             return true // No preconditions, action can be executed
         }
         return preconditions.all { precondition ->
-            val state = gameData.getStateMap()[precondition.requiredStateKey] ?: return false
-            precondition.requiredStateValues.contains(state.currentValue)
+            precondition.isSatisfied(gameData)
         }
     }
 
@@ -90,29 +80,18 @@ abstract class Action(
         }
     }
 
-    /** Validates all configured preconditions against current game state values. */
-    fun checkPreconditions(gameData: GameData): Boolean {
-        for (precondition in preconditions) {
-            val state = gameData.getStateByKey(precondition.requiredStateKey)
-            if(state == null) {
-                LOG.error("Precondition check failed: State with key '${precondition.requiredStateKey}' not found.")
-                return false
-            }
-            if (!state.possibleValues.containsAll(precondition.requiredStateValues)) {
-                LOG.warn("Precondition check warning: required state list contains invalid values: ${precondition.requiredStateValues.minus(state.possibleValues)}, allowed are ${state.possibleValues}")
-            }
-            if (!precondition.requiredStateValues.contains(state.currentValue)) {
-                LOG.warn("Precondition check failed: current state is '${state.currentValue}' not in required states ${precondition.requiredStateValues}.")
-                return false
-            }
-            LOG.debug("Precondition current state '${state.currentValue}' in ${precondition.requiredStateKey} satisfied.")
+    /** Validates the action's preconditions */
+    fun validatePreconditions(gameData: GameData): Boolean {
+        var valid: Boolean = true
+        for(precondition in preconditions) {
+            valid == valid && precondition.validate(gameData)
         }
-        return true
+        return valid
     }
 }
 
 /**
- * Action representing a change in a global game state, such as 
+ * Action representing a change in a global game state, such as
  * 'the bomb is armed' or 'the hordes of doom have been unleashed'
  * - which then serves as a pre-requisite for other actions.
  */
@@ -131,7 +110,7 @@ data class ChangeStateAction(
     comment = configuredComment,
     actionDebug = configuredActionDebug ?: "Changed state '$changedStateKey' to '$newStateValue'.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Updates the configured state key with the new value when valid. */
     override fun execute(gameData: GameData): Boolean {
         val state = gameData.getStateByKey(changedStateKey)
@@ -168,7 +147,7 @@ data class MoveToAction(
     comment = configuredComment,
     actionDebug = configuredActionDebug ?: "Moved player to room with id $moveToRoomId.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Moves the player to the configured target room when possible. */
     override fun execute(gameData: GameData): Boolean {
         val room = gameData.getRoomById(moveToRoomId)
@@ -188,7 +167,7 @@ data class MoveToAction(
  * such as moving some items to a different room, a container, or the inventory.
  */
 data class SetItemRoomAction(
-    val affectedItemIds : List<Int>,
+    val affectedItemIds: List<Int>,
     val moveToRoomId: Int,
     val configuredPreconditions: List<Precondition> = emptyList(),
     val configuredDescription: String? = null,
@@ -200,9 +179,10 @@ data class SetItemRoomAction(
     preconditions = configuredPreconditions,
     description = configuredDescription,
     comment = configuredComment,
-    actionDebug = configuredActionDebug ?: "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId.",
+    actionDebug = configuredActionDebug
+        ?: "Moved items ${affectedItemIds.joinToString(", ")} to room with id $moveToRoomId.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Relocates configured items to the configured destination room/location. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
@@ -234,9 +214,13 @@ data class TransformIntoItemAction(
     preconditions = configuredPreconditions,
     description = configuredDescription,
     comment = configuredComment,
-    actionDebug = configuredActionDebug ?: "Transformed items ${affectedItemIds.joinToString(", ")} into items ${transformsIntoItemIds.joinToString(", ")}.",
+    actionDebug = configuredActionDebug ?: "Transformed items ${affectedItemIds.joinToString(", ")} into items ${
+        transformsIntoItemIds.joinToString(
+            ", "
+        )
+    }.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Replaces configured source items with target items at source locations. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
@@ -249,7 +233,7 @@ data class TransformIntoItemAction(
             val sourceItem = gameData.getItemById(affectedItemIds[idx]) ?: continue
             val targetItem = gameData.getItemById(transformsIntoItemIds[idx]) ?: continue
             val sourceLocation = sourceItem.location
-            sourceItem.location = Item.Constants.NOTASSIGNED_LOCATION
+            sourceItem.location = FixedLocation.NOT_ASSIGNED.value
             targetItem.location = sourceLocation
         }
         logActionExecution()
@@ -268,6 +252,7 @@ data class ModifyExitAction(
     val locked: Boolean?,
     val blocked: Boolean?,
     val visible: Boolean?,
+    val newName: Name?,
     val configuredPreconditions: List<Precondition> = emptyList(),
     val configuredDescription: String? = null,
     val configuredComment: String? = null,
@@ -300,10 +285,10 @@ data class ModifyExitAction(
                 false -> "invisible"
                 null -> ""
             }
-        ).filter{!it.isBlank()}.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
+        ).filter { !it.isBlank() }.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
     }.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Applies selective open/lock/blocked/visibility changes to one room exit. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
@@ -313,18 +298,11 @@ data class ModifyExitAction(
         val room = gameData.getRoomById(roomId) ?: return false
         val exit = room.exits?.get(direction) ?: return false
 
-        if(!exit.supportsOpenClose && open != null) {
-            LOG.warn("${exit.debugName()} does not support open/close, but action attempted to set open to $open.")
+        if (open == null && locked == null && visible == null && blocked == null) {
+            LOG.warn("The ModifyContainer action for ${exit.debugName()} has no values for locked, open, blocked or visible!")
             return false
         }
-        if(!exit.supportsLockUnlock && locked != null) {
-            LOG.warn("${exit.debugName()} does not support lock/unlock, but action attempted to set locked to $locked.")
-            return false
-        }
-        if(open == null && locked == null){
-            LOG.warn("The ModifyContainer action for ${exit.debugName()} has no values for locked or open!")
-            return false
-        }
+
         if (open != null) exit.open = open
         if (locked != null) exit.locked = locked
         if (blocked != null) exit.blocked = blocked
@@ -364,30 +342,30 @@ data class ModifyContainerAction(
                 false -> "unlocked"
                 null -> ""
             }
-        ).filter{!it.isBlank()}.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
+        ).filter { !it.isBlank() }.joinToString(", ") { it }.trim().ifEmpty { "no changes" }
     }.",
     delayInMillis = configuredDelayInMillis
-){
+) {
     /** Applies selective open/lock/blocked/visibility changes to one room exit. */
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData)) {
             return false
         }
-        val item = gameData.getItemById(containerId)?: return false
-        if(item !is Container) {
+        val item = gameData.getItemById(containerId) ?: return false
+        if (item !is Container) {
             LOG.warn("Attempted to execute ModifyContainerAction on ${item.debugName()}, but it is not a container.")
             return false
         }
         val container = item
-        if(!container.supportsOpenClose && open != null) {
+        if (!container.supportsOpenClose && open != null) {
             LOG.warn("${container.debugName()} does not support open/close, but action attempted to set open to $open.")
             return false
         }
-        if(!container.supportsLockUnlock && locked != null) {
+        if (!container.supportsLockUnlock && locked != null) {
             LOG.warn("${container.debugName()} does not support lock/unlock, but action attempted to set locked to $locked.")
             return false
         }
-        if(open == null && locked == null){
+        if (open == null && locked == null) {
             LOG.warn("The ModifyContainer action for ${container.debugName()} has no values for locked or open!")
             return false
         }
@@ -400,6 +378,5 @@ data class ModifyContainerAction(
         return true
     }
 }
-
 
 

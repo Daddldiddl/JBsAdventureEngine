@@ -49,7 +49,7 @@ object ItemSerializer : KSerializer<Item> {
                 locked = surrogate.locked ?: false,
             )
             if(surrogate.containedItems != null) {
-                container.addItems(surrogate.containedItems)
+                container.containedItems.addAll(surrogate.containedItems)
             }
             return container
         }
@@ -83,9 +83,9 @@ object ItemSerializer : KSerializer<Item> {
             location = value.location,
             comment = value.comment,
             isContainer = value is Container,
-            containedItems = if (value is ContainerEntity) value.getContainedItemIds() else null,
-            open = if (value is ContainerEntity) value.open else null,
-            locked = if (value is ContainerEntity) value.locked else null,
+            containedItems = if (value is Container) value.getContainedItemIds() else null,
+            open = if (value is Container) value.open else null,
+            locked = if (value is Container) value.locked else null,
             usages = value.usages
         )
         encoder.encodeSerializableValue(ItemSurrogate.serializer(), surrogate)

@@ -15,12 +15,12 @@ import net.daddldiddl.jbsadventure.tools.serializers.ExitSerializer
 class Exit (
     val direction: String,
     val targetRoomId: Int,
-    override val name: Name = Name(LANG.getDirectionAliasFromKey(direction)),
+    override var name: Name = Name(LANG.getDirectionAliasFromKey(direction)),
     override val supportsOpenClose: Boolean = false,
     override val supportsLockUnlock: Boolean = false,
     override var open: Boolean = true,
     override var locked: Boolean = false,
-    override val description: String? = null,
+    override var description: String? = null,
     var visible: Boolean = true,
     var blocked: Boolean = false,
     var blockedDescription: String? = null,
@@ -31,7 +31,7 @@ class Exit (
      * If [definite] is `true`, the name will be returned in its definite form (e.g., "the north exit"); otherwise, it will be returned in its indefinite form (e.g., "a north exit").
      */
     override fun getDescriptiveName(definite: Boolean?): String {
-        return super.getDescriptiveName(definite)
+        return if(direction == name.name) direction else "${super.getDescriptiveName(definite)} ($direction)"
     }
 
     override fun getDetailedDescription(): String {
@@ -66,9 +66,7 @@ class Exit (
     }
 
     fun debugName(): String {
-        return replacePlaceholdersName(
-            "Exit <name> leading $direction"
-        )
+        return "'${name.name}' ($direction)"
     }
 
 }

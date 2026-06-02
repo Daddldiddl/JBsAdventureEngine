@@ -11,17 +11,25 @@ import net.daddldiddl.jbsadventure.lang.Keys
 interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
     /** Returns a language-aware message part for the current open/lock state. */
     fun getMessagePartOpenLockedState(): String {
-        return getMessagePartState(getOpenLockState())
+        return getStateMessage(getOpenLockState())
     }
 
     /** Returns a descriptive name including translated open/lock state. */
     override fun getDescriptiveName(definite: Boolean?): String {
-        val template = LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
-        return trimEmptySpaces(template
+        val definiteArticle = definite == true
+        var template = LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
+        template =  trimEmptySpaces(template
             .replace(Keys.StandIn.state, getOpenLockState())
-            .replace(Keys.StandIn.article, LANG.getArticle(definite = false))
             .replace(Keys.StandIn.name, name.name)
             .trim())
+        var article = getArticle(definite = definiteArticle)
+        if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
+            val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
+            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
+            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
+            article = if (nameWithoutArticle.subSequence(0,0).matches(Regex("[aeiouAEIOU]"))) "an" else "a"
+        }
+        return template.replace(Keys.StandIn.article, article).trim()
     }
 }
 
@@ -94,10 +102,11 @@ interface OpenLockEnabledEntity {
     /** Returns the localized state label for open/closed/locked combinations. */
     fun getOpenLockState(): String {
         return when {
-            isLocked() && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.lockedClosed)
-            isLocked() && isOpen() -> LANG.getStateValueFromKey(Keys.StateValue.lockedOpen)
-            isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.closed)
-            else -> LANG.getStateValueFromKey(Keys.StateValue.open)
+            supportsLockUnlock && isLocked() && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.lockedClosed)
+            supportsLockUnlock && isLocked() && isOpen() -> LANG.getStateValueFromKey(Keys.StateValue.lockedOpen)
+            supportsOpenClose && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.closed)
+            supportsOpenClose -> LANG.getStateValueFromKey(Keys.StateValue.open)
+            else -> ""
         }
     }
 

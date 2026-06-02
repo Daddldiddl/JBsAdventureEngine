@@ -10,7 +10,7 @@ import net.daddldiddl.jbsadventure.model.Exit
 import net.daddldiddl.jbsadventure.model.ItemUsage
 import net.daddldiddl.jbsadventure.model.Name
 
-private @Serializable
+@Serializable
 data class ExitSurrogate (
     val direction: String,
     val targetRoomId: Int,

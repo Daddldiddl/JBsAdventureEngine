@@ -14,7 +14,7 @@ import net.daddldiddl.jbsadventure.model.Room
 private data class RoomSurrogate(
     val id: Int,
     val name: Name,
-    val description: String,
+    val description: String?,
     val exits: List<Exit> = emptyList(),
     val itemUsages: List<ItemUsage>? = emptyList()
 )
