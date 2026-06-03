@@ -5,8 +5,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.model.actions.*
+import net.daddldiddl.jbsadventure.model.Container
+import net.daddldiddl.jbsadventure.model.Item
+import net.daddldiddl.jbsadventure.model.ItemUsage
+import net.daddldiddl.jbsadventure.model.Name
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 @Serializable
 data class ItemSurrogate(

@@ -3,7 +3,7 @@ package net.daddldiddl.jbsadventure.model
 import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
-import net.daddldiddl.jbsadventure.model.actions.*
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
  * Runtime container item implementation.

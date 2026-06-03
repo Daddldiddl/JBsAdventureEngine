@@ -4,8 +4,8 @@ package net.daddldiddl.jbsadventure.model
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.model.actions.Action
 import net.daddldiddl.jbsadventure.tools.serializers.ExitSerializer
-import net.daddldiddl.jbsadventure.model.actions.*
 
 /**
  * Represents an exit from a room in a specific direction, leading to another room.
@@ -69,7 +69,7 @@ class Exit (
     }
 
     override fun debugName(): String {
-        return "'${name.name}' ($direction)"
+        return if(!name.name.equals(direction)) "'${name.name}' ($direction)" else "'$direction'"
     }
 
 }

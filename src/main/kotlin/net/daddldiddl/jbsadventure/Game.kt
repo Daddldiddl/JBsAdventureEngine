@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.model.*
-import net.daddldiddl.jbsadventure.model.actions.*
+import net.daddldiddl.jbsadventure.model.actions.ActionType
 import net.daddldiddl.jbsadventure.tools.ConsoleColor
 import net.daddldiddl.jbsadventure.tools.SaveManager
 

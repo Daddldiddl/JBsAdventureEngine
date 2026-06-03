@@ -1,9 +1,10 @@
 package net.daddldiddl.jbsadventure.tools.serializers
+
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
-import net.daddldiddl.jbsadventure.model.*
-
+import net.daddldiddl.jbsadventure.model.FixedItem
+import net.daddldiddl.jbsadventure.model.FixedLocation
 import net.daddldiddl.jbsadventure.model.actions.*
 
 
