@@ -2,6 +2,7 @@ package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.actions.*
 import net.daddldiddl.jbsadventure.tools.ConsoleColor
 import net.daddldiddl.jbsadventure.tools.SaveManager
 
@@ -181,17 +182,35 @@ class Game(private val gameData: GameData) {
      */
     fun handleExamine(parts: List<String>) {
         LOG.debug("Handling examine command with parts: $parts")
-        if (parts.size < 2) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgExamineWhat))
-        } else {
-            val itemName = parts.drop(1).joinToString(" ")
-            val item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
-            if (item == null) {
+
+        var namedEntity: NamedEntity? = null
+        var itemName: String? = null
+        var item: Item? = null
+        var exit: Exit? = null
+        if(parts.size > 1) {
+            itemName = parts.drop(1).joinToString(" ")
+            item = gameData.getAllAccessibleItemsForRoom(DATA.currentRoom.id).find { it.matchesName(itemName) }
+            exit = gameData.currentRoom.exits?.values?.filter { it.nameMatches(itemName) }?.firstOrNull()
+            if (item == null && exit == null) {
                 CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
-            } else if (item.location != DATA.currentRoom.id && item.location != FixedLocation.INVENTORY.value) {
-                CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotVisible)))
-            } else {
-                CONSOLE.print(item.descriptionWithState(gameData))
+                return
+            }
+        }
+
+        namedEntity = item ?: exit ?: gameData.currentRoom
+        CONSOLE.print(namedEntity.getDetailedDescription())
+
+        if(namedEntity.onExamine.isNotEmpty()) {
+            namedEntity.onExamine.forEach { action ->
+                if (action.checkPreconditions(gameData)) {
+                    val executed = action.execute(gameData)
+                    LOG.debug("Executed onExamine action '${action.type}' for '${namedEntity.debugName()}', success=$executed, descriptionPresent=${!action.description.isNullOrBlank()}")
+                    if (executed && !action.description.isNullOrBlank()) {
+                        CONSOLE.print(action.description)
+                    }
+                } else {
+                    LOG.debug("Skipping onExamine action '${action.type}' for '${namedEntity.debugName()}' because preconditions are not met")
+                }
             }
         }
     }
@@ -555,7 +574,7 @@ class Game(private val gameData: GameData) {
             Keys.Command.quit,
         )
         for (key in commandKeys) {
-            sb.append("${ConsoleColor.LIGHTYELLOW}- ${LANG.getCommandAliases(key).joinToString(", ")}\n")
+            sb.append("${ConsoleColor.LIGHTYELLOW}- ${LANG.getCommandAliases(key).joinToString(", ")}: ${ConsoleColor.WHITE}${LANG.commands[key]?.description ?: ""}\n")
         }
         sb.append("\n${ConsoleColor.CYAN}${LANG.headings[Keys.Headings.directionsHeading] ?: Keys.Headings.directionsHeading}:\n${ConsoleColor.LIGHTYELLOW}")
         sb.append(LANG.getAllDirectionAliases().joinToString(", "))

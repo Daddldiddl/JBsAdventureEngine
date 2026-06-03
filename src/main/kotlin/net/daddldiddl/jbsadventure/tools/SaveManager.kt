@@ -38,7 +38,9 @@ object SaveManager {
                     currentContainerId = gameData.getItemContainer(item.id)?.id,
                     open = container?.open,
                     locked = container?.locked,
-                    containedItemIds = container?.getContainedItemIds()
+                    containedItemIds = container?.getContainedItemIds(),
+                    name = item.name,
+                    description = item.description
                 )
             },
             stateValues = gameData.getStateList().associate { it.stateKey to it.currentValue },
@@ -48,9 +50,18 @@ object SaveManager {
                         open = exit.open,
                         locked = exit.locked,
                         visible = exit.visible,
-                        blocked = exit.blocked
+                        blocked = exit.blocked,
+                        name = exit.name,
+                        description = exit.description
                     )
                 }
+            },
+            roomStates = gameData.getRoomList().associate { room ->
+                room.id to RoomSaveState(
+                    roomId = room.id,
+                    name = room.name,
+                    description = room.description
+                )
             }
         )
         LOG.debug("Saving game state: currentRoomId=${state.currentRoomId}, number of itemSaveStates=${state.itemStates.size}, stateValues=${state.stateValues}")    
@@ -74,16 +85,24 @@ object SaveManager {
         }
 
         state.itemStates.forEach { (itemId, itemState) ->
-            gameData.setItemLocation(itemId, itemState.location)
-            gameData.setItemUsable(itemId, itemState.usable)
-            itemState.numberOfUses?.let { gameData.setItemNumberOfUses(itemId, it) }
+            val item = gameData.getItemById(itemId)
+            if (item != null) {
+                // Restore basic item state
+                gameData.setItemLocation(itemId, itemState.location)
+                gameData.setItemUsable(itemId, itemState.usable)
+                itemState.numberOfUses?.let { gameData.setItemNumberOfUses(itemId, it) }
 
-            // Restore container-only open/lock flags if this item is a container.
-            val container = gameData.getItemById(itemId) as? Container
-            if (container != null) {
-                itemState.open?.let { container.open = it }
-                itemState.locked?.let { container.locked = it }
-                itemState.containedItemIds?.let { container.addItems(it, gameData) }
+                // Restore mutable name and description
+                itemState.name?.let { item.name = it }
+                itemState.description?.let { item.description = it }
+
+                // Restore container-only open/lock flags if this item is a container.
+                val container = item as? Container
+                if (container != null) {
+                    itemState.open?.let { container.open = it }
+                    itemState.locked?.let { container.locked = it }
+                    itemState.containedItemIds?.let { container.addItems(it, gameData) }
+                }
             }
         }
 
@@ -124,7 +143,15 @@ object SaveManager {
                 exit.locked = exitState.locked
                 exit.visible = exitState.visible
                 exit.blocked = exitState.blocked
+                exitState.name?.let { exit.name = it }
+                exitState.description?.let { exit.description = it }
             }
+        }
+
+        state.roomStates.forEach { (roomId, roomState) ->
+            val room = gameData.getRoomById(roomId) ?: return@forEach
+            roomState.name?.let { room.name = it }
+            roomState.description?.let { room.description = it }
         }
 
         LOG.info("Loaded game state: currentRoomId=${state.currentRoomId}, number of itemSaveStates=${state.itemStates.size}, stateValues=${state.stateValues}")

@@ -9,6 +9,7 @@ import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.model.Exit
 import net.daddldiddl.jbsadventure.model.ItemUsage
 import net.daddldiddl.jbsadventure.model.Name
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 @Serializable
 data class ExitSurrogate (
@@ -17,10 +18,12 @@ data class ExitSurrogate (
     val name: Name? = null,
     val supportsOpenClose: Boolean? = null,
     val supportsLockUnlock: Boolean? = null,
+    val onExamine: List<Action> = emptyList(),
     val open: Boolean? = null,
     val locked: Boolean? = null,
     val visible: Boolean? = null,
     val description: String? = null,
+    val keyId: Int? = null,
     val blocked: Boolean? = null,
     val blockedDescription: String? = null,
     val itemUsages: List<ItemUsage>? = null
@@ -47,6 +50,8 @@ object ExitSerializer : KSerializer<Exit>{
             description = surrogate.description,
             blocked = surrogate.blocked ?: false,
             blockedDescription = surrogate.blockedDescription,
+            keyId = surrogate.keyId,
+            onExamine = surrogate.onExamine,
             itemUsages = surrogate.itemUsages ?: emptyList()
         )
     }
@@ -64,7 +69,9 @@ object ExitSerializer : KSerializer<Exit>{
             description = value.description,
             blocked = value.blocked,
             blockedDescription = value.blockedDescription,
-            itemUsages = value.itemUsages
+            keyId = value.keyId,
+            itemUsages = value.itemUsages,
+            onExamine = value.onExamine
         )
         encoder.encodeSerializableValue(ExitSurrogate.serializer(), surrogate)
     }

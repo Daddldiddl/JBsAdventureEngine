@@ -3,6 +3,7 @@ package net.daddldiddl.jbsadventure.model
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
  * Localizable name metadata for entities.
@@ -27,6 +28,9 @@ data class Name(
 interface NamedEntity {
     var name: Name
     var description: String?
+    val onExamine: List<Action>
+
+    fun debugName(): String
 
     private val regexVocalStart: Regex
         get() = "^[aeouiAEOUI]".toRegex()
@@ -141,4 +145,6 @@ interface NamedEntity {
     fun getDetailedDescription(): String {
         return startUpperCase(description  ?: "")
     }
+
+
 }

@@ -47,6 +47,7 @@ interface OpenLockEnabledEntity {
 
     var open: Boolean
     var locked: Boolean
+    val keyId: Int?
 
     /** Returns whether the entity is currently open. */
     fun isOpen(): Boolean {

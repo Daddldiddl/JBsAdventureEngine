@@ -535,10 +535,10 @@
                 ]
             },
             "description": "A shiny gem that sparkles in the light. It looks valuable.",
-            "onExamination": [
+            "onExamine": [
                 {
                     "type": "ChangeState",
-                    "prerequisites": [
+                    "preconditions": [
                         {
                             "requiredStateKey": "GEM_EXAMINED_ONCE",
                             "requiredStateValues": [
@@ -561,7 +561,7 @@
                     "description": "As you quickly examine the gem, it seems familiar. But you can't seem to remember where you could know it from...",
                     "changedStateKey": "GEM_EXAMINED_ONCE",
                     "newStateValue": "true",
-                    "prerequisites": [
+                    "preconditions": [
                         {
                             "requiredStateKey": "GEM_EXAMINED_ONCE",
                             "requiredStateValues": [
@@ -573,8 +573,8 @@
                     "type": "TransformIntoItem",
                     "description": "As you examine the gem, you realize that it is actually a fake gem that has been cleverly disguised to look like the Eye Of Bengal.",
                     "affectedItemIds": [9],
-                    "transformsIntoItemId": [10],
-                    "prerequisites": [
+                    "transformsIntoItemIds": [10],
+                    "preconditions": [
                         {
                             "requiredStateKey": "GEM_EXAMINED_TWICE",
                             "requiredStateValues": [
@@ -707,15 +707,15 @@
             "description": "The mummified remains of a miner who seems to have been trapped here when the exit collapsed.",
             "carriable": false,
             "location": 11,
-            "onExamination": [
+            "onExamine": [
                 {
                     "type": "SetItemRoom",
                     "description": "As you examine the mummified miner, you find a rusty key hidden in his pocket.\nYou stash it in your pockets - who knows where it might fit!",
                     "preconditions": [
                         {
-                            "type": "PreconditionItemLocations",
+                            "type": "PreconditionItemsLocation",
                             "requiredItems": [8],
-                            "requiredRoomForItems": [0]
+                            "requiredRoomForItems": 0
                         }
                     ],
                     "affectedItemIds": [8],

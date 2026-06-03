@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.tools.serializers.ExitSerializer
+import net.daddldiddl.jbsadventure.model.actions.*
 
 /**
  * Represents an exit from a room in a specific direction, leading to another room.
@@ -16,11 +17,13 @@ class Exit (
     val direction: String,
     val targetRoomId: Int,
     override var name: Name = Name(LANG.getDirectionAliasFromKey(direction)),
+    override var description: String? = null,
+    override val onExamine: List<Action> = emptyList(),
     override val supportsOpenClose: Boolean = false,
     override val supportsLockUnlock: Boolean = false,
     override var open: Boolean = true,
     override var locked: Boolean = false,
-    override var description: String? = null,
+    override val keyId: Int?,
     var visible: Boolean = true,
     var blocked: Boolean = false,
     var blockedDescription: String? = null,
@@ -65,7 +68,7 @@ class Exit (
         return getDescriptiveName()
     }
 
-    fun debugName(): String {
+    override fun debugName(): String {
         return "'${name.name}' ($direction)"
     }
 

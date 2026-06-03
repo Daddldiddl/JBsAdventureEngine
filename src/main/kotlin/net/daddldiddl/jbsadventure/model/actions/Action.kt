@@ -1,9 +1,9 @@
-package net.daddldiddl.jbsadventure.model
+package net.daddldiddl.jbsadventure.model.actions
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.ActionSerializer
-import net.daddldiddl.jbsadventure.model.actions.*
+import net.daddldiddl.jbsadventure.model.*
 import java.lang.Thread.sleep
 
 /**
@@ -84,7 +84,7 @@ abstract class Action(
     fun validatePreconditions(gameData: GameData): Boolean {
         var valid: Boolean = true
         for(precondition in preconditions) {
-            valid == valid && precondition.validate(gameData)
+            valid = precondition.validate(gameData) && valid
         }
         return valid
     }

@@ -5,6 +5,7 @@ import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.tools.serializers.ItemSerializer
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
  * Represents an item that can exist within the game world.
@@ -14,6 +15,7 @@ open class Item(
     val id: Int,
     override var name: Name,
     override var description: String?,
+    override val onExamine: List<Action> = emptyList(),
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
@@ -24,7 +26,7 @@ open class Item(
     val usages: List<ItemUsage>? = emptyList(),
 ) : NamedEntity {
 
-    fun debugName(): String {
+    override fun debugName(): String {
         return trimEmptySpaces(
             "'${name.name}' (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
         )
@@ -71,11 +73,6 @@ open class Item(
                 .trim()
         }
         return ""
-    }
-
-    // Compatibility wrapper for older call sites.
-    fun descriptionWithState(gameData: GameData): String {
-        return getDetailedDescription()
     }
 
     override fun getDetailedDescription(): String {

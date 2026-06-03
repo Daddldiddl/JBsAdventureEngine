@@ -1,9 +1,11 @@
 package net.daddldiddl.jbsadventure.model
 
+import net.daddldiddl.jbsadventure.model.actions.*
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
+import net.daddldiddl.jbsadventure.model.actions.*
 import kotlin.collections.orEmpty
 
 
@@ -20,6 +22,7 @@ data class Room(
     val id: Int,
     override var name: Name,
     override var description: String?,
+    override val onExamine: List<Action> = emptyList(),
     val exits: Map<String, Exit>? = emptyMap(),
     val itemUsages: List<ItemUsage>? = emptyList()
 ) : NamedEntity
@@ -59,7 +62,7 @@ data class Room(
     /**
      * Returns a debug-friendly name for the room, including its ID.
      */
-    fun debugName(): String {
+    override fun debugName(): String {
         return "'${name.name}' (id=$id)"
     }    
 

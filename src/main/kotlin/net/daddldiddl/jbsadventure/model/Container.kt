@@ -3,6 +3,7 @@ package net.daddldiddl.jbsadventure.model
 import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.model.actions.*
 
 /**
  * Runtime container item implementation.
@@ -15,6 +16,7 @@ class Container(
     id: Int,
     name: Name,
     description: String?,
+    onExamine: List<Action> = emptyList(),
     carriable: Boolean? = false,
     driveable: Boolean? = false,
     stateKey: String? = null,
@@ -25,11 +27,13 @@ class Container(
     usages: List<ItemUsage>? = emptyList(),
     override var open: Boolean = false,
     override var locked: Boolean = false,
+    override val keyId: Int? = null,
     val containedItems: MutableList<Int> = mutableListOf(),
 ) : Item(
     id = id,
     name = name,
     description = description,
+    onExamine = onExamine,
     carriable = carriable,
     driveable = driveable,
     stateKey = stateKey,

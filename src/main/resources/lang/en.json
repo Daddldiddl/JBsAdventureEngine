@@ -51,7 +51,7 @@
     "Commands": {
         "go": {"aliases": ["go", "move"], "description": "Move in a specified direction."},
         "look": {"aliases": ["look", "l"], "description": "Look around the current location."},
-        "examine": {"aliases": ["examine", "x"], "description": "Examine an object more closely.", "adjective": "examined", "verb": "examine"},
+        "examine": {"aliases": ["examine", "x", "search"], "description": "Examine an object more closely.", "adjective": "examined", "verb": "examine"},
         "take": {"aliases": ["take", "pickup", "get", "t"], "description": "Pick up an item.", "adjective": "taken", "verb": "take"},
         "drop": {"aliases": ["drop"], "description": "Drop an item from your inventory.", "adjective": "dropped", "verb": "drop"},
         "use": {"aliases": ["use"], "description": "Use an item in the room or from your inventory.", "adjective": "used", "verb": "use"},

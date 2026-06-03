@@ -1,6 +1,8 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.model.actions.Action
+
 
 /**
  * Describes how a specific item can be used within a room and what effect that has.

@@ -6,6 +6,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.daddldiddl.jbsadventure.model.*
+import net.daddldiddl.jbsadventure.model.actions.*
 
 @Serializable
 data class ItemSurrogate(
@@ -23,7 +24,9 @@ data class ItemSurrogate(
     val isContainer: Boolean? = false,
     val containedItems: List<Int>? = null,
     val open: Boolean? = null,
-    val locked: Boolean? = null
+    val locked: Boolean? = null,
+    val keyId: Int? = null,
+    val onExamine: List<Action>? = null
 )
 
 object ItemSerializer : KSerializer<Item> {
@@ -37,6 +40,7 @@ object ItemSerializer : KSerializer<Item> {
                 id = surrogate.id,
                 name = surrogate.name,
                 description = surrogate.description,
+                onExamine = surrogate.onExamine ?: mutableListOf(),
                 carriable = surrogate.carriable,
                 driveable = surrogate.driveable,
                 stateKey = surrogate.stateKey,
@@ -58,6 +62,7 @@ object ItemSerializer : KSerializer<Item> {
             id = surrogate.id,
             name = surrogate.name,
             description = surrogate.description,
+            onExamine = surrogate.onExamine ?: emptyList(),
             carriable = surrogate.carriable,
             driveable = surrogate.driveable,
             stateKey = surrogate.stateKey,
@@ -75,6 +80,7 @@ object ItemSerializer : KSerializer<Item> {
             id = value.id,
             name =value.name,
             description = value.description,
+            onExamine = value.onExamine,
             carriable = value.carriable,
             driveable = value.driveable,
             stateKey = value.stateKey,

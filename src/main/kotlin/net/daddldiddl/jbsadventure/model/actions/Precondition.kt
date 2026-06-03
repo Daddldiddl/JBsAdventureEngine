@@ -176,8 +176,8 @@ class PreconditionItemsLocation(
         }
         for (itemId in requiredItems) {
             val item = gameData.getItemById(itemId)!!
-            val roomSatisfied = requiredRoomForItems != null && item.location != requiredRoomForItems
-            val containerSatisfied = requiredContainerForItems != null && item.location != FixedLocation.CONTAINER.value
+            val roomSatisfied = requiredRoomForItems != null && item.location == requiredRoomForItems
+            val containerSatisfied = requiredContainerForItems != null && item.location == FixedLocation.CONTAINER.value
                 && gameData.getItemContainer(item.id)?.id == requiredContainerForItems
             if(!roomSatisfied && !containerSatisfied)
                 return false
@@ -201,7 +201,8 @@ class PreconditionItemsLocation(
                 return false
             }
         }
-        if (requiredRoomForItems != null && gameData.getRoomById(requiredRoomForItems) == null) {
+        // Only validate requiredRoomForItems if it's a positive room ID (not special location values like 0, -1, -2)
+        if (requiredRoomForItems != null && requiredRoomForItems > 0 && gameData.getRoomById(requiredRoomForItems) == null) {
             LOG.error("PreconditionItemLocations check failed: required roomId '$requiredRoomForItems' not found.")
             return false
         }
