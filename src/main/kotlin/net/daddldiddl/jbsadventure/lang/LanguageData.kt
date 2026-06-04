@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.LanguageDataSerializer
 
@@ -156,26 +157,16 @@ data class LanguageData(
     /**
      * Checks if the given string is a valid command (or direction in place of a GO command).
      */
-    fun isCommandAlias(input: String): Boolean {
-        for(cmd in commands.values) {
-            if(cmd.aliases.contains(input)) {
-                return true
+    fun getCommandFromAlias(input: String): String? {
+        for(key in commands.keys) {
+            if(commands[key]?.aliases?.contains(input) ?: false) {
+                return key
             }
         }
-        return isMoveCommand(input)
-    }
-
-    /**
-     * Returns whether the command is either an alias for the GO command or a direction
-     */
-    fun isMoveCommand(input: String): Boolean {
-        if(commands[Keys.Command.go]?.aliases?.contains(input) ?: false) {
-            return true
+        if(LANG.getAllDirectionAliases().contains(input)) {;
+            return Keys.Command.go
         }
-        if (getAllDirectionAliases().contains(input)) {
-            return true
-        }
-        return false
+        return ""
     }
 
     /**
@@ -192,13 +183,13 @@ data class LanguageData(
     /**
      * Returns the internal representation of a direction based on its alias.
      */
-    fun getDirectionKeyFromAlias(input: String): String {
+    fun getDirectionKeyFromAlias(input: String): String? {
         for ((directionKey, aliases) in directions) {
             if (aliases.contains(input)) {
                 return directionKey
             }
         }
-        return "<unknown direction: '$input'>"
+        return null
     }
 
     /**

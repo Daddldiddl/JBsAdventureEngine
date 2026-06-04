@@ -107,6 +107,12 @@ class Game(private val gameData: GameData) {
             in LANG.getCommandAliases(Keys.Command.close) -> {
                 handleOpenClose(parts, open = false)
             }
+            in LANG.getCommandAliases(Keys.Command.lock) -> {
+                handleLockUnlock(parts)
+            }
+            in LANG.getCommandAliases(Keys.Command.unlock) -> {
+                handleLockUnlock(parts)
+            }
             in LANG.getCommandAliases(Keys.Command.inventory) -> {
                 handleInventory()
             }
@@ -160,14 +166,14 @@ class Game(private val gameData: GameData) {
         val part0: String = parts[0].lowercase()
         if (parts.size == 1) {
             if (part0 in LANG.getAllDirectionAliases()) {
-                move(LANG.getDirectionKeyFromAlias(part0))
+                move(LANG.getDirectionKeyFromAlias(part0) ?: "")
             } else {
                 CONSOLE.print(LANG.getTemplate(Keys.Message.msgGoWhere))
             }
         } else {
             val part1 = parts[1].lowercase()
             if (part1 in LANG.getAllDirectionAliases()) {
-                move(LANG.getDirectionKeyFromAlias(part1))
+                move(LANG.getDirectionKeyFromAlias(part1) ?: part1)
             } else {
                 CONSOLE.print(LANG.getTemplate(Keys.Message.msgGoWhere))
             }
@@ -212,6 +218,31 @@ class Game(private val gameData: GameData) {
                     LOG.debug("Skipping onExamine action '${action.type}' for '${namedEntity.debugName()}' because preconditions are not met")
                 }
             }
+        }
+    }
+
+    fun handleLockUnlock(parts: List<String>) {
+        LOG.debug("Handling (un)lock command with parts: $parts")
+        val part0: String = parts[0].lowercase()
+        val cmd = LANG.getCommandFromAlias(part0) ?: ""
+        val itemName  = parts.drop(0).joinToString { " " }.trim()
+        if(cmd.isEmpty() || itemName.isEmpty()) {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgLockUnlockWhat))
+            return
+        }
+        val entity = gameData.getAllAccessibleOpenLockEntitiesForRoom(gameData.currentRoom.id)
+            .filter { it.supportsLockUnlock && it.nameMatches(itemName) }
+            .firstOrNull()
+        if(entity == null) {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoDoorOrContainerFound).replace(Keys.StandIn.name, itemName))
+            return
+        }
+        if(cmd == Keys.Command.lock){
+            entity.lock()
+        } else if (cmd in LANG.getCommandAliases(Keys.Command.unlock)) {
+            entity.unlock()
+        } else {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgLockUnlockWhat))
         }
     }
 

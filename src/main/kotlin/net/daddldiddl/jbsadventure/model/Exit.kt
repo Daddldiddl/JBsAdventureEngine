@@ -39,9 +39,19 @@ class Exit (
 
     override fun getDetailedDescription(): String {
         val desc = if(blocked) blockedDescription else description
-        val template = when (desc) {
-            null -> LANG.getTemplate(Keys.Message.msgExitDetailedNoDescription)
-            else -> LANG.getTemplate(Keys.Message.msgExitDetailedDescription)
+        val template = when (name.name) {
+            in LANG.getAllDirectionAliases() -> {
+                when (desc) {
+                    null -> LANG.getTemplate(Keys.Message.msgExitDetailedNoDescriptionNoName)
+                    else -> LANG.getTemplate(Keys.Message.msgExitDetailedDescriptionNoName)
+                }
+            }
+            else -> {
+                when (desc) {
+                    null -> LANG.getTemplate(Keys.Message.msgExitDetailedNoDescription)
+                    else -> LANG.getTemplate(Keys.Message.msgExitDetailedDescription)
+                }
+            }
         }
         var message = template
             .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = false))
@@ -58,6 +68,10 @@ class Exit (
            message = "$message ${getMessagePartOpenLockedState()}"
         }
         return replacePlaceholdersName(message).trim()
+    }
+
+    override fun nameMatches(lookupName: String): Boolean {
+        return super.nameMatches(lookupName) || direction.equals(lookupName, ignoreCase = true)
     }
 
     override fun isOpen(): Boolean {

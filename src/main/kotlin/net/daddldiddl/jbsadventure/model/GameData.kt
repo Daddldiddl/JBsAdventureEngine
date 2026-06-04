@@ -94,7 +94,8 @@ data class GameData(
      * Returns a list of all items in open containers in the specified room.
      */
     fun getOpenContainerItemsForRoom(roomId: Int): List<Item> {
-        return getOpenContainersForRoom(roomId).flatMap { container -> getContainerItems(container.id) }
+        return getContainersForRoom(roomId).filter{ it.isOpen() }
+            .flatMap { container -> getContainerItems(container.id) }
     }
 
     /**
@@ -105,6 +106,17 @@ data class GameData(
         val openContainerItems = getOpenContainerItemsForRoom(roomId)
         val inventoryItems = getInventoryItems()
         return roomItems + openContainerItems + inventoryItems
+    }
+
+    fun getAllAccessibleOpenLockEntitiesForRoom(roomId: Int): List<OpenLockEnabledNamedEntity> {
+        val list: MutableList<OpenLockEnabledNamedEntity> = mutableListOf()
+        list.addAll(getVisibleExitsForRoom(roomId)
+            .filter { it.supportsLockUnlock && it.visible }
+            .map { it as OpenLockEnabledNamedEntity })
+        list.addAll(getContainersForRoom(roomId)
+            .filter { it.supportsLockUnlock }
+            .map { it as OpenLockEnabledNamedEntity })
+        return list
     }
 
     /**
@@ -118,9 +130,9 @@ data class GameData(
     /**
      * Returns a list of all open containers in the specified room.
      */
-    fun getOpenContainersForRoom(roomId: Int): List<Container> {
+    fun getContainersForRoom(roomId: Int): List<Container> {
         return Containers.values
-            .filter { it.location == roomId && it.isOpen() }
+            .filter { it.location == roomId }
     }
 
     /**
