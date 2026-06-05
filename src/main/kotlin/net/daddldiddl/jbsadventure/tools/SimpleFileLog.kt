@@ -1,11 +1,11 @@
 package net.daddldiddl.jbsadventure.tools
 
+import net.daddldiddl.jbsadventure.CONSOLE
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import net.daddldiddl.jbsadventure.CONSOLE
 
 public enum class LogLevel(val priority: Int) {
     ERROR(5), WARN(4), INFO(3), CONSOLE(2), DEBUG(1)
@@ -31,6 +31,16 @@ class SimpleFileLog(consoleLogEnabled: Boolean, writeToFile :Boolean,logLevel: L
     private val dateFormatter = DateTimeFormatter.ofPattern("yyMMddHHmmss-SSS")
 
     /**
+     * Removes ANSI color codes from a string.
+     *
+     * @param message The message from which to remove color codes.
+     * @return The message without color codes.
+     */
+    private fun removeColorCodes(message: String): String {
+        return message.replace(Regex("\\u001B\\[[;\\d]*m"), "")
+    }
+
+    /**
      * Logs a message with the specified log level. The message is prefixed with a timestamp and the log level tag.
      * If console logging is enabled, the message is also printed to the console with color coding based on the log level.
      *
@@ -38,20 +48,28 @@ class SimpleFileLog(consoleLogEnabled: Boolean, writeToFile :Boolean,logLevel: L
      * @param level The log level of the message.
      */
     private fun log(message: String, level: LogLevel) {
+        // Only process if loglevel is appropriate
+        if(level.priority < logLevel.priority) {
+            return
+        }
+
+        // Format the log message with a timestamp and log level tag, and remove color codes
         val timestamp = LocalDateTime.now().format(dateFormatter)
-        val logMsg = when (level) {
+        val logMsg = removeColorCodes( when (level) {
             LogLevel.DEBUG -> "$timestamp $DEBUG_TAG $message"
             LogLevel.ERROR -> "$timestamp $ERROR_TAG $message"
             LogLevel.WARN -> "$timestamp $WARN_TAG $message"
             LogLevel.INFO -> "$timestamp $INFO_TAG $message"
             LogLevel.CONSOLE -> "$timestamp $CONSOLE_TAG $message"
-        }
+        })
+
         // Print to console with color coding if console logging is enabled
-        if (consoleLogEnabled && level != LogLevel.CONSOLE && level.priority >= logLevel.priority) {
+        if (consoleLogEnabled && level != LogLevel.CONSOLE) {
             CONSOLE.printLog(logMsg, level)
         } 
+
         // Append the log message to the log file if the log level is appropriate
-        if(writeToFile && level.priority >= logLevel.priority) {
+        if(writeToFile) {
             // Append the log message to the log file
             try {
                 FileWriter(logFile, true).use { writer ->

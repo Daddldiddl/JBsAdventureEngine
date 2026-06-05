@@ -1,7 +1,10 @@
 package net.daddldiddl.jbsadventure.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.model.actions.Action
+import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
+
 
 /**
  * Represents a room within the game world.
@@ -11,15 +14,26 @@ import kotlinx.serialization.Serializable
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-@Serializable
+@Serializable(with = RoomSerializer::class)
 data class Room(
     val id: Int,
-    val name: String,
-    val description: String,
-    val exits: Map<String, Int>,
-    @SerialName("ItemUsages")
+    override var name: Name,
+    override var description: String?,
+    override val onExamine: List<Action> = emptyList(),
+    val exits: Map<String, Exit>? = emptyMap(),
     val itemUsages: List<ItemUsage>? = emptyList()
-) {
+) : NamedEntity
+{
+    /** Returns all exits currently marked as visible. */
+    fun getVisibleExits(): List<Exit> {
+        return exits.orEmpty().values.filter { it.visible }
+    }
+
+    /** Returns all items currently located in this room. */
+    fun getItems(gameData: GameData): List<Item> {
+        return gameData.getItemsForRoom(id)
+    }
+
     /**
      * Returns the [ItemUsage] definition for the given item in this room, if one exists.
      *
@@ -30,10 +44,27 @@ data class Room(
         return itemUsages?.find { it.itemId == itemId }
     }
 
+    /** Resolves an exit by direction alias first, then by exit name/alias. */
+    fun findExitByAlias(input: String): Exit? {
+        val roomExits = exits.orEmpty()
+        val directionKey = LANG.getDirectionKeyFromAlias(input)
+        val byDirection = roomExits[directionKey]
+        if (byDirection != null) {
+            return byDirection
+        }
+        return roomExits.values.find { it.nameMatches(input) }
+    }
+
+
     /**
      * Returns a debug-friendly name for the room, including its ID.
      */
-    fun debugName(): String {
-        return "$name (id=$id)"
+    override fun debugName(): String {
+        return "'${name.name}' (id=$id)"
     }    
+
+    /** Returns the plain room name for compact debug output. */
+    override fun toString(): String {
+        return name.name
+    }
 }

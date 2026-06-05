@@ -1,66 +1,14 @@
 package net.daddldiddl.jbsadventure.model
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.tools.serializers.GameDataSerializer
 
 /**
- * Root data container deserialized from `data.json`.
- *
- * Holds the complete set of [Room]s and [Item]s that make up the game world
- * and provides convenience accessors consumed by [net.daddldiddl.jbsadventure.Game].
+ * Central runtime game model containing rooms, items, global states and player position.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-
-/**
- * Private surrogate that mirrors the JSON structure (arrays).
- * Used only by [GameDataSerializer] and never exposed outside this file.
- */
-@Serializable
-data class GameDataSurrogate(
-    val title: String? = null,
-    val introductionMessage: String? = null,
-    val exitMessage: String? = null,
-    val Rooms: List<Room>,
-    val Items: List<Item>,
-    val States: List<State>
-)
-
-/**
- * Custom serializer for [GameData] that reads/writes the JSON array format
- * via [GameDataSurrogate] while the runtime representation uses [MutableMap]s.
- */
-object GameDataSerializer : KSerializer<GameData> {
-    override val descriptor: SerialDescriptor = GameDataSurrogate.serializer().descriptor
-
-    override fun deserialize(decoder: Decoder): GameData {
-        val surrogate = decoder.decodeSerializableValue(GameDataSurrogate.serializer())
-        return GameData(
-            title = surrogate.title ?: "a JB's Adventure Engine game",
-            introductionMessage = surrogate.introductionMessage ?: "Enjoy exploring the world and discovering its secrets!\nUse commands like 'look', 'go north', 'take item', and 'use item' to interact with the environment. Type 'help' for a list of commands.",
-            exitMessage = surrogate.exitMessage ?: "Thank you for playing ${surrogate.title ?: "a JB's Adventure Engine game"}! We hope you enjoyed your time with the game. See you next time!",
-            Rooms = surrogate.Rooms.associateBy { it.id }.toMutableMap(),
-            Items = surrogate.Items.associateBy { it.id }.toMutableMap(),
-            States = surrogate.States.associateBy { it.stateKey }.toMutableMap()
-        )
-    }
-
-    override fun serialize(encoder: Encoder, value: GameData) {
-        val surrogate = GameDataSurrogate(
-            title = value.title,
-            introductionMessage = value.introductionMessage,
-            exitMessage = value.exitMessage,
-            Rooms = value.getRoomList(),
-            Items = value.getItemList(),
-            States = value.getStateList()
-        )
-        encoder.encodeSerializableValue(GameDataSurrogate.serializer(), surrogate)
-    }
-}
-
 @Serializable(with = GameDataSerializer::class)
 data class GameData(
     val title: String,
@@ -68,79 +16,230 @@ data class GameData(
     val exitMessage: String,
     private val Rooms: MutableMap<Int, Room>,
     private val Items: MutableMap<Int, Item>,
-    private val States: MutableMap<String, State>
+    val States: MutableMap<String, State>
 ) {
+    private lateinit var _currentRoom: Room
+    var currentRoom: Room
+        get() = if (::_currentRoom.isInitialized) {
+            _currentRoom
+        } else {
+            Rooms.keys.sorted().firstOrNull()?.let { Rooms[it] }
+                ?: throw IllegalStateException("No rooms defined in game data")
+        }
+        set(value) {
+            _currentRoom = value
+        }
+
+    /**
+     * Returns a map of all rooms in the game, keyed by their ID.
+     */
     fun getRoomMap(): Map<Int, Room> {
         return Rooms
     }
 
+    /**
+     * Returns a list of all rooms in the game.
+     */
     fun getRoomList(): List<Room> {
         return Rooms.values.toList()
     }
 
+    /**
+     * Returns the room with the specified ID, or null if no such room exists.
+     */
     fun getRoomById(id: Int): Room? {
         return Rooms[id]
     }
 
-    fun setRoomById(id: Int, room: Room) {
-        Rooms.remove(id)
-        Rooms.put(room.id, room)
+    /**
+     * Returns a list of all visible exits in the specified room.
+     */
+    fun getVisibleExitsForRoom(roomId: Int): List<Exit> {
+        return getRoomById(roomId)?.exits?.values?.filter { it.visible } ?: emptyList()
     }
 
+    /**
+     * Returns a map of all items in the game, keyed by their ID.
+     */
     fun getItemMap(): Map<Int, Item> {
         return Items
     }
 
+    /**
+     * Returns a list of all items in the game.
+     */
     fun getItemList(): List<Item> {
         return Items.values.toList()
     }
 
+    /**
+     * Returns a list of all items in the specified room.
+     */
     fun getItemsForRoom(roomId: Int): List<Item> {
         return Items.values.filter { it.location == roomId }
     }
 
+    /**
+     * Returns a list of all items in the player's inventory.
+     */
+    fun getInventoryItems(): List<Item> {
+        return getItemsForRoom(FixedLocation.INVENTORY.value)
+    }
+
+    fun getContainerById(id: Int): Container? {
+        return Items[id] as Container?
+    }
+
+    /**
+     * Returns a list of all items in open containers in the specified room.
+     */
+    fun getOpenContainerItemsForRoom(roomId: Int): List<Item> {
+        return getContainersForRoom(roomId).filter{ it.isOpen() }
+            .flatMap { container -> getContainerItems(container.id) }
+    }
+
+    /**
+     * Returns a list of all accessible items in the specified room, including items in the room, open containers, and the player's inventory.
+     */
+    fun getAllAccessibleItemsForRoom(roomId: Int): List<Item> {
+        val roomItems = getItemsForRoom(roomId)
+        val openContainerItems = getOpenContainerItemsForRoom(roomId)
+        val inventoryItems = getInventoryItems()
+        return roomItems + openContainerItems + inventoryItems
+    }
+
+    fun getAllAccessibleOpenLockEntitiesForRoom(roomId: Int): List<OpenLockEnabledNamedEntity> {
+        val list: MutableList<OpenLockEnabledNamedEntity> = mutableListOf()
+        list.addAll(getVisibleExitsForRoom(roomId)
+            .filter { (it.supportsOpenClose || it.supportsLockUnlock) && it.visible }
+            .map { it as OpenLockEnabledNamedEntity })
+        list.addAll(getContainersForRoom(roomId)
+            .filter { it.supportsOpenClose || it.supportsLockUnlock }
+            .map { it as OpenLockEnabledNamedEntity })
+        return list
+    }
+
+    /**
+     * Returns a list of all containers in the game.
+     */
+    val Containers: Map<Int, Container>
+        get() {
+            return Items.values.filterIsInstance<Container>().associateBy { it.id }
+        }
+
+    /**
+     * Returns a list of all open containers in the specified room.
+     */
+    fun getContainersForRoom(roomId: Int): List<Container> {
+        return Containers.values
+            .filter { it.location == roomId }
+    }
+
+    /**
+     * Returns the container that contains the specified item, or null if no such container exists.
+     */
+    fun getItemContainer(itemId: Int): Container? {
+        val item = Items[itemId] ?: return null
+        if(item.location == FixedLocation.CONTAINER.value) {
+            return Containers.values.find { it.containsItem(itemId) }
+        }
+        return null
+    }
+
+    fun getContainerItems(containerId: Int): List<Item> {
+        val container: Container? = Containers[containerId]
+        if(container != null) {
+            return container.getContainedItemIds().map { Items[it] }.filterNotNull()
+        }
+        return emptyList()
+    }
+
+    /**
+     * Returns the item with the specified ID, or null if no such item exists.
+     */
     fun getItemById(id: Int): Item? {
         return Items[id]
     }
 
-    fun getItemByNameAndRoom(name: String, roomId: Int): Item? {
-        return getItemsForRoom(roomId).find {
-            it.matchesName(name)
+    /**
+     * Returns the item with the specified name in the specified room, or null if no such item exists in neither the room, open containers, nor the player's inventory.
+     */
+    fun getAccessibleItemByNameAndRoom(name: String, roomId: Int): Item? {
+        return getAllAccessibleItemsForRoom(roomId).find {
+            it.nameMatches(name)
         }
     }
 
-    fun setItemById(id: Int, item: Item) {
-        Items.remove(id)
-        Items.put(item.id, item)
-    }
-
+    /**
+     * Sets the location of the item with the specified ID.
+     */
     fun setItemLocation(itemId: Int, locationId: Int) {
+        // Keep container membership and item location in sync when an item is moved.
+        Containers.values.forEach { container ->
+            if (container.containsItem(itemId)) {
+                container.removeItem(itemId, this)
+            }
+        }
         Items[itemId]?.location = locationId
     }
 
+    /**
+     * Sets whether the item with the specified ID is usable.
+     */
     fun setItemUsable(itemId: Int, usable: Boolean) {
         Items[itemId]?.usable = usable
     }
 
+    /**
+     * Sets the number of uses for the item with the specified ID.
+     */ 
     fun setItemNumberOfUses(itemId: Int, numberOfUses: Int) {
         Items[itemId]?.numberOfUses = numberOfUses
     }
 
+    /**
+     * Returns a map of all game states, keyed by their unique string key.
+     */
     fun getStateMap(): Map<String, State> {
         return States
     }
 
+    /**
+     * Returns a list of all game states.
+     */
     fun getStateList(): List<State> {
         return States.values.toList()
     }
 
+    /**
+     * Returns the game state with the specified key, or null if no such state exists.
+     */
     fun getStateByKey(key: String): State? {
         return States[key]
     }
 
-    fun setCurrentStateValue(key: String, state: String) {
-        if(States[key]?.possibleValues?.contains(state) == true) {
-            States[key]?.currentValue = state
+    /**
+     * Returns true if the game state with the specified key has the expected value, or false otherwise.
+     */
+    fun isStateByKey(key: String, expectedState: String): Boolean {
+        return States[key]?.currentValue == expectedState
+    }
+
+    /**
+     * Returns true if the game state with the specified key has the expected value, or false otherwise.
+     */
+    fun isAllowedStateForKey(key: String, stateToValidate: String): Boolean {
+        return States[key]?.possibleValues?.contains(stateToValidate) == true
+    }
+
+    /**
+     * Sets the current value of the game state with the specified key.
+     */
+    fun setCurrentStateValue(key: String, newState: String) {
+        if(isAllowedStateForKey(key, newState)) {
+            States[key]?.currentValue = newState
+        } else {
+            LOG.warn("Attempted to set state '$key' to invalid value '$newState'. Valid values are: ${States[key]?.possibleValues}")
         }
     }
 }

@@ -1,65 +1,92 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.DATA
+import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.model.actions.Action
+import net.daddldiddl.jbsadventure.tools.serializers.ItemSerializer
 
 /**
  * Represents an item that can exist within the game world.
- *
- * Items reside in a room and can be examined or used by the player.
- * 
- * [usable] indicates whether the item can currently be used by the player;
- * [carriable] indicates whether the player can pick up the item;
- * [driveable] indicates whether using the item can cause it to relocate with the player.
- *
- * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
-@Serializable
-data class Item(
+@Serializable(with = ItemSerializer::class)
+open class Item(
     val id: Int,
-    val name: String,
-    val description: String,
-    val alternateNames: List<String>,
+    override var name: Name,
+    override var description: String?,
+    override val onExamine: List<Action> = emptyList(),
     val carriable: Boolean? = false,
     val driveable: Boolean? = false,
     val stateKey: String? = null,
     var usable: Boolean = true,
     var numberOfUses: Int? = null,
     var location: Int,
-    val comment: String? = null
-) {
-    object Constants {
-        public val INVENTORY_LOCATION :Int = -1
-        public val NOTASSIGNED_LOCATION :Int = 0
+    val comment: String? = null,
+    val usages: List<ItemUsage>? = emptyList(),
+) : NamedEntity {
+
+    override fun debugName(): String {
+        return trimEmptySpaces(
+            "'${name.name}' (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
+        )
     }
 
-    fun getArticle(): String {
-        val firstChar = name.firstOrNull()?.lowercaseChar() ?: return "a"
-        return if (firstChar in listOf('a', 'e', 'i', 'o', 'u')) "an" else "a"
+    override fun toString(): String {
+        return name.name
     }
 
-    /**
-     * Checks if the given name matches this item, considering both the main name and any alternate names.
-     *
-     * @param name The name to check against this item.
-     * @return `true` if the name matches either the main name or any alternate names; `false` otherwise.
-     */
-    fun matchesName(name: String): Boolean {
-        val lowerName = name.lowercase()
-        return lowerName == this.name.lowercase() ||
-                alternateNames.any { it.lowercase() == lowerName }
+    // Compatibility wrapper for older call sites.
+    fun matchesName(lookupName: String): Boolean {
+        return nameMatches(lookupName)
     }
 
-    fun descriptionWithState(gameData: GameData): String {
-        val state = stateKey?.let { gameData.getStateMap()[it] }
-        val usedescription = numberOfUses?.let { "${description.replace("<numberOfUses>", numberOfUses.toString())}" } 
-                ?: "${description}"
-        return if (state != null) "$usedescription\n${state.getDescriptionWithCurrentValue()}" else "$usedescription"
-
+    /** Returns a descriptive name including translated open/lock state. */
+    override fun getDescriptiveName(definite: Boolean?): String {
+        val definiteArticle = definite == true
+        var template = LANG.getTemplate(Keys.Part.descriptiveName)
+        val state = stateKey?.let { DATA.getStateByKey(it) }
+        if(state != null) {
+            template = template
+                    .replace(Keys.StandIn.state, state.currentValue)
+                    .replace(Keys.StandIn.name, name.name)
+                    .trim()
+        } else {
+            return super.getDescriptiveName(definiteArticle)
+        }
+        var article = getArticle(definiteArticle)
+        if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
+            val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
+            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
+            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
+            article = if (nameWithoutArticle.subSequence(0,0).matches(Regex("[aeiouAEIOU]"))) "an" else "a"
+        }
+        return trimEmptySpaces(template.replace(Keys.StandIn.article, article).trim())
     }
-    /**
-     * Returns a debug-friendly name for the item, including its ID.
-     */
-    fun debugName(): String {
-        return "$name (id=$id${if (numberOfUses != null) ", uses left: $numberOfUses" else ""})"
+
+    fun getStateMessagePart(): String {
+        val state = stateKey?.let { DATA.getStateByKey(it) }
+        if (state != null) {
+            return LANG.getTemplate(Keys.Part.state)
+                .replace(Keys.StandIn.state, state.currentValue)
+                .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
+                .trim()
+        }
+        return ""
+    }
+
+    override fun getDetailedDescription(): String {
+        val stateMessagePart = getStateMessagePart()
+        val template = if (description != null) {
+            LANG.getTemplate(Keys.Message.msgItemDetailedDescription)
+        } else {
+            LANG.getTemplate(Keys.Message.msgItemDetailedDescriptionNoDescription)
+        }
+        return template
+            .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+            .replace(Keys.StandIn.description, description ?: "")
+            .replace(Keys.StandIn.stateDescription, stateMessagePart)
+            .replace(Keys.StandIn.state, stateMessagePart)
+            .trim()
     }
 }

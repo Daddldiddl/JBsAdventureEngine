@@ -31,3 +31,5 @@ target/*
 /*.log
 /.vscode
 savegame.json
+/.idea
+/AGENTS.md

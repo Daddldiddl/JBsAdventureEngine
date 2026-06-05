@@ -1,7 +1,6 @@
 package net.daddldiddl.jbsadventure.tools
 
 import net.daddldiddl.jbsadventure.LOG
-import net.daddldiddl.jbsadventure.tools.LogLevel
 
 /**
  * Enum representing console colors for text output.
@@ -42,32 +41,59 @@ public enum class ConsoleColor(private val code: String) {
  * See LICENSE file in the project root for full license information.
  */
 class ConsoleOutput {
+    /** Prints a message in default color and mirrors it to the log. */
     public fun print(message: String?) {
         print(message, ConsoleColor.WHITE)
     }
 
+    /** Prints a message in the specified color and mirrors it to the log. */
     public fun print(message: String?, color: ConsoleColor) {
-        println("$color$message${ConsoleColor.RESET}")
+        println("$color${wrapText(message, 80)}${ConsoleColor.RESET}")
         LOG.console(message ?: "")
     }
 
+    /** Prints an empty line to console and log. */
     public fun print() {
         println()
         LOG.console("")
     }
 
+    /** Prints a warning-styled message. */
     public fun warn(message: String?) {
         print(message, ConsoleColor.LIGHTRED)
     }
 
+    /** Prints a log line using a level-dependent color without writing file logs. */
     public fun printLog(message: String, level: LogLevel) {
             val colorCode = when (level) {
-                LogLevel.DEBUG -> "${ConsoleColor.BLUE}" // Blue
+                LogLevel.DEBUG -> "${ConsoleColor.LIGHTGRAY}" // Blue
                 LogLevel.ERROR -> "${ConsoleColor.RED}" // Red
                 LogLevel.WARN -> "${ConsoleColor.YELLOW}"  // Yellow
                 LogLevel.INFO -> "${ConsoleColor.GREEN}"  // Green
                 else -> "${ConsoleColor.RESET}" // Reset
             }
-            println("$colorCode$message${ConsoleColor.RESET}") // Reset color after printing
+            println("$colorCode${wrapText(message, 120)}${ConsoleColor.RESET}") // Reset color after printing
+    }
+
+    private fun wrapText(text: String?, width :Int): String {
+        if(text == null || text.isEmpty()) return ""
+        val words = text.split(Regex("\\s+"))
+        val builder = StringBuilder()
+        var lineLength = 0
+        var firstWord = true
+        for (word in words) {
+            if ((lineLength + word.length + if (lineLength > 0) 1 else 0) > width && !firstWord) {
+                builder.append(System.lineSeparator())
+                lineLength = 0
+                firstWord = false
+            }
+            if (lineLength > 0) {
+                builder.append(" ")
+                lineLength++
+            }
+            builder.append(word)
+            lineLength += word.length
+        }
+        return builder.toString()
     }
 }
