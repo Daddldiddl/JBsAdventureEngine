@@ -1,7 +1,9 @@
 package net.daddldiddl.jbsadventure.model
 
+import net.daddldiddl.jbsadventure.DATA
 import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
  * Mixin for named entities that expose open/lock state text in descriptions.
@@ -44,6 +46,11 @@ interface OpenLockEnabledEntity {
         get() = false
     val supportsLockUnlock: Boolean
         get() = false
+    val onOpen: List<Action> get() = emptyList()
+    val onClose: List<Action> get() = emptyList()
+    val onLock: List<Action> get() = emptyList()
+    val onUnlock: List<Action> get() = emptyList()
+
 
     var open: Boolean
     var locked: Boolean
@@ -68,6 +75,9 @@ interface OpenLockEnabledEntity {
     fun open() : Boolean{
         if(!isOpen() && !isLocked()) {
             open = true
+            if(onOpen.isNotEmpty()) {
+                onOpen.forEach { it.execute(DATA) }
+            }
             return isOpen()
         }
         return false
@@ -77,6 +87,9 @@ interface OpenLockEnabledEntity {
     fun close(): Boolean {
         if(isOpen() && !isLocked()) {
             open = false
+            if(onClose.isNotEmpty()) {
+                onClose.forEach { it.execute(DATA) }
+            }
             return !isOpen()
         }
         return false
@@ -86,6 +99,9 @@ interface OpenLockEnabledEntity {
     fun lock() : Boolean{
         if(!isLocked()) {
             locked = true
+            if(onLock.isNotEmpty()) {
+                onLock.forEach { if (it.checkPreconditions(DATA)) it.execute(DATA) }
+            }
             return isLocked()
         }
         return false
@@ -95,6 +111,9 @@ interface OpenLockEnabledEntity {
     fun unlock() : Boolean{
         if(isLocked()) {
             locked = !isLocked()
+            if(onUnlock.isNotEmpty()) {
+                onUnlock.forEach { if (it.checkPreconditions(DATA)) it.execute(DATA) }
+            }
             return !isLocked()
         }
         return false

@@ -35,6 +35,7 @@ data class PreconditionSurrogate(
     // for container precondition
     val containsItems: List<Int>? = null,
     val excludesItems: List<Int>? = null
+    // for player p
 )
 
 object PreconditionSerializer : KSerializer<Precondition> {

@@ -9,7 +9,8 @@
             "pronounSubject": "he",
             "pronounObject": "him",
             "possessiveAdjective": "his",
-            "possessiveNoun": "his"
+            "possessiveNoun": "his",
+            "none": "no"
         },
         {
             "genderKey": "female",
@@ -18,7 +19,8 @@
             "pronounSubject": "she",
             "pronounObject": "her",
             "possessiveAdjective": "her",
-            "possessiveNoun": "hers"
+            "possessiveNoun": "hers",
+            "none": "no"
         },
         {
             "genderKey": "neutral",
@@ -27,7 +29,8 @@
             "pronounSubject": "it",
             "pronounObject": "it",
             "possessiveAdjective": "its",
-            "possessiveNoun": "its"
+            "possessiveNoun": "its",
+            "none": "no"
         },
         {
             "genderKey": "plural",
@@ -36,7 +39,8 @@
             "pronounSubject": "they",
             "pronounObject": "them",
             "possessiveAdjective": "their",
-            "possessiveNoun": "theirs"
+            "possessiveNoun": "theirs",
+            "none": "no"
         }
     ],
     "Directions": {

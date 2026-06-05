@@ -87,6 +87,7 @@ object Keys {
         const val room = "<room>"
         const val command = "<command>"
         const val numberOfUses = "<numberOfUses>"
+        const val numberOfUsesOrNo = "<numberOfUsesOrNo>"
         const val pronounSubject = "<pronounSubject>"
         const val pronounObject = "<pronounObject>"
     }

@@ -25,9 +25,14 @@ class Container(
     location: Int,
     comment: String? = null,
     usages: List<ItemUsage>? = emptyList(),
+    onUse: List<Action> = emptyList(),
     override var open: Boolean = false,
     override var locked: Boolean = false,
     override val keyId: Int? = null,
+    override val onOpen: List<Action> = emptyList(),
+    override val onClose: List<Action> = emptyList(),
+    override val onLock: List<Action> = emptyList(),
+    override val onUnlock: List<Action> = emptyList(),
     val containedItems: MutableList<Int> = mutableListOf(),
     private val configuredSupportsLockUnlock: Boolean = false,
 ) : Item(
@@ -43,6 +48,7 @@ class Container(
     location = location,
     comment = comment,
     usages = usages,
+    onUse = onUse
 ), OpenLockEnabledNamedEntity {
 
     /** Returns a descriptive display name including open/lock state text. */

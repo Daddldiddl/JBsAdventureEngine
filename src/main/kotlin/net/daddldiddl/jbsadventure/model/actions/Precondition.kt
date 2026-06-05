@@ -11,7 +11,8 @@ enum class PreconditionType {
     PreconditionItemsLocation,
     PreconditionExit,
     PreconditionItem,
-    PreconditionContainer
+    PreconditionContainer,
+    PreconditionPlayer
 }
 
 
@@ -81,6 +82,28 @@ open class PreconditionItem(
     override fun validate(gameData: GameData): Boolean {
         if (gameData.getItemById(itemId) == null) return false
         return location != null || numberOfUses != null || usable != null || carriable != null || driveable != null
+    }
+}
+
+class PreconditionPlayer(
+    val location: Int?,
+    val hasItems: List<Int> = emptyList(),
+    val doesntHaveItems: List<Int> = emptyList()
+) : Precondition() {
+    override fun isSatisfied(gameData: GameData): Boolean {
+        return (location == null || location == gameData.currentRoom.id)
+            && (hasItems.isEmpty() || gameData.getItemsForRoom(FixedLocation.INVENTORY.value)
+                .map{it.id}.containsAll(hasItems))
+            && (doesntHaveItems.isEmpty() || gameData.getItemsForRoom(FixedLocation.INVENTORY.value)
+                .map { it.id }.none { it in doesntHaveItems })
+            && (doesntHaveItems.isNotEmpty() || hasItems.isNotEmpty() || location != null)
+    }
+
+    override fun validate(gameData: GameData): Boolean {
+        return (doesntHaveItems.isNotEmpty() || hasItems.isNotEmpty() || location != null)
+                && (location == null || gameData.getRoomById(location) != null)
+                && (hasItems.isEmpty() || hasItems.all { gameData.getItemById(it) != null })
+                && (doesntHaveItems.isEmpty() || doesntHaveItems.all { gameData.getItemById(it) != null })
     }
 }
 

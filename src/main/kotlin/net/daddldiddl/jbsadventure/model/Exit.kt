@@ -21,13 +21,17 @@ class Exit (
     override val onExamine: List<Action> = emptyList(),
     override val supportsOpenClose: Boolean = false,
     override val supportsLockUnlock: Boolean = false,
+    override val onOpen: List<Action> = emptyList(),
+    override val onClose: List<Action> = emptyList(),
+    override val onLock: List<Action> = emptyList(),
+    override val onUnlock: List<Action> = emptyList(),
     override var open: Boolean = true,
     override var locked: Boolean = false,
     override val keyId: Int?,
     var visible: Boolean = true,
     var blocked: Boolean = false,
     var blockedDescription: String? = null,
-    val itemUsages: List<ItemUsage>? = null
+    val itemUsages: List<ItemUsage>? = null,
 ) : OpenLockEnabledNamedEntity {
     /**
      * Returns a descriptive name for the exit, using the exit's name if available, or falling back to the direction's display name.

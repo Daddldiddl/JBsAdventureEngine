@@ -13,12 +13,83 @@
             "exits": [
                 {
                     "name": {
-                        "name": "mine tunnel",
-                        "aliases": ["tunnel"]
+                        "name": "rusty gate",
+                        "aliases": ["gate"]
                     },
-                    "description": "A dimly lit tunnel leading into the depths of the mine.",
+                    "description": "A rusty gate leading into the depths of the mine.",
                     "direction": "north",
-                    "targetRoomId": 2
+                    "targetRoomId": 2,
+                    "supportsOpenClose": true,
+                    "open": false,
+                    "supportsLockUnlock": true,
+                    "locked": true,
+                    "keyId": 18,
+                    "onOpen": [
+                        {
+                            "type": "ModifyExit",
+                            "description": "The gate creaks open, allowing you to enter the mine.",
+                            "roomId": 1,
+                            "direction": "north",
+                            "locked": false,
+                            "open": true,
+                            "delayInMillis": 500,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 1,
+                                    "direction": "north",
+                                    "locked": false,
+                                    "open": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 18,
+                    "actions": [
+                        {
+                            "type": "ModifyExit",
+                            "description": "You use the mine key to unlock the rusty gate.",
+                            "roomId": 1,
+                            "direction": "north",
+                            "locked": false,
+                            "open": true,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 1,
+                                    "direction": "north",
+                                    "locked": true
+                                },
+                                {
+                                    "type": "PreconditionItem",
+                                    "itemId": 18,
+                                    "location": -1
+                                }
+                             ]
+                        },{
+                            "type": "ModifyExit",
+                            "description": "The gate creaks open, allowing you to enter the mine.",
+                            "roomId": 1,
+                            "direction": "north",
+                            "locked": false,
+                            "open": true,
+                            "delayInMillis": 1000,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 1,
+                                    "direction": "north",
+                                    "locked": false,
+                                    "open": false
+                                }
+                             ]
+                         }
+                    ],
+                    "consumeUsedItem": true
                 }
             ]
         },
@@ -30,10 +101,15 @@
             },
             "description": "You have entered the mine tunnel.\nThe walls are lined with wooden supports, and the ground is uneven.\nYou can see faint daylight coming from the south.",
             "exits": [
-                {
-                    "direction": "south",
-                    "targetRoomId": 1
-                },
+                    {
+                        "name": {
+                            "name": "rusty gate",
+                            "aliases": ["gate"]
+                        },
+                        "description": "a rusty gate leading to the entrance of the mine.",
+                        "direction": "south",
+                        "targetRoomId": 1
+                    },
                 {
                     "direction": "east",
                     "targetRoomId": 3
@@ -728,6 +804,18 @@
                     "moveToRoomIdForItems": -1
                  }
              ]
+        },{
+            "comment": "the key to the locked gate blocking the entrance to the mine in location 1 (mine entrance)",
+            "id": 18,
+            "name": {
+                "name": "mine key",
+                "aliases": [
+                    "key"
+                ]
+            },
+            "description": "The key to the mine entrance gate. It looks old and rusty, but it should still work.",
+            "carriable": true,
+            "location": -1
         }
     ],
     "States": [

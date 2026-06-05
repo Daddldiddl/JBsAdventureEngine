@@ -382,7 +382,7 @@ class Game(private val gameData: GameData) {
         var itemUsed = false
         var movedToAnotherRoom = false
 
-        for (action in usage.actions) {
+        for (action in item.onUse + usage.actions) {
             if (!action.checkPreconditions(gameData)) {
                 LOG.debug("Skipping action '${action.type}' for item '${item.debugName()}' because preconditions are not met")
                 continue

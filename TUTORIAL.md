@@ -933,6 +933,367 @@ You plug the fuse into the socket...
 
 ---
 
+<a name="tutorial-onuse-actions"></a>
+### Tutorial: Using onUse Action Lists
+
+**Goal:** Create an item that executes actions automatically when used, regardless of which room the player is in.
+
+The `onUse` action list differs from `itemUsages` (which are room-specific). Actions in `onUse` execute whenever the item is used, regardless of location.
+
+**Example: A magic amulet that teleports the player to a safe room**
+
+```json
+{
+    "id": 20,
+    "name": {
+        "name": "magic amulet",
+        "aliases": ["amulet", "medallion", "charm"]
+    },
+    "description": "A mysterious amulet that glows faintly. Ancient runes are inscribed on its surface.",
+    "carriable": true,
+    "location": 5,
+    "numberOfUses": 3,
+    "onUse": [
+        {
+            "type": "MoveTo",
+            "description": "The amulet glows brightly! You feel a surge of energy and suddenly find yourself transported to a safe location.",
+            "moveToRoomId": 1
+        }
+    ]
+}
+```
+
+**Use with ItemUsage configuration:**
+
+Add to any room where you want the amulet to be usable:
+
+```json
+{
+    "itemId": 20,
+    "actions": [],
+    "consumeUsedItem": true,
+    "becomesUsable": true
+}
+```
+
+**Key concepts:**
+
+- `onUse` – actions execute whenever the item is used (location-independent)
+- Combined with `itemUsages` – can add room-specific actions before the `onUse` actions trigger
+- `consumeUsedItem: true` – decrements `numberOfUses` after each use
+- When `numberOfUses` reaches 0, the item is removed
+
+**Player interaction:**
+```
+> use amulet
+The amulet glows brightly! You feel a surge of energy and suddenly find yourself transported to a safe location.
+(You are now in room 1, uses remaining: 2)
+
+> use amulet
+The amulet glows brightly! [...]
+(You are now in room 1, uses remaining: 1)
+
+> use amulet
+The amulet glows brightly! [...]
+(The amulet disappears after the last use)
+```
+
+---
+
+<a name="tutorial-container-actions"></a>
+### Tutorial: Interactive Containers with Action Lists
+
+**Goal:** Create containers that execute actions when opened, closed, locked, or unlocked.
+
+Containers and Exits support four action lists:
+- `onOpen` – triggers when opened
+- `onClose` – triggers when closed
+- `onLock` – triggers when locked
+- `onUnlocked` – triggers when unlocked
+
+**Example 1: A music box that plays when opened**
+
+```json
+{
+    "id": 15,
+    "name": {
+        "name": "music box",
+        "aliases": ["box", "music box"]
+    },
+    "description": "An ornate music box with a wind-up key on the side.",
+    "carriable": true,
+    "location": 3,
+    "isContainer": true,
+    "containedItems": [16],
+    "onOpen": [
+        {
+            "type": "ChangeState",
+            "description": "As you open the music box, a delicate melody begins to play. The sound echoes through the room.",
+            "changedStateKey": "MUSICBOX_PLAYING",
+            "newStateValue": "true"
+        }
+    ],
+    "onClose": [
+        {
+            "type": "ChangeState",
+            "description": "You close the music box. The melody fades away into silence.",
+            "changedStateKey": "MUSICBOX_PLAYING",
+            "newStateValue": "false"
+        }
+    ]
+}
+```
+
+**Example 2: A trapped chest that triggers when unlocked**
+
+```json
+{
+    "id": 18,
+    "name": {
+        "name": "trapped chest",
+        "aliases": ["chest", "treasure chest"]
+    },
+    "description": "A sturdy chest with suspicious scratches around the lock mechanism.",
+    "carriable": false,
+    "location": 7,
+    "isContainer": true,
+    "supportsLockUnlock": true,
+    "open": false,
+    "locked": true,
+    "keyId": 8,
+    "containedItems": [19],
+    "onUnlocked": [
+        {
+            "type": "ChangeState",
+            "description": "As you turn the key, you hear a soft *click* followed by a loud SNAP! A poisoned needle shoots out from the lock mechanism!\nLuckily, you saw the scratches and were prepared. You carefully remove the needle.",
+            "changedStateKey": "CHEST_TRAP_TRIGGERED",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "CHEST_TRAP_TRIGGERED",
+                    "requiredStateValues": ["false"]
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Example 3: Exit with actions**
+
+Exits also support these action lists:
+
+```json
+{
+    "direction": "north",
+    "targetRoomId": 10,
+    "supportsOpenClose": true,
+    "supportsLockUnlock": true,
+    "open": false,
+    "locked": true,
+    "keyId": 21,
+    "onUnlocked": [
+        {
+            "type": "ChangeState",
+            "description": "The heavy door unlocks with a loud CLUNK! Dust falls from the ancient hinges.",
+            "changedStateKey": "VAULT_DOOR_UNLOCKED",
+            "newStateValue": "true"
+        }
+    ],
+    "onOpen": [
+        {
+            "type": "ChangeState",
+            "description": "You push open the massive vault door. The air that escapes smells musty and old.",
+            "changedStateKey": "VAULT_DOOR_OPENED",
+            "newStateValue": "true"
+        }
+    ]
+}
+```
+
+**Player interaction:**
+```
+> open music box
+As you open the music box, a delicate melody begins to play. The sound echoes through the room.
+
+> close music box
+You close the music box. The melody fades away into silence.
+
+> unlock chest with key
+As you turn the key, you hear a soft *click* followed by a loud SNAP! A poisoned needle shoots out from the lock mechanism!
+Luckily, you saw the scratches and were prepared. You carefully remove the needle.
+
+> open chest
+You open the trapped chest.
+```
+
+**Key concepts:**
+
+- Actions execute **after** the state change (open/close/lock/unlock)
+- Use preconditions to prevent actions from repeating
+- All four action lists are optional
+- Available on both `Container` and `Exit` entities
+
+---
+
+<a name="tutorial-player-preconditions"></a>
+### Tutorial: Player-Based Preconditions
+
+**Goal:** Create actions that only trigger when the player meets specific conditions (location, inventory).
+
+The `PreconditionPlayer` allows you to check:
+- Player's current room location
+- Items in player's inventory (required)
+- Items NOT in player's inventory (forbidden)
+
+**Example 1: Item that only works in a specific room**
+
+```json
+{
+    "id": 22,
+    "name": {
+        "name": "ancient scroll",
+        "aliases": ["scroll", "parchment"]
+    },
+    "description": "An ancient scroll with mystical writing that glows faintly.",
+    "carriable": true,
+    "location": 4,
+    "onUse": [
+        {
+            "type": "ChangeState",
+            "description": "You read the scroll aloud. The mystical runes glow brightly and a hidden portal appears in the wall!",
+            "changedStateKey": "PORTAL_VISIBLE",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "location": 8
+                }
+            ]
+        },
+        {
+            "type": "ChangeState",
+            "description": "You read the scroll, but nothing happens. Perhaps it needs to be used in a special location.",
+            "changedStateKey": "SCROLL_READ_ELSEWHERE",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "location": null
+                },
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "PORTAL_VISIBLE",
+                    "requiredStateValues": ["false"]
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Example 2: Action requiring specific items in inventory**
+
+```json
+{
+    "itemId": 23,
+    "actions": [
+        {
+            "type": "SetItemRoom",
+            "description": "You carefully combine the three crystal fragments. They resonate and fuse together, forming a complete Crystal of Power!",
+            "affectedItemIds": [24, 25, 26],
+            "moveToRoomIdForItems": 0,
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "hasItems": [24, 25, 26]
+                }
+            ]
+        },
+        {
+            "type": "TransformIntoItem",
+            "description": "",
+            "affectedItemIds": [23],
+            "transformsIntoItemIds": [27],
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "hasItems": [24, 25, 26]
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Example 3: Action that requires player NOT to have certain items**
+
+```json
+{
+    "itemId": 28,
+    "actions": [
+        {
+            "type": "MoveTo",
+            "description": "You step through the scanner. It beeps green - no contraband detected. You may proceed.",
+            "moveToRoomId": 15,
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "doesntHaveItems": [29, 30]
+                }
+            ]
+        },
+        {
+            "type": "ChangeState",
+            "description": "You step through the scanner. *BEEEEP!* Red lights flash! The scanner detected contraband! Guards rush in and confiscate your items!",
+            "changedStateKey": "SCANNER_ALARM",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionPlayer",
+                    "hasItems": [29]
+                }
+            ]
+        }
+    ]
+}
+```
+
+**PreconditionPlayer JSON fields:**
+
+- `location` – Room ID where player must be (use `null` to negate any specific room check)
+- `hasItems` – List of item IDs that must be in player's inventory
+- `doesntHaveItems` – List of item IDs that must NOT be in player's inventory
+
+**Key concepts:**
+
+- At least one field must be specified
+- All conditions must be met (AND logic)
+- Can combine with other precondition types
+- Use multiple actions with different preconditions to create branching behavior
+
+**Player interaction:**
+```
+# In room 8
+> use scroll
+You read the scroll aloud. The mystical runes glow brightly and a hidden portal appears in the wall!
+
+# In any other room
+> use scroll
+You read the scroll, but nothing happens. Perhaps it needs to be used in a special location.
+
+# At the scanner without contraband
+> use scanner
+You step through the scanner. It beeps green - no contraband detected. You may proceed.
+
+# At the scanner with contraband
+> use scanner
+You step through the scanner. *BEEEEP!* Red lights flash! The scanner detected contraband! Guards rush in and confiscate your items!
+```
+
+---
+
 # Part 2: Technical Reference
 
 ## Architecture & Key Files
@@ -1060,9 +1421,23 @@ Each `ItemUsage` contains:
 
 An action is skipped when its `preconditions` are not met.
 
-### onExamine Actions
+### Action Lists on Entities
 
-`Room`, `Item`, `Container`, and `Exit` all have an optional `onExamine` field (list of `Action`s) that executes when the player examines the entity. Use this for effects like "examining the painting reveals a hidden switch" or gaining knowledge that unlocks other actions.
+Different entities support various action lists that trigger automatically:
+
+**All Entities** (`Room`, `Item`, `Container`, `Exit`):
+- `onExamine` – Executes when the entity is examined
+
+**Items** (including Containers):
+- `onUse` – Executes whenever the item is used (location-independent)
+
+**Containers and Exits** (`OpenLockEnabledNamedEntity`):
+- `onOpen` – Executes when opened
+- `onClose` – Executes when closed
+- `onLock` – Executes when locked
+- `onUnlocked` – Executes when unlocked
+
+These action lists allow you to create dynamic, reactive game elements that respond to player interactions.
 
 ### Available Action Types
 
@@ -1090,6 +1465,7 @@ Actions carry a `preconditions` list. Each precondition has a `type` field that 
 | `PreconditionContainer` | `PreconditionContainer` | `itemId`, `location?`, `open?`, `locked?`, `containsItems?`, `excludesItems?` |
 | `PreconditionExit` | `PreconditionExit` | `roomId`, `direction`, `open?`, `locked?`, `blocked?`, `visible?` |
 | `PreconditionItemsLocation` | `PreconditionItemsLocation` | `requiredItems`, `requiredRoomForItems?`, `requiredContainerForItems?` |
+| `PreconditionPlayer` | `PreconditionPlayer` | `location?`, `hasItems?`, `doesntHaveItems?` |
 
 Serialization is handled by `PreconditionSerializer` (surrogate pattern in `tools/serializers/`).  
 The `@Serializable(PreconditionSerializer::class)` annotation belongs **only on the abstract base class** – do not repeat it on subclasses.
@@ -1199,6 +1575,10 @@ Use `GameData.getOpenContainerItemsForRoom()` / `getAllAccessibleItemsForRoom()`
 - `open` – is container open? (default: `false`)
 - `locked` – is container locked? (default: `false`)
 - `keyId` – item ID required to unlock (optional)
+- `onOpen` – array of `Action` objects triggered when opened
+- `onClose` – array of `Action` objects triggered when closed
+- `onLock` – array of `Action` objects triggered when locked
+- `onUnlocked` – array of `Action` objects triggered when unlocked
 
 ### Exit Fields
 
@@ -1215,6 +1595,10 @@ Use `GameData.getOpenContainerItemsForRoom()` / `getAllAccessibleItemsForRoom()`
 - `blocked` – is exit blocked? (default: `false`)
 - `blockedDescription` – shown when exit is blocked
 - `onExamine` – array of `Action` objects triggered when examining
+- `onOpen` – array of `Action` objects triggered when opened
+- `onClose` – array of `Action` objects triggered when closed
+- `onLock` – array of `Action` objects triggered when locked
+- `onUnlocked` – array of `Action` objects triggered when unlocked
 
 ### State Fields
 

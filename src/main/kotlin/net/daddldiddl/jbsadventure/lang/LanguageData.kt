@@ -34,7 +34,8 @@ data class PronounGroup(
     val pronounSubject: String,
     val pronounObject: String,
     val possessiveAdjective: String,
-    val possessiveNoun: String
+    val possessiveNoun: String,
+    val none: String
 )
 
 
@@ -79,7 +80,8 @@ data class LanguageData(
                 possessiveNoun = "its",
                 pronounSubject = "it",
                 pronounObject = "it",
-                possessiveAdjective = "its"
+                possessiveAdjective = "its",
+                none = "no"
             ) // no values at all
 
     init {

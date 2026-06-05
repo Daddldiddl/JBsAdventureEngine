@@ -134,6 +134,9 @@ data class ChangeStateAction(
 }
 
 /**
+ *
+ */
+/**
  * Action representing the movement of the player to a different room.
  */
 data class MoveToAction(

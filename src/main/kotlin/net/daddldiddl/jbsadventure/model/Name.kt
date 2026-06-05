@@ -2,7 +2,7 @@ package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.LANG
-import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.lang.*
 import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
@@ -146,5 +146,7 @@ interface NamedEntity {
         return startUpperCase(description  ?: "")
     }
 
-
+    fun getPronumGroup() : PronounGroup {
+        return LANG.pronounGroups[name.genderKey] ?: LANG.defaultPronoun
+    }
 }

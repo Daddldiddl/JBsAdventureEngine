@@ -30,7 +30,12 @@ data class ItemSurrogate(
     val locked: Boolean? = null,
     val keyId: Int? = null,
     val supportsLockUnlock: Boolean? = null,
-    val onExamine: List<Action>? = null
+    val onExamine: List<Action>? = null,
+    val onOpen: List<Action>? = null,
+    val onClose: List<Action>? = null,
+    val onLock: List<Action>? = null,
+    val onUnlock: List<Action>? = null,
+    val onUse: List<Action>? = null,
 )
 
 object ItemSerializer : KSerializer<Item> {
@@ -53,9 +58,14 @@ object ItemSerializer : KSerializer<Item> {
                 location = surrogate.location,
                 comment = surrogate.comment,
                 usages = surrogate.usages,
+                onUse = surrogate.onUse ?: emptyList(),
                 open = surrogate.open ?: false,
                 locked = surrogate.locked ?: false,
                 keyId = surrogate.keyId,
+                onOpen = surrogate.onOpen ?: emptyList(),
+                onClose = surrogate.onClose ?: emptyList(),
+                onLock = surrogate.onLock ?: emptyList(),
+                onUnlock = surrogate.onUnlock ?: emptyList(),
                 configuredSupportsLockUnlock = surrogate.supportsLockUnlock ?: false,
             )
             if(surrogate.containedItems != null) {
@@ -76,7 +86,8 @@ object ItemSerializer : KSerializer<Item> {
             numberOfUses = surrogate.numberOfUses,
             location = surrogate.location,
             comment = surrogate.comment,
-            usages = surrogate.usages
+            usages = surrogate.usages,
+            onUse = surrogate.onUse ?: emptyList()
         )
     }
 
@@ -100,6 +111,11 @@ object ItemSerializer : KSerializer<Item> {
             locked = if (value is Container) value.locked else null,
             keyId = if (value is Container) value.keyId else null,
             supportsLockUnlock = if (value is Container) value.supportsLockUnlock else null,
+            onOpen = if (value is Container) value.onOpen else null,
+            onClose = if (value is Container) value.onClose else null,
+            onLock = if (value is Container) value.onLock else null,
+            onUnlock = if (value is Container) value.onUnlock else null,
+            onUse = value.onUse,
             usages = value.usages
         )
         encoder.encodeSerializableValue(ItemSurrogate.serializer(), surrogate)

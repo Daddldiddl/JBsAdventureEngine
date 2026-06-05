@@ -24,6 +24,7 @@ open class Item(
     var location: Int,
     val comment: String? = null,
     val usages: List<ItemUsage>? = emptyList(),
+    val onUse: List<Action> = emptyList()
 ) : NamedEntity {
 
     override fun debugName(): String {
@@ -87,6 +88,8 @@ open class Item(
             .replace(Keys.StandIn.description, description ?: "")
             .replace(Keys.StandIn.stateDescription, stateMessagePart)
             .replace(Keys.StandIn.state, stateMessagePart)
+            .replace(Keys.StandIn.numberOfUses, numberOfUses?.toString() ?: "0")
+            .replace(Keys.StandIn.numberOfUsesOrNo, if(numberOfUses == 0) getPronumGroup().none else numberOfUses?.toString() ?: "0")
             .trim()
     }
 }
