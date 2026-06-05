@@ -120,7 +120,3 @@ What may be coming in the far future:
 - add a stats (and combat?) system to allow for a 'roleplay-like' experience
 
 These are the basic ideas - this is not going to be a continous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
-
-What I'm currently working on in the current dev branch (in varying stages of completion):
-
-Enjoy!
