@@ -104,7 +104,6 @@ What may be coming in the future:
 
 These are basic ideas – this is not going to be a continuous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more features for elaborate puzzles and stories.
 
-Currently implemented/in the works:
 
 - basic i8n support is in - commands, directions, help page etc. already work, but there's no support for localized data files yet - the data file is simply in the language its written in.
 - allow item on item usage - this is possible if the second item is in the room or inventory, but there'scurrently  no possibility to explicitely state which item to use another one on.
