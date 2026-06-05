@@ -111,10 +111,10 @@ data class GameData(
     fun getAllAccessibleOpenLockEntitiesForRoom(roomId: Int): List<OpenLockEnabledNamedEntity> {
         val list: MutableList<OpenLockEnabledNamedEntity> = mutableListOf()
         list.addAll(getVisibleExitsForRoom(roomId)
-            .filter { it.supportsLockUnlock && it.visible }
+            .filter { (it.supportsOpenClose || it.supportsLockUnlock) && it.visible }
             .map { it as OpenLockEnabledNamedEntity })
         list.addAll(getContainersForRoom(roomId)
-            .filter { it.supportsLockUnlock }
+            .filter { it.supportsOpenClose || it.supportsLockUnlock }
             .map { it as OpenLockEnabledNamedEntity })
         return list
     }

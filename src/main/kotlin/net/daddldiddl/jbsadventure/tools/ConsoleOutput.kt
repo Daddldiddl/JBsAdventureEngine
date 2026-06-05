@@ -66,7 +66,7 @@ class ConsoleOutput {
     /** Prints a log line using a level-dependent color without writing file logs. */
     public fun printLog(message: String, level: LogLevel) {
             val colorCode = when (level) {
-                LogLevel.DEBUG -> "${ConsoleColor.BLUE}" // Blue
+                LogLevel.DEBUG -> "${ConsoleColor.LIGHTGRAY}" // Blue
                 LogLevel.ERROR -> "${ConsoleColor.RED}" // Red
                 LogLevel.WARN -> "${ConsoleColor.YELLOW}"  // Yellow
                 LogLevel.INFO -> "${ConsoleColor.GREEN}"  // Green

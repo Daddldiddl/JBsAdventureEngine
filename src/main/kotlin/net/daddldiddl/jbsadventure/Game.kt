@@ -22,7 +22,17 @@ class Game(private val gameData: GameData) {
 
     /** Logs current room and room items for debugging purposes. */
     fun currentStateDebug() {
-        LOG.debug("Current room: ${DATA.currentRoom.name} (id=${DATA.currentRoom.id}), containing items: ${gameData.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.name} (id=${it.id})" }}")
+        val items = if (DATA.getItemsForRoom(DATA.currentRoom.id).isEmpty()) {
+            "no items"
+        } else {
+            "items: [${DATA.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.debugName()}" }}]"
+        }
+        val exits = if (DATA.getVisibleExitsForRoom(DATA.currentRoom.id).isEmpty()) {
+            "no visible exits"
+        } else {
+            "visible exits: [${DATA.getVisibleExitsForRoom(DATA.currentRoom.id).joinToString(", "){it.debugName()} }]"
+        }
+        LOG.debug("Current room: ${DATA.currentRoom.debugName()}, $items, $exits")
     }
 
     /**
@@ -228,7 +238,7 @@ class Game(private val gameData: GameData) {
         LOG.debug("Handling open/close command with parts: $parts")
         val part0: String = parts[0].lowercase()
         val cmd = LANG.getCommandFromAlias(part0) ?: ""
-        val itemName  = parts.drop(0).joinToString { " " }.trim()
+        val itemName = parts.drop(1).joinToString(" ").trim()
         if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.open, Keys.Command.close)) {
             CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
                 .replace(Keys.StandIn.command, LANG.getCommandAlias(cmd)))
@@ -259,7 +269,7 @@ class Game(private val gameData: GameData) {
             ))
         } else if(entity.isLocked()){
             CONSOLE.print(entity.replacePlaceholdersName(
-                LANG.getTemplate(Keys.Message.msgEntityLocked)
+                LANG.getTemplate(Keys.Message.msgTargetLocked)
             ))
         } else if (isOpen) {
             entity.open()
@@ -278,7 +288,7 @@ class Game(private val gameData: GameData) {
         LOG.debug("Handling (un)lock command with parts: $parts")
         val part0: String = parts[0].lowercase()
         val cmd = LANG.getCommandFromAlias(part0) ?: ""
-        val itemName  = parts.drop(0).joinToString { " " }.trim()
+        val itemName = parts.drop(1).joinToString(" ").trim()
         if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.lock, Keys.Command.unlock)) {
             CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
                 .replace(Keys.StandIn.command, LANG.getCommandAlias(cmd)))
