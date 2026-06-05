@@ -104,6 +104,24 @@ What may be coming in the future:
 
 These are basic ideas – this is not going to be a continuous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more features for elaborate puzzles and stories.
 
-**Note:** The included adventure is a testbed/example for implemented features, not a full game. The texts are mostly AI-generated placeholders to demonstrate the engine's capabilities.
+Currently implemented/in the works:
+
+- basic i8n support is in - commands, directions, help page etc. already work, but there's no support for localized data files yet - the data file is simply in the language its written in.
+- allow item on item usage - this is possible if the second item is in the room or inventory, but there'scurrently  no possibility to explicitely state which item to use another one on.
+- item usages and named entities (rooms, items, exits, containers) can have multiple actions, each with its own set of preconditions
+- exits are separate entities and can be hidden, locked/unlocked and open/closed
+- various action types available
+- states can be modified by actions and be queried by preconditions
+- containers are special items, can contain other items and support being locked/unlocked and open/closed
+- item states are reflected in an items descriptive name
+
+What may be coming in the far future:
+
+- maybe add NPCs as additional object cathegory with dialog options?
+- add a stats (and combat?) system to allow for a 'roleplay-like' experience
+
+These are the basic ideas - this is not going to be a continous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
+
+What I'm currently working on in the current dev branch (in varying stages of completion):
 
 Enjoy!
