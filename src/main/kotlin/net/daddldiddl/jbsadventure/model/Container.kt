@@ -29,6 +29,7 @@ class Container(
     override var locked: Boolean = false,
     override val keyId: Int? = null,
     val containedItems: MutableList<Int> = mutableListOf(),
+    private val configuredSupportsLockUnlock: Boolean = false,
 ) : Item(
     id = id,
     name = name,
@@ -77,7 +78,7 @@ class Container(
     override val supportsOpenClose: Boolean
         get() = true
     override val supportsLockUnlock: Boolean
-        get() = false
+        get() = configuredSupportsLockUnlock
 
     /** Adds one item ID to this container. */
     fun addItem(itemId: Int, gameData: GameData) {

@@ -29,6 +29,7 @@ data class ItemSurrogate(
     val open: Boolean? = null,
     val locked: Boolean? = null,
     val keyId: Int? = null,
+    val supportsLockUnlock: Boolean? = null,
     val onExamine: List<Action>? = null
 )
 
@@ -54,6 +55,8 @@ object ItemSerializer : KSerializer<Item> {
                 usages = surrogate.usages,
                 open = surrogate.open ?: false,
                 locked = surrogate.locked ?: false,
+                keyId = surrogate.keyId,
+                configuredSupportsLockUnlock = surrogate.supportsLockUnlock ?: false,
             )
             if(surrogate.containedItems != null) {
                 container.containedItems.addAll(surrogate.containedItems)
@@ -95,6 +98,8 @@ object ItemSerializer : KSerializer<Item> {
             containedItems = if (value is Container) value.getContainedItemIds() else null,
             open = if (value is Container) value.open else null,
             locked = if (value is Container) value.locked else null,
+            keyId = if (value is Container) value.keyId else null,
+            supportsLockUnlock = if (value is Container) value.supportsLockUnlock else null,
             usages = value.usages
         )
         encoder.encodeSerializableValue(ItemSurrogate.serializer(), surrogate)

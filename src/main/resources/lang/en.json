@@ -118,7 +118,7 @@
         "msgDoesNotSupportLockUnlock": "<definiteName> does not have a lock.",
         "msgAlreadyLocked": "<definiteName> is already locked.",
         "msgAlreadyUnlocked": "<definiteName> is already unlocked.",
-        "msgTargetLocked": "<definiteName> is locked.",
+        "msgEntityIsLocked": "<definiteName> is locked.",
         "msgOpenSuccess": "You open <definiteName>.",
         "msgCloseSuccess": "You close <definiteName>.",
         "msgLockSuccess": "You lock <definiteName>.",

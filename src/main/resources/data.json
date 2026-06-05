@@ -571,7 +571,7 @@
                     ]
                 },{
                     "type": "TransformIntoItem",
-                    "description": "As you examine the gem, you realize that it is actually a fake gem that has been cleverly disguised to look like the Eye Of Bengal.",
+                    "description": "This is an enormous treasure! It looks like your expedition has actually been worth it...",
                     "affectedItemIds": [9],
                     "transformsIntoItemIds": [10],
                     "preconditions": [
@@ -580,8 +580,13 @@
                             "requiredStateValues": [
                                 "true"
                             ]
+                        }, {
+                            "type": "PreconditionItemsLocation",
+                            "requiredItems": [10],
+                            "requiredRoomForItems": 0
                         }
-                     ]
+
+                    ]
                 }
             ],
             "carriable": true,
@@ -640,7 +645,7 @@
                 9
             ],
             "isContainer": true,
-            "supportsLocking": true,
+            "supportsLockUnlock": true,
             "open": false,
             "locked": true,
             "keyId": 8
@@ -654,7 +659,8 @@
                 "aliases": [
                     "dynamite",
                     "sticks",
-                    "explosives"
+                    "explosives",
+                    "explosive"
                 ]
             },
             "description": "A few sticks of dynamite, it looks like they could be used to blast through something.",            "carriable": true,
@@ -675,7 +681,7 @@
             "isContainer": true,
             "open": false,
             "locked": true,
-            "supportsLocking": true
+            "supportsLockUnlock": true
         },
         {
             "comment": "crowbar which can be used to open the box of explosives located in the machinery room (location 5)",

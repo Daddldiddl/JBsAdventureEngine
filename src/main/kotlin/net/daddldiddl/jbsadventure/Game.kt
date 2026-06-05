@@ -1,6 +1,5 @@
 package net.daddldiddl.jbsadventure
 
-import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.model.*
 import net.daddldiddl.jbsadventure.model.actions.ActionType
@@ -269,7 +268,7 @@ class Game(private val gameData: GameData) {
             ))
         } else if(entity.isLocked()){
             CONSOLE.print(entity.replacePlaceholdersName(
-                LANG.getTemplate(Keys.Message.msgTargetLocked)
+                LANG.getTemplate(Keys.Message.msgEntityIsLocked)
             ))
         } else if (isOpen) {
             entity.open()

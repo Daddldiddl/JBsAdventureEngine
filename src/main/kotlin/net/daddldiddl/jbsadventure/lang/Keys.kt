@@ -162,7 +162,7 @@ object Keys {
         const val msgDoesNotSupportLockUnlock = "msgDoesNotSupportLockUnlock"
         const val msgLockRequiresNoKey = "msgLockRequiresNoKey"
         const val msgUnlockRequiresNoKey = "msgUnlockRequiresNoKey"
-        const val msgTargetLocked = "msgTargetLocked"
+        const val msgEntityIsLocked = "msgEntityIsLocked"
         const val msgEntityAlreadyOpen = "msgAlreadyOpen"
         const val msgEntityAlreadyClosed = "msgAlreadyClosed"
         const val msgEntityAlreadyUnlocked = "msgAlreadyUnlocked"
