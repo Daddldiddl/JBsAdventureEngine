@@ -1,5 +1,6 @@
 package net.daddldiddl.jbsadventure
 
+import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.model.*
 import net.daddldiddl.jbsadventure.model.actions.ActionType
@@ -101,16 +102,12 @@ class Game(private val gameData: GameData) {
             in LANG.getCommandAliases(Keys.Command.drop) -> {
                 handleDrop(parts)
             }
-            in LANG.getCommandAliases(Keys.Command.open) -> {
-                handleOpenClose(parts, open = true)
+            in LANG.getCommandAliases(Keys.Command.open)
+                    + LANG.getCommandAliases(Keys.Command.close) -> {
+                handleOpenClose(parts)
             }
-            in LANG.getCommandAliases(Keys.Command.close) -> {
-                handleOpenClose(parts, open = false)
-            }
-            in LANG.getCommandAliases(Keys.Command.lock) -> {
-                handleLockUnlock(parts)
-            }
-            in LANG.getCommandAliases(Keys.Command.unlock) -> {
+            in LANG.getCommandAliases(Keys.Command.lock)
+                    + LANG.getCommandAliases(Keys.Command.unlock) -> {
                 handleLockUnlock(parts)
             }
             in LANG.getCommandAliases(Keys.Command.inventory) -> {
@@ -221,28 +218,124 @@ class Game(private val gameData: GameData) {
         }
     }
 
+    /**
+     * Handles opening or closing a door or container, depending on the command alias used.
+     * Validates that the target entity supports the requested action, is present in the current room,
+     * and is not already in the desired state.
+     * Also checks for locked or blocked states that would prevent opening/closing.
+     */
+    fun handleOpenClose(parts: List<String>) {
+        LOG.debug("Handling open/close command with parts: $parts")
+        val part0: String = parts[0].lowercase()
+        val cmd = LANG.getCommandFromAlias(part0) ?: ""
+        val itemName  = parts.drop(0).joinToString { " " }.trim()
+        if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.open, Keys.Command.close)) {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
+                .replace(Keys.StandIn.command, LANG.getCommandAlias(cmd)))
+            return
+        }
+        val isOpen = cmd == Keys.Command.open
+        val entity = gameData.getAllAccessibleOpenLockEntitiesForRoom(gameData.currentRoom.id)
+            .filter { it.nameMatches(itemName) }
+            .firstOrNull()
+        if(entity == null) {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoDoorOrContainerFound)
+                .replace(Keys.StandIn.name, itemName))
+        } else if(entity is Exit && entity.blocked){
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgExitIsBlocked)
+            ))
+        } else if (entity.supportsOpenClose != true){
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgDoesNotSupportOpenClose)
+            ))
+        } else if(isOpen && entity.isOpen()) {
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityAlreadyOpen)
+            ))
+        } else if (!isOpen && !entity.isOpen()) {
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityAlreadyClosed)
+            ))
+        } else if(entity.isLocked()){
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityLocked)
+            ))
+        } else if (isOpen) {
+            entity.open()
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityOpened)
+            ))
+        } else {
+            entity.close()
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityClosed)
+            ))
+        }
+    }
+
     fun handleLockUnlock(parts: List<String>) {
         LOG.debug("Handling (un)lock command with parts: $parts")
         val part0: String = parts[0].lowercase()
         val cmd = LANG.getCommandFromAlias(part0) ?: ""
         val itemName  = parts.drop(0).joinToString { " " }.trim()
-        if(cmd.isEmpty() || itemName.isEmpty()) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgLockUnlockWhat))
+        if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.lock, Keys.Command.unlock)) {
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
+                .replace(Keys.StandIn.command, LANG.getCommandAlias(cmd)))
             return
         }
+        val isLock = cmd == Keys.Command.lock
         val entity = gameData.getAllAccessibleOpenLockEntitiesForRoom(gameData.currentRoom.id)
-            .filter { it.supportsLockUnlock && it.nameMatches(itemName) }
+            .filter { it.nameMatches(itemName) }
             .firstOrNull()
+        // pre-check: ensure entity exists, supports lock/unlock and isn't blocked
         if(entity == null) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoDoorOrContainerFound).replace(Keys.StandIn.name, itemName))
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoDoorOrContainerFound)
+                .replace(Keys.StandIn.name, itemName))
+            return
+        } else if(entity is Exit && entity.blocked){
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgExitIsBlocked)
+            ))
+            return
+        } else if (entity.supportsLockUnlock != true){
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgDoesNotSupportLockUnlock)
+            ))
             return
         }
-        if(cmd == Keys.Command.lock){
-            entity.lock()
-        } else if (cmd in LANG.getCommandAliases(Keys.Command.unlock)) {
+        // check for key
+        val key : Item? = gameData.getAllAccessibleItemsForRoom(gameData.currentRoom.id)
+                .find { it.id == entity.keyId }
+        if ( entity.keyId == null) {
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(if (isLock) Keys.Message.msgLockRequiresNoKey else Keys.Message.msgUnlockRequiresNoKey)
+            ))
+        } else if(key == null) {
+            CONSOLE.print(
+                entity.replacePlaceholdersName(
+                    LANG.getTemplate(if (isLock) Keys.Message.msgLockKeyMissing else Keys.Message.msgUnlockKeyMissing)
+                )
+            )
+        } else if (isLock && entity.isLocked()) {
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityAlreadyLocked)
+            ))
+        } else if (!isLock && !entity.isLocked()) {
+        CONSOLE.print(
+            entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityAlreadyUnlocked)
+            ))
+        } else if(entity.isLocked()){
             entity.unlock()
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityUnlocked)
+            ))
         } else {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgLockUnlockWhat))
+            entity.lock()
+            CONSOLE.print(entity.replacePlaceholdersName(
+                LANG.getTemplate(Keys.Message.msgEntityLocked)
+            ))
         }
     }
 
@@ -255,7 +348,8 @@ class Game(private val gameData: GameData) {
     fun handleUse(parts: List<String>) {
         LOG.debug("Handling use command with parts: $parts")
         if (parts.size < 2) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgUseWhat))
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
+                .replace(Keys.StandIn.command, parts[0]))
             return
         }
 
@@ -335,7 +429,8 @@ class Game(private val gameData: GameData) {
     private fun handlePickup(parts: List<String>) {
         LOG.debug("Handling pickup request")
         if (parts.size < 2) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgTakeWhat))
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
+                .replace(Keys.StandIn.command, parts[0]))
         } else {
             val itemName = parts.drop(1).joinToString(" ")
             val item = gameData.getAccessibleItemByNameAndRoom(itemName, DATA.currentRoom.id)
@@ -364,7 +459,8 @@ class Game(private val gameData: GameData) {
     private fun handleDrop(parts: List<String>) {
         LOG.debug("Handling drop request")
         if (parts.size < 2) {
-            CONSOLE.print(LANG.getTemplate(Keys.Message.msgDropWhat))
+            CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
+                .replace(Keys.StandIn.command, parts[0]))
         } else {
             val itemName = parts.drop(1).joinToString(" ")
             val item = gameData.getAccessibleItemByNameAndRoom(itemName, FixedLocation.INVENTORY.value)
@@ -396,77 +492,6 @@ class Game(private val gameData: GameData) {
                 LANG.getTemplate(Keys.Part.inventory).replace(Keys.StandIn.items, itemList),
                 ConsoleColor.CYAN
             )
-        }
-    }
-
-    /**
-     * Handles opening/closing for containers and exits in the current room context.
-     *
-     * Resolution order is: matching item (container first) -> matching exit.
-     */
-    private fun handleOpenClose(parts: List<String>, open: Boolean) {
-        val verb = if(open) LANG.commands[Keys.Command.open]?.verb() ?: Keys.Command.open
-            else LANG.commands[Keys.Command.close]?.verb() ?: Keys.Command.close
-
-        /** Resolves and fills a localized open/close message template. */
-        fun msg(key: String, name: String? = null): String {
-            var value = LANG.getTemplate(key)
-                .replace(Keys.StandIn.command, verb)
-            if (name != null) {
-                value = value.replace(Keys.StandIn.name, name)
-            }
-            return value
-        }
-
-        if (parts.size < 2) {
-            CONSOLE.print(msg(Keys.Message.msgOpenCloseWhat))
-            return
-        }
-
-        val targetName: String = parts.drop(1).joinToString(" ")
-        val exit: Exit?= DATA.currentRoom.findExitByAlias(targetName)?.let {
-            if(it.supportsOpenClose) it else null
-        }
-        val container: Container?= DATA.getAllAccessibleItemsForRoom(DATA.currentRoom.id)
-            .filter{ it.nameMatches(targetName) && it is Container }
-            .map { it as Container }.firstOrNull()
-
-        if(container == null && exit == null) {
-            LOG.warn("Player attempted to $verb '$targetName', but no matching container or exit found in room '${DATA.currentRoom.debugName()}'")
-            msg(Keys.Message.msgNoDoorOrContainerFound, targetName)
-            return
-        }
-
-        val entity : OpenLockEnabledNamedEntity = container ?: exit!!
-        if(container != null) {
-            if(!container.supportsOpenClose) {
-                LOG.warn("Player attempted to $verb '${(container as Item).debugName()}', but it does not support open/close")
-                CONSOLE.print(msg(Keys.Message.msgDoesNotSupportOpenClose, container.getDescriptiveName(true)))
-                return
-            }
-        } else if (exit != null) {
-            if(!exit.supportsOpenClose) {
-                LOG.warn("Player attempted to $verb '${exit.debugName()}', but it does not support open/close")
-                CONSOLE.print(msg(Keys.Message.msgDoesNotSupportOpenClose, exit.getDescriptiveName(true)))
-                return
-            }
-        }
-
-        val displayName = entity.getDescriptiveName(true)
-        if (open) {
-            when {
-                entity.open -> CONSOLE.print(msg(Keys.Message.msgAlreadyOpen, displayName))
-                entity.locked -> CONSOLE.print(msg(Keys.Message.msgTargetLocked, displayName))
-                entity.open() -> CONSOLE.print(msg(Keys.Message.msgOpenSuccess, displayName))
-                else -> CONSOLE.print(msg(Keys.Message.msgOpenFailed, displayName))
-            }
-        } else {
-            when {
-                !entity.open -> CONSOLE.print(msg(Keys.Message.msgAlreadyClosed, displayName))
-                entity.locked -> CONSOLE.print(msg(Keys.Message.msgTargetLocked, displayName))
-                entity.close() -> CONSOLE.print(msg(Keys.Message.msgCloseSuccess, displayName))
-                else -> CONSOLE.print(msg(Keys.Message.msgCloseFailed, displayName))
-            }
         }
     }
 
@@ -510,40 +535,37 @@ class Game(private val gameData: GameData) {
         }
         if (!exits.containsKey(direction)) {
             CONSOLE.print(
-                LANG.getTemplate(Keys.Message.msgNoExit)
+                LANG.getTemplate(Keys.Message.msgNoExitsFromRoom)
                     .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
             )
             return
         }
         val exit = exits[direction]
-        if (exit == null) {
+        if (exit == null || !exit.visible) {
             CONSOLE.print(
-                LANG.getTemplate(Keys.Message.msgNoExit)
+                LANG.getTemplate(Keys.Message.msgNoExitInDirection)
                     .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
             )
             return
         }
         if (!exit.isOpen()) {
             val message = if (exit.blocked) {
-                exit.blockedDescription ?: LANG.getTemplate(Keys.Message.msgExitBlocked)
-                    .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
+                exit.blockedDescription ?: LANG.getTemplate(Keys.Message.msgExitIsBlocked)
             } else if (exit.isLocked()) {
-                LANG.getTemplate(Keys.Message.msgExitLocked)
-                    .replace(Keys.StandIn.definiteName, exit.getDescriptiveName(definite = true))
+                LANG.getTemplate(Keys.Message.msgEntityLocked)
             } else {
-                LANG.getTemplate(Keys.Message.msgExitClosed)
-                    .replace(Keys.StandIn.definiteName, exit.getDescriptiveName(definite = true))
+                LANG.getTemplate(Keys.Message.msgEntityClosed)
             }
-            CONSOLE.print(message)
+            CONSOLE.print(exit.replacePlaceholdersName(message))
             return
         }
         val nextRoomId = exit.targetRoomId
         if (!gameData.getRoomMap().containsKey(nextRoomId)) {
             CONSOLE.print(
-                LANG.getTemplate(Keys.Message.msgExitTargetRoomMissing)
+                LANG.getTemplate(Keys.Message.msgNoExitInDirection)
                     .replace(Keys.StandIn.direction, LANG.getDirectionAliasFromKey(direction))
-                    .replace(Keys.StandIn.room, "$nextRoomId")
             )
+            LOG.error("The exit in direction $direction for room ${gameData.currentRoom.debugName()} links to an invalid roomId=$nextRoomId!")
             return
         }
         DATA.currentRoom =

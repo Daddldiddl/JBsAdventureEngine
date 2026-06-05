@@ -59,7 +59,7 @@ class Exit (
             .replace(Keys.StandIn.description, desc ?: "")
             .trim()
         if(blocked){
-            message = LANG.getTemplate(Keys.Part.msgPartState)
+            message = LANG.getTemplate(Keys.Part.state)
                 .replace(Keys.StandIn.state, LANG.getStateValueFromKey(Keys.StateValue.blocked))
                 .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
                 .trim()

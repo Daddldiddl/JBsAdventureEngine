@@ -117,7 +117,7 @@ data class LanguageData(
     /**
      * Returns the appropriate possessive noun based on plurality and gender.
      */
-    fun getPossessiveNoun(plural :Boolean ?= false, genderKey :String ?= defaultPronoun.genderKey): String {
+    fun getPossessiveNoun(genderKey :String ?= defaultPronoun.genderKey): String {
         return pronounGroups[genderKey ?: defaultPronoun.genderKey]?.possessiveNoun?: defaultPronoun.possessiveNoun
     }
 
@@ -134,7 +134,7 @@ data class LanguageData(
                 return "Unknown message part key: $key"
             }
         }
-        return messages[key] ?: run {
+        return messages[key]  ?: run {
             LOG.warn("Warning: No message found for key '$key', returning key as message.")
             return "Unknown message key: $key"
         }
@@ -167,6 +167,13 @@ data class LanguageData(
             return Keys.Command.go
         }
         return ""
+    }
+
+    /**
+     * Checks if the given string is a valid command (or direction in place of a GO command).
+     */
+    fun getCommandAlias(key: String): String {
+        return commands[key]?.aliases?.first() ?: "'$key'"
     }
 
     /**

@@ -44,7 +44,7 @@ open class Item(
     /** Returns a descriptive name including translated open/lock state. */
     override fun getDescriptiveName(definite: Boolean?): String {
         val definiteArticle = definite == true
-        var template = LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
+        var template = LANG.getTemplate(Keys.Part.descriptiveName)
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if(state != null) {
             template = template
@@ -54,7 +54,7 @@ open class Item(
         } else {
             return super.getDescriptiveName(definiteArticle)
         }
-        var article = getArticle(definite = definiteArticle)
+        var article = getArticle(definiteArticle)
         if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
             val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
             // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
@@ -67,7 +67,7 @@ open class Item(
     fun getStateMessagePart(): String {
         val state = stateKey?.let { DATA.getStateByKey(it) }
         if (state != null) {
-            return LANG.getTemplate(Keys.Part.msgPartState)
+            return LANG.getTemplate(Keys.Part.state)
                 .replace(Keys.StandIn.state, state.currentValue)
                 .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "")
                 .trim()

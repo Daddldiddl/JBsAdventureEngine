@@ -117,7 +117,7 @@ interface NamedEntity {
 
     /** Builds a localized message part describing the current state value. */
     fun getStateMessage(stateValue: String): String {
-        val msgPart = LANG.getTemplate(if (name.isPlural) Keys.Part.msgPartStatePlural else Keys.Part.msgPartState)
+        val msgPart = LANG.getTemplate(if (name.isPlural) Keys.Part.statePlural else Keys.Part.state)
             .replace(Keys.StandIn.state, stateValue)
             .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "").trim()
 

@@ -17,12 +17,12 @@ interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
     /** Returns a descriptive name including translated open/lock state. */
     override fun getDescriptiveName(definite: Boolean?): String {
         val definiteArticle = definite == true
-        var template = LANG.getTemplate(Keys.Part.msgPartDescriptiveName)
+        var template = LANG.getTemplate(Keys.Part.descriptiveName)
         template =  trimEmptySpaces(template
             .replace(Keys.StandIn.state, getOpenLockState())
             .replace(Keys.StandIn.name, name.name)
             .trim())
-        var article = getArticle(definite = definiteArticle)
+        var article = getArticle(definiteArticle)
         if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
             val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
             // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
