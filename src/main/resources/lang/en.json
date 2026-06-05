@@ -97,6 +97,8 @@
         "msgItemTaken": "You take <definiteName>.",
         "msgItemDropped": "You drop <definiteName>.",
         "msgItemNotUsable": "You can't use <definiteName> right now.",
+        "msgItemDetailedDescription": "<description> <stateDescription>",
+        "msgItemDetailedDescriptionNoDescription": "<definiteName>. <stateDescription>",
         "msgGameSaved": "Game saved.",
         "msgNoSavedGameFound": "No saved game found.",
         "msgGameLoaded": "Game loaded.",

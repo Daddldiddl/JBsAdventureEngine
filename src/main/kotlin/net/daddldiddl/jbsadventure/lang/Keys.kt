@@ -144,6 +144,8 @@ object Keys {
         const val msgItemTaken = "msgItemTaken"
         const val msgItemDropped = "msgItemDropped"
         const val msgItemNotUsable = "msgItemNotUsable"
+        const val msgItemDetailedDescription = "msgItemDetailedDescription"
+        const val msgItemDetailedDescriptionNoDescription = "msgItemDetailedDescriptionNoDescription"
         const val msgGameSaved = "msgGameSaved"
         const val msgNoSavedGameFound = "msgNoSavedGameFound"
         const val msgGameLoaded = "msgGameLoaded"

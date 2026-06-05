@@ -78,9 +78,9 @@ open class Item(
     override fun getDetailedDescription(): String {
         val stateMessagePart = getStateMessagePart()
         val template = if (description != null) {
-            LANG.getTemplate("msgItemDetailedDescription")
+            LANG.getTemplate(Keys.Message.msgItemDetailedDescription)
         } else {
-            LANG.getTemplate("msgItemDetailedDescriptionNoDescription")
+            LANG.getTemplate(Keys.Message.msgItemDetailedDescriptionNoDescription)
         }
         return template
             .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
