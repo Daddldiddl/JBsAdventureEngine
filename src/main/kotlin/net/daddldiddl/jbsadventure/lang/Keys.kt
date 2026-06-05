@@ -15,10 +15,8 @@ object Keys {
      * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
      */
     object Pronouns {
-        /** The key for the defaultPronounGroupKey - used to decide the default pronoun group from the language data */
-        const val defaultPronounGroupKey = "defaultPronounGroupKey"
-        /** if no defaultPronounGroupKey is provided in the language file, this one is used */
-        const val defaultDefaultPronounGroupKey = "neutral"
+        /** The defaultPronounGroupKey used for the default pronoun group */
+        const val defaultDefaultPronounGroupKey = "defaultPronounGroupKey"
         /** default genderKeys for pronoun groups - you can use whatever you want,
          * these are just examples and NOT actually used in the code.
          * The only relevant relation is between the language file and

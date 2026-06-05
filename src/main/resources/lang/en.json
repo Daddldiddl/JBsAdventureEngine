@@ -79,23 +79,19 @@
         "stateLockedOpen": "locked open",
         "stateClosed": "closed",
         "stateOpen": "open",
-        "stateBlocked": "blocked",
-        "stateVisible": "visible"
+        "stateBlocked": "blocked"
     },
     "Headings": {
         "commandsHeading": "Commands",
         "directionsHeading": "Directions"
     },
     "Messages": {
-        "msgUnknownCommand": "I don't understand '<command>'!",
         "msgUnknownCommandWithHelp": "Unknown command: \"<command>\".\nType 'help' for a list of commands.",
         "msgCommandWhat": "'<command>' what? e.g. '<command> object'",
-        "msgNoExit": "You can't go <name>!",
         "msgNoExitInDirection": "You can't go <direction>!",
         "msgNoExitsFromRoom": "There are no exits from this room.",
         "msgGoWhere": "Go where? e.g. 'go north'",
         "msgNoItemFound": "There is no '<name>' here or in your inventory.",
-        "msgItemNotVisible": "You don't see <indefiniteName> here.",
         "msgNoInventoryItem": "You don't have <indefiniteName>.",
         "msgItemNotCarriable": "You can't take <definiteName>.",
         "msgItemTaken": "You take <definiteName>.",
@@ -104,7 +100,6 @@
         "msgGameSaved": "Game saved.",
         "msgNoSavedGameFound": "No saved game found.",
         "msgGameLoaded": "Game loaded.",
-        "msgItemDetailedDescription": "<description>. <stateDescription>",
         "msgContainerContent": "<definiteName> contains: <items>.",
         "msgContainerEmpty": "<definiteName> is empty.",
         "msgWelcome": "Welcome to <title>!",
@@ -121,16 +116,15 @@
         "msgDoesNotSupportLockUnlock": "<definiteName> does not have a lock.",
         "msgAlreadyLocked": "<definiteName> is already locked.",
         "msgAlreadyUnlocked": "<definiteName> is already unlocked.",
-        "msgTargetLocked": "<definiteName> is locked.",
         "msgOpenSuccess": "You open <definiteName>.",
         "msgCloseSuccess": "You close <definiteName>.",
+        "msgLockSuccess": "You lock <definiteName>.",
+        "msgUnlockSuccess": "You unlock <definiteName>.",
         "msgExitBlocked": "The way <direction> is blocked.",
         "msgUnlockRequiresNoKey": "<definiteName> can not be unlocked using a key.",
         "msgLockRequiresNoKey": "<definiteName> can not be locked using a key.",
         "msgLockKeyMissing": "You don't have the right key to lock <definiteName>.",
-        "msgUnlockKeyMissing": "You don't have the right key to unlock <definiteName>.",
-        "msgExitLocked": "<definiteName> is locked.",
-        "msgExitClosed": "<definiteName> is closed."
+        "msgUnlockKeyMissing": "You don't have the right key to unlock <definiteName>."
     },
     "MessageParts": {
         "msgPartDescriptiveName": "<article> <state> <name>",
@@ -139,7 +133,6 @@
         "msgPartState": "<pronounSubject> is <state>.",
         "msgPartStatePlural": "<pronounSubject> are <state>.",
         "msgPartItems": "You see: <items>",
-        "msgPartNoItems": "You see nothing of interest.",
         "msgPartInventory": "You are carrying: <items>",
         "msgPartNoInventory": "You are not carrying anything."
    }
