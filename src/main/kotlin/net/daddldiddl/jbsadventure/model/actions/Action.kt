@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.model.actions
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.CONSOLE
 import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.Container
 import net.daddldiddl.jbsadventure.model.FixedLocation
@@ -90,6 +91,10 @@ abstract class Action(
             valid = precondition.validate(gameData) && valid
         }
         return valid
+    }
+
+    protected fun consoleOutput(message: String) {
+        CONSOLE.print(message)
     }
 }
 
