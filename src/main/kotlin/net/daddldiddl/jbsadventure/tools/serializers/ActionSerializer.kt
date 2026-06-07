@@ -47,6 +47,13 @@ object ActionSerializer : KSerializer<Action> {
         val surrogate = decoder.decodeSerializableValue(ActionSurrogate.serializer())
         // Keep deserialization tolerant while old and new JSON fields may coexist.
         return when (surrogate.type) {
+            ActionType.Message -> MessageAction(
+                configuredPreconditions = surrogate.preconditions ?: emptyList(),
+                configuredDescription = surrogate.description,
+                configuredComment = surrogate.comment,
+                configuredActionDebug = surrogate.actionDebug,
+                configuredDelayInMillis = surrogate.delayInMillis
+            )
             ActionType.ChangeState -> ChangeStateAction(
                 changedStateKey = surrogate.changedStateKey!!,
                 newStateValue = surrogate.newStateValue!!,
@@ -112,6 +119,14 @@ object ActionSerializer : KSerializer<Action> {
 
     override fun serialize(encoder: Encoder, value: Action) {
         val surrogate = when (value) {
+            is MessageAction -> ActionSurrogate(
+                type = value.type,
+                preconditions = value.preconditions,
+                description = value.description,
+                comment = value.comment,
+                actionDebug = value.actionDebug,
+                delayInMillis = value.delayInMillis
+            )
             is ChangeStateAction -> ActionSurrogate(
                 type = value.type,
                 preconditions = value.preconditions,

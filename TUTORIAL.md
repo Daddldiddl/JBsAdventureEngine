@@ -7,6 +7,7 @@
 2. [Basic Structure](#basic-structure)
 3. [Tutorial: Common Game Features](#tutorial-common-game-features)
    - [Creating a Locked Treasure Chest](#tutorial-locked-treasure-chest)
+   - [Creating Single-Use Keys](#tutorial-single-use-keys)
    - [Clearing a Blocked Passage](#tutorial-clearing-blocked-passage)
    - [Making a Simple Container](#tutorial-simple-container)
    - [Creating Driveable Items](#tutorial-driveable-items)
@@ -235,6 +236,159 @@ You can see a treasure chest (open), a shiny gem.
 > take gem
 You take the shiny gem.
 ```
+
+---
+
+<a name="tutorial-single-use-keys"></a>
+### Tutorial: Creating Single-Use Keys
+
+**Goal:** Create a key that breaks or gets consumed when used to unlock or lock something.
+
+This is useful for puzzles where the player must make careful decisions, or for keys that are fragile and break after one use.
+
+**Example 1: Fragile key that breaks when unlocking**
+
+```json
+{
+    "id": 30,
+    "name": {
+        "name": "fragile crystal key",
+        "aliases": ["crystal key", "key", "crystal"]
+    },
+    "description": "A delicate key made of crystal. It looks like it might shatter if used.",
+    "carriable": true,
+    "location": 5
+}
+```
+
+```json
+{
+    "id": 31,
+    "name": {
+        "name": "ancient vault door",
+        "aliases": ["vault", "door", "vault door"]
+    },
+    "description": "A massive vault door with a crystal lock mechanism.",
+    "targetRoomId": 12,
+    "direction": "north",
+    "supportsOpenClose": true,
+    "supportsLockUnlock": true,
+    "open": false,
+    "locked": true,
+    "keyId": 30,
+    "consumeKeyOnUnlock": true,
+    "onUnlock": [
+        {
+            "type": "Message",
+            "description": "The crystal key shatters into dust as the ancient mechanism unlocks!"
+        }
+    ]
+}
+```
+
+**Key fields explained:**
+
+- `consumeKeyOnUnlock: true` – The key (item #30) will be removed from the game after successfully unlocking the door
+- `onUnlock` – Action list that executes after unlocking; here we use a `Message` action to display text about the key breaking
+
+**Player interaction:**
+```
+> unlock door
+You unlock the ancient vault door. The crystal key shatters into dust!
+
+> look
+[...room description...]
+The ancient vault door is unlocked and closed.
+(Note: the crystal key is gone)
+```
+
+**Example 2: Key that gets stuck in a lock**
+
+```json
+{
+    "id": 32,
+    "name": {
+        "name": "bent key",
+        "aliases": ["key", "old key"]
+    },
+    "description": "An old, slightly bent key. It might get stuck if you use it.",
+    "carriable": true,
+    "location": 7
+}
+```
+
+```json
+{
+    "id": 33,
+    "isContainer": true,
+    "name": {
+        "name": "rusted safe",
+        "aliases": ["safe", "metal safe"]
+    },
+    "description": "A rusted old safe with a corroded lock mechanism.",
+    "carriable": false,
+    "location": 8,
+    "containedItems": [],
+    "supportsLockUnlock": true,
+    "open": false,
+    "locked": true,
+    "keyId": 32,
+    "consumeKeyOnUnlock": true,
+    "onUnlock": [
+        {
+            "type": "Message",
+            "description": "The bent key gets stuck in the corroded lock and breaks off!"
+        }
+    ]
+}
+```
+
+**Player interaction:**
+```
+> unlock safe
+You unlock the rusted safe. The bent key gets stuck in the corroded lock and breaks off!
+
+> open safe
+You open the rusted safe.
+```
+
+**Example 3: Sealed door that locks permanently**
+
+Use `consumeKeyOnLock: true` for doors that can be permanently sealed:
+
+```json
+{
+    "direction": "east",
+    "targetRoomId": 15,
+    "name": {
+        "name": "emergency bulkhead",
+        "aliases": ["bulkhead", "door", "emergency door"]
+    },
+    "description": "A heavy emergency bulkhead designed to seal off this section.",
+    "supportsOpenClose": true,
+    "supportsLockUnlock": true,
+    "open": true,
+    "locked": false,
+    "keyId": 34,
+    "consumeKeyOnLock": true,
+    "onLock": [
+        {
+            "type": "ChangeState",
+            "description": "The locking mechanism engages with a heavy CLUNK. The bulkhead is now permanently sealed.",
+            "changedStateKey": "BULKHEAD_SEALED",
+            "newStateValue": "true"
+        }
+    ]
+}
+```
+
+**Key concepts:**
+
+- `consumeKeyOnUnlock` removes the key when unlocking
+- `consumeKeyOnLock` removes the key when locking
+- Works with both `Exit` objects and `Container` items
+- The key is set to `location: 0` (removed from game)
+- Combine with `onLock`/`onUnlock` action lists for dramatic effects
 
 ---
 
@@ -1536,6 +1690,12 @@ Use `GameData.getOpenContainerItemsForRoom()` / `getAllAccessibleItemsForRoom()`
 `Exit` and `Container` both implement `OpenLockEnabledNamedEntity` → `OpenLockEnabledEntity` + `NamedEntity`.  
 `supportsOpenClose` / `supportsLockUnlock` guard all open/close/lock operations. `keyId` specifies the item ID required to lock/unlock (null if no key required). `getOpenLockState()` returns the localized state string for display in descriptions.
 
+**Key consumption:**
+- `consumeKeyOnLock` (Boolean, default: `false`) – If true, the key item is removed from the game (location set to 0) after successfully locking
+- `consumeKeyOnUnlock` (Boolean, default: `false`) – If true, the key item is removed from the game (location set to 0) after successfully unlocking
+
+These fields allow for single-use keys or keys that break/disappear after use.
+
 **Implementation notes:**
 
 - `Exit` accepts both `supportsOpenClose` and `supportsLockUnlock` as direct constructor parameters from JSON
@@ -1575,6 +1735,8 @@ Use `GameData.getOpenContainerItemsForRoom()` / `getAllAccessibleItemsForRoom()`
 - `open` – is container open? (default: `false`)
 - `locked` – is container locked? (default: `false`)
 - `keyId` – item ID required to unlock (optional)
+- `consumeKeyOnLock` – remove key from game after locking? (default: `false`)
+- `consumeKeyOnUnlock` – remove key from game after unlocking? (default: `false`)
 - `onOpen` – array of `Action` objects triggered when opened
 - `onClose` – array of `Action` objects triggered when closed
 - `onLock` – array of `Action` objects triggered when locked
@@ -1591,6 +1753,8 @@ Use `GameData.getOpenContainerItemsForRoom()` / `getAllAccessibleItemsForRoom()`
 - `open` – is exit open? (default: `true`)
 - `locked` – is exit locked? (default: `false`)
 - `keyId` – item ID required to unlock (optional)
+- `consumeKeyOnLock` – remove key from game after locking? (default: `false`)
+- `consumeKeyOnUnlock` – remove key from game after unlocking? (default: `false`)
 - `visible` – can players see this exit? (default: `true`)
 - `blocked` – is exit blocked? (default: `false`)
 - `blockedDescription` – shown when exit is blocked

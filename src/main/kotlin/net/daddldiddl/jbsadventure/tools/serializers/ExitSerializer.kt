@@ -28,6 +28,8 @@ data class ExitSurrogate (
     val visible: Boolean? = null,
     val description: String? = null,
     val keyId: Int? = null,
+    val consumeKeyOnUnlock: Boolean? = null,
+    val consumeKeyOnLock: Boolean? = null,
     val blocked: Boolean? = null,
     val blockedDescription: String? = null,
     val itemUsages: List<ItemUsage>? = null
@@ -59,6 +61,8 @@ object ExitSerializer : KSerializer<Exit>{
             blocked = surrogate.blocked ?: false,
             blockedDescription = surrogate.blockedDescription,
             keyId = surrogate.keyId,
+            consumeKeyOnLock = surrogate.consumeKeyOnLock ?: false,
+            consumeKeyOnUnlock = surrogate.consumeKeyOnUnlock ?: false,
             onExamine = surrogate.onExamine ?: emptyList(),
             itemUsages = surrogate.itemUsages ?: emptyList()
         )
@@ -82,6 +86,8 @@ object ExitSerializer : KSerializer<Exit>{
             blocked = value.blocked,
             blockedDescription = value.blockedDescription,
             keyId = value.keyId,
+            consumeKeyOnLock = value.consumeKeyOnLock,
+            consumeKeyOnUnlock = value.consumeKeyOnUnlock,
             itemUsages = value.itemUsages,
             onExamine = value.onExamine
         )

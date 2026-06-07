@@ -271,15 +271,15 @@ class Game(private val gameData: GameData) {
                 LANG.getTemplate(Keys.Message.msgEntityIsLocked)
             ))
         } else if (isOpen) {
-            entity.open()
             CONSOLE.print(entity.replacePlaceholdersName(
                 LANG.getTemplate(Keys.Message.msgEntityOpened)
             ))
+            entity.open()
         } else {
-            entity.close()
             CONSOLE.print(entity.replacePlaceholdersName(
                 LANG.getTemplate(Keys.Message.msgEntityClosed)
             ))
+            entity.close()
         }
     }
 
@@ -331,20 +331,27 @@ class Game(private val gameData: GameData) {
                 LANG.getTemplate(Keys.Message.msgEntityAlreadyLocked)
             ))
         } else if (!isLock && !entity.isLocked()) {
-        CONSOLE.print(
-            entity.replacePlaceholdersName(
-                LANG.getTemplate(Keys.Message.msgEntityAlreadyUnlocked)
-            ))
+            CONSOLE.print(
+                entity.replacePlaceholdersName(
+                    LANG.getTemplate(Keys.Message.msgEntityAlreadyUnlocked)
+                )
+            )
         } else if(entity.isLocked()){
-            entity.unlock()
             CONSOLE.print(entity.replacePlaceholdersName(
                 LANG.getTemplate(Keys.Message.msgEntityUnlocked)
             ))
+            if(entity.unlock() && entity.consumeKeyOnUnlock){
+                key.location = FixedLocation.NOT_ASSIGNED.value
+                LOG.debug("Consumed key ${key.debugName()} on unlocking ${entity.debugName()}.")
+            }
         } else {
-            entity.lock()
             CONSOLE.print(entity.replacePlaceholdersName(
                 LANG.getTemplate(Keys.Message.msgEntityLocked)
             ))
+            if(entity.lock() && entity.consumeKeyOnLock){
+                key.location = FixedLocation.NOT_ASSIGNED.value
+                LOG.debug("Consumed key ${key.debugName()} on locking ${entity.debugName()}.")
+            }
         }
     }
 
@@ -406,9 +413,6 @@ class Game(private val gameData: GameData) {
             LOG.debug(
                 "Executed action '${action.type}' for item '${item.debugName()}'; descriptionPresent=${!action.description.isNullOrBlank()}"
             )
-            if (!action.description.isNullOrBlank()) {
-                CONSOLE.print(action.description)
-            }
         }
 
         if (!itemUsed) {

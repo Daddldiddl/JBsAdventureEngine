@@ -29,6 +29,8 @@ class Container(
     override var open: Boolean = false,
     override var locked: Boolean = false,
     override val keyId: Int? = null,
+    override val consumeKeyOnLock: Boolean = false,
+    override val consumeKeyOnUnlock: Boolean = false,
     override val onOpen: List<Action> = emptyList(),
     override val onClose: List<Action> = emptyList(),
     override val onLock: List<Action> = emptyList(),

@@ -24,10 +24,10 @@
                     "supportsLockUnlock": true,
                     "locked": true,
                     "keyId": 18,
-                    "onOpen": [
+                    "consumeKeyOnUnlock": true,
+                    "onUnlock": [
                         {
                             "type": "ModifyExit",
-                            "description": "The gate creaks open, allowing you to enter the mine.",
                             "roomId": 1,
                             "direction": "north",
                             "locked": false,
@@ -43,7 +43,32 @@
                                 }
                             ]
                         }
+                    ],
+                    "onClose": [
+                        {
+                            "type": "Message",
+                            "description": "The gate swings shut, blocking the entrance to the mine.",
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionPlayer",
+                                    "location": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "onOpen": [
+                        {
+                            "type": "Message",
+                            "description": "The gate creaks open, allowing you to enter the mine.",
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionPlayer",
+                                    "location": 1
+                                }
+                            ]
+                        }
                     ]
+
                 }
             ],
             "itemUsages": [
@@ -72,7 +97,6 @@
                              ]
                         },{
                             "type": "ModifyExit",
-                            "description": "The gate creaks open, allowing you to enter the mine.",
                             "roomId": 1,
                             "direction": "north",
                             "locked": false,

@@ -28,6 +28,8 @@ class Exit (
     override var open: Boolean = true,
     override var locked: Boolean = false,
     override val keyId: Int?,
+    override val consumeKeyOnLock: Boolean = false,
+    override val consumeKeyOnUnlock: Boolean = false,
     var visible: Boolean = true,
     var blocked: Boolean = false,
     var blockedDescription: String? = null,

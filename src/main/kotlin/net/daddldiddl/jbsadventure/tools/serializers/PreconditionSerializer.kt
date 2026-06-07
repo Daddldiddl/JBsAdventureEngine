@@ -34,8 +34,10 @@ data class PreconditionSurrogate(
     val driveable: Boolean? = null,
     // for container precondition
     val containsItems: List<Int>? = null,
-    val excludesItems: List<Int>? = null
-    // for player p
+    val excludesItems: List<Int>? = null,
+    // for player precondition
+    val hasItems: List<Int>? = null,
+    val doesntHaveItems: List<Int>? = null
 )
 
 object PreconditionSerializer : KSerializer<Precondition> {
@@ -78,6 +80,11 @@ object PreconditionSerializer : KSerializer<Precondition> {
                 excludesItems = surrogate.excludesItems ?: emptyList(),
                 open = surrogate.open,
                 locked = surrogate.locked
+            )
+            PreconditionType.PreconditionPlayer -> PreconditionPlayer(
+                location = surrogate.location,
+                hasItems = surrogate.hasItems ?: emptyList(),
+                doesntHaveItems = surrogate.doesntHaveItems ?: emptyList()
             )
             else -> throw IllegalArgumentException("Unsupported precondition type")
         }
@@ -123,6 +130,12 @@ object PreconditionSerializer : KSerializer<Precondition> {
                 excludesItems = value.excludesItems,
                 open = value.open,
                 locked = value.locked
+            )
+            is PreconditionPlayer -> PreconditionSurrogate(
+                type = PreconditionType.PreconditionPlayer,
+                location = value.location,
+                hasItems = value.hasItems,
+                doesntHaveItems = value.doesntHaveItems
             )
             else -> throw IllegalArgumentException("Unsupported precondition type")
         }
