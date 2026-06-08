@@ -73,9 +73,12 @@ object Keys {
      */
     object StandIn {
         const val name = "<name>"
+        const val nameTarget = "<nameTarget>"
         const val article = "<article>"
         const val definiteName = "<definiteName>"
         const val indefiniteName = "<indefiniteName>"
+        const val definiteNameTarget = "<definiteNameTarget>"
+        const val indefiniteNameTarget = "<indefiniteNameTarget>"
         const val description = "<description>"
         const val stateDescription = "<stateDescription>"
         const val state = "<state>"
@@ -176,5 +179,7 @@ object Keys {
         const val msgLockKeyMissing = "msgLockKeyMissing"
         const val msgUnlockKeyMissing = "msgLockKeyMissing"
         const val msgExitIsBlocked = "msgExitBlocked"
+        const val msgTryUseItemToLock = "msgTryUseItemToLock"
+        const val msgTryUseItemToUnlock = "msgTryUseItemToUnlock"
     }
 }

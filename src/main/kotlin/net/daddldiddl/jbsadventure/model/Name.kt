@@ -49,8 +49,15 @@ interface NamedEntity {
     /** Replaces `<name>` placeholders with entity-specific values. */
     fun replacePlaceholdersName(msg: String): String {
         return msg.replace(Keys.StandIn.name, name.name)
-        .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
-        .replace(Keys.StandIn.definiteName, getDefiniteName())
+            .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
+            .replace(Keys.StandIn.definiteName, getDefiniteName())
+    }
+
+    /** Replaces `<name>` placeholders with entity-specific values. */
+    fun replacePlaceholdersTargetName(msg: String): String {
+        return msg.replace(Keys.StandIn.nameTarget, name.name)
+            .replace(Keys.StandIn.indefiniteNameTarget, getIndefiniteName())
+            .replace(Keys.StandIn.definiteNameTarget, getDefiniteName())
     }
 
     /** Replaces subject-pronoun placeholder in a message template. */

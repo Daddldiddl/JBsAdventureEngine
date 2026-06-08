@@ -71,51 +71,7 @@
 
                 }
             ],
-            "itemUsages": [
-                {
-                    "itemId": 18,
-                    "actions": [
-                        {
-                            "type": "ModifyExit",
-                            "description": "You use the mine key to unlock the rusty gate.",
-                            "roomId": 1,
-                            "direction": "north",
-                            "locked": false,
-                            "open": true,
-                            "preconditions": [
-                                {
-                                    "type": "PreconditionExit",
-                                    "roomId": 1,
-                                    "direction": "north",
-                                    "locked": true
-                                },
-                                {
-                                    "type": "PreconditionItem",
-                                    "itemId": 18,
-                                    "location": -1
-                                }
-                             ]
-                        },{
-                            "type": "ModifyExit",
-                            "roomId": 1,
-                            "direction": "north",
-                            "locked": false,
-                            "open": true,
-                            "delayInMillis": 1000,
-                            "preconditions": [
-                                {
-                                    "type": "PreconditionExit",
-                                    "roomId": 1,
-                                    "direction": "north",
-                                    "locked": false,
-                                    "open": false
-                                }
-                             ]
-                         }
-                    ],
-                    "consumeUsedItem": true
-                }
-            ]
+            "itemUsages": [ ]
         },
         {
             "id": 2,

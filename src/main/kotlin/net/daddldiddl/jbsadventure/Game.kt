@@ -355,6 +355,11 @@ class Game(private val gameData: GameData) {
         }
     }
 
+    private fun isUsableKey (item: Item) : OpenLockEnabledNamedEntity?{
+        val exitsAndContainers = gameData.getAllAccessibleOpenLockEntitiesForRoom(gameData.currentRoom.id)
+        return exitsAndContainers.firstOrNull { it.keyId == item.id }
+    }
+
     /**
      * Handles the `use` command, applying the item's [ItemUsage] actions if one is defined for the
      * current room.
@@ -375,13 +380,30 @@ class Game(private val gameData: GameData) {
             CONSOLE.print(LANG.getTemplate(Keys.Message.msgNoItemFound).replace(Keys.StandIn.name, itemName))
             return
         }
-        if (item.usable == false) {
+        if (!item.usable) {
             CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotUsable)))
             return
         }
 
         val usage = DATA.currentRoom.getItemUsage(item.id)
         if (usage == null) {
+            val entity: OpenLockEnabledNamedEntity ?= isUsableKey(item)
+            if(entity != null){
+                // use the key as expected with the appropriate lock/unlock command
+                if(entity.isLocked()) {
+                    CONSOLE.print(item.replacePlaceholdersName(entity.replacePlaceholdersTargetName(
+                        LANG.getTemplate(Keys.Message.msgTryUseItemToUnlock)
+                    )))
+                    handleLockUnlock(listOf(LANG.getCommandAlias(Keys.Command.unlock)) + entity.name.name.split("\\s+"))
+                    return
+                } else if(!entity.isLocked()) {
+                    CONSOLE.print(item.replacePlaceholdersName(entity.replacePlaceholdersTargetName(
+                        LANG.getTemplate(Keys.Message.msgTryUseItemToLock)
+                    )))
+                    handleLockUnlock(listOf(LANG.getCommandAlias(Keys.Command.lock)) + entity.name.name.split("\\s+"))
+                    return
+                }
+            }
             CONSOLE.print(item.replacePlaceholdersName(LANG.getTemplate(Keys.Message.msgItemNotUsable)))
             return
         }

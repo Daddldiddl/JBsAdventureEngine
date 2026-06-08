@@ -131,7 +131,9 @@
         "msgUnlockRequiresNoKey": "<definiteName> can not be unlocked using a key.",
         "msgLockRequiresNoKey": "<definiteName> can not be locked using a key.",
         "msgLockKeyMissing": "You don't have the right key to lock <definiteName>.",
-        "msgUnlockKeyMissing": "You don't have the right key to unlock <definiteName>."
+        "msgUnlockKeyMissing": "You don't have the right key to unlock <definiteName>.",
+        "msgTryUseItemToUnlock": "Trying to use <definiteName> to unlock <definiteNameTarget>.",
+        "msgTryUseItemToLock": "Trying to use <definiteName> to lock <definiteNameTarget>."
     },
     "MessageParts": {
         "msgPartDescriptiveName": "<article> <state> <name>",
