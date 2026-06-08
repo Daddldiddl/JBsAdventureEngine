@@ -27,6 +27,10 @@
                     "consumeKeyOnUnlock": true,
                     "onUnlock": [
                         {
+                            "type": "Message",
+                            "description": "Unfortunately the key breaks in the lock as you turn it, but the gate is now unlocked and swings open."
+                        },
+                        {
                             "type": "ModifyExit",
                             "roomId": 1,
                             "direction": "north",
