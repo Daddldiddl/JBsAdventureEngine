@@ -500,7 +500,7 @@ data class MessageAction (
     val configuredActionDebug: String? = null,
     val configuredDelayInMillis: Long? = null
 ): Action(
-    type = ActionType.ModifyContainer,
+    type = ActionType.Message,
     preconditions = configuredPreconditions,
     description = configuredDescription,
     comment = configuredComment,

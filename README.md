@@ -90,6 +90,8 @@ The engine now supports:
 ✅ **onExamine actions** – Examining items/rooms/exits can trigger effects  
 ✅ **Multi-use items** – Items that can be used multiple times before being consumed  
 ✅ **Driveable items** – Boats, elevators, or other transport mechanisms  
+✅ **Message actions** – Display flavor text and feedback during action sequences  
+✅ **Single-use keys** – Keys that break or get consumed when used  
 ✅ **Save/Load system** – Automatic save game persistence
 
 ## Planned Features

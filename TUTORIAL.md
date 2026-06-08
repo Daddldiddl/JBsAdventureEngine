@@ -15,6 +15,10 @@
    - [Item Transformations](#tutorial-item-transformations)
    - [Hidden Items with onExamine](#tutorial-onexamine-actions)
    - [Multi-Use Items](#tutorial-multi-use-items)
+   - [Message Actions](#tutorial-message-actions)
+   - [Using onUse Action Lists](#tutorial-onuse-actions)
+   - [Interactive Containers with Action Lists](#tutorial-container-actions)
+   - [Player-Based Preconditions](#tutorial-player-preconditions)
 
 ### Part 2: Technical Reference
 - [Architecture & Key Files](#architecture--key-files)
@@ -1087,6 +1091,129 @@ You plug the fuse into the socket...
 
 ---
 
+<a name="tutorial-message-actions"></a>
+### Tutorial: Message Actions
+
+**Goal:** Display messages to the player as part of action sequences without changing game state.
+
+The `Message` action type is useful for adding flavor text, warnings, or intermediate feedback during complex action sequences. Unlike other actions that modify game state, `Message` actions only display text.
+
+**Example 1: Adding flavor text to a transformation**
+
+```json
+{
+    "id": 25,
+    "name": {
+        "name": "ancient artifact",
+        "aliases": ["artifact", "relic"]
+    },
+    "description": "A mysterious ancient artifact covered in strange symbols.",
+    "carriable": true,
+    "location": 8,
+    "onUse": [
+        {
+            "type": "Message",
+            "description": "As you activate the artifact, the symbols begin to glow with an eerie blue light..."
+        },
+        {
+            "type": "Message",
+            "description": "The light intensifies, filling the entire room!",
+            "delayInMillis": 2000
+        },
+        {
+            "type": "ChangeState",
+            "description": "The artifact pulses once more and then goes dark. Something has changed...",
+            "changedStateKey": "ARTIFACT_ACTIVATED",
+            "newStateValue": "true",
+            "delayInMillis": 1000
+        }
+    ]
+}
+```
+
+**Example 2: Warning messages in preconditions**
+
+```json
+{
+    "itemId": 26,
+    "actions": [
+        {
+            "type": "Message",
+            "description": "The ancient seal prevents you from opening the door. You'll need to find another way.",
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "SEAL_BROKEN",
+                    "requiredStateValues": ["false"]
+                }
+            ]
+        },
+        {
+            "type": "ModifyExit",
+            "description": "With the seal broken, the door swings open easily.",
+            "roomId": 12,
+            "direction": "north",
+            "open": true,
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "SEAL_BROKEN",
+                    "requiredStateValues": ["true"]
+                }
+            ]
+        }
+    ]
+}
+```
+
+**Example 3: Multi-stage puzzle feedback**
+
+```json
+{
+    "itemId": 27,
+    "actions": [
+        {
+            "type": "Message",
+            "description": "You insert the crystal into the first slot. It clicks into place."
+        },
+        {
+            "type": "ChangeState",
+            "description": "",
+            "changedStateKey": "PUZZLE_STATE",
+            "newStateValue": "one_crystal"
+        },
+        {
+            "type": "Message",
+            "description": "You need to insert two more crystals to complete the puzzle.",
+            "delayInMillis": 500
+        }
+    ]
+}
+```
+
+**Key concepts:**
+
+- `Message` actions only require the `description` field
+- They don't modify game state, only display text
+- Combine with `delayInMillis` for dramatic timing
+- Use with `preconditions` to show conditional messages
+- Perfect for multi-step sequences and storytelling
+
+**Player interaction:**
+```
+> use artifact
+As you activate the artifact, the symbols begin to glow with an eerie blue light...
+(2 second pause)
+The light intensifies, filling the entire room!
+(1 second pause)
+The artifact pulses once more and then goes dark. Something has changed...
+
+> use sealed door
+The ancient seal prevents you from opening the door. You'll need to find another way.
+```
+
+---
+
 <a name="tutorial-onuse-actions"></a>
 ### Tutorial: Using onUse Action Lists
 
@@ -1163,7 +1290,7 @@ Containers and Exits support four action lists:
 - `onOpen` – triggers when opened
 - `onClose` – triggers when closed
 - `onLock` – triggers when locked
-- `onUnlocked` – triggers when unlocked
+- `onUnlock` – triggers when unlocked
 
 **Example 1: A music box that plays when opened**
 
@@ -1216,7 +1343,6 @@ Containers and Exits support four action lists:
     "locked": true,
     "keyId": 8,
     "containedItems": [19],
-    "onUnlocked": [
         {
             "type": "ChangeState",
             "description": "As you turn the key, you hear a soft *click* followed by a loud SNAP! A poisoned needle shoots out from the lock mechanism!\nLuckily, you saw the scratches and were prepared. You carefully remove the needle.",
@@ -1247,7 +1373,7 @@ Exits also support these action lists:
     "open": false,
     "locked": true,
     "keyId": 21,
-    "onUnlocked": [
+    "onUnlock": [
         {
             "type": "ChangeState",
             "description": "The heavy door unlocks with a loud CLUNK! Dust falls from the ancient hinges.",
@@ -1589,7 +1715,7 @@ Different entities support various action lists that trigger automatically:
 - `onOpen` – Executes when opened
 - `onClose` – Executes when closed
 - `onLock` – Executes when locked
-- `onUnlocked` – Executes when unlocked
+- `onUnlock` – Executes when unlocked
 
 These action lists allow you to create dynamic, reactive game elements that respond to player interactions.
 
@@ -1740,7 +1866,7 @@ These fields allow for single-use keys or keys that break/disappear after use.
 - `onOpen` – array of `Action` objects triggered when opened
 - `onClose` – array of `Action` objects triggered when closed
 - `onLock` – array of `Action` objects triggered when locked
-- `onUnlocked` – array of `Action` objects triggered when unlocked
+- `onUnlock` – array of `Action` objects triggered when unlocked
 
 ### Exit Fields
 
@@ -1762,7 +1888,7 @@ These fields allow for single-use keys or keys that break/disappear after use.
 - `onOpen` – array of `Action` objects triggered when opened
 - `onClose` – array of `Action` objects triggered when closed
 - `onLock` – array of `Action` objects triggered when locked
-- `onUnlocked` – array of `Action` objects triggered when unlocked
+- `onUnlock` – array of `Action` objects triggered when unlocked
 
 ### State Fields
 
