@@ -159,13 +159,13 @@ data class LanguageData(
     /**
      * Checks if the given string is a valid command (or direction in place of a GO command).
      */
-    fun getCommandFromAlias(input: String): String? {
+    fun getCommandFromAlias(input: String): String {
         for(key in commands.keys) {
             if(commands[key]?.aliases?.contains(input) ?: false) {
                 return key
             }
         }
-        if(LANG.getAllDirectionAliases().contains(input)) {;
+        if(LANG.getAllDirectionAliases().contains(input)) {
             return Keys.Command.go
         }
         return ""

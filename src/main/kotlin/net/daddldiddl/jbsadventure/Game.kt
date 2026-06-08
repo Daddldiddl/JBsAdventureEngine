@@ -24,7 +24,7 @@ class Game(private val gameData: GameData) {
         val items = if (DATA.getItemsForRoom(DATA.currentRoom.id).isEmpty()) {
             "no items"
         } else {
-            "items: [${DATA.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { "${it.debugName()}" }}]"
+            "items: [${DATA.getItemsForRoom(DATA.currentRoom.id).joinToString(", ") { it.debugName() }}]"
         }
         val exits = if (DATA.getVisibleExitsForRoom(DATA.currentRoom.id).isEmpty()) {
             "no visible exits"

@@ -7,7 +7,7 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-public enum class LogLevel(val priority: Int) {
+enum class LogLevel(val priority: Int) {
     ERROR(5), WARN(4), INFO(3), CONSOLE(2), DEBUG(1)
 }
 

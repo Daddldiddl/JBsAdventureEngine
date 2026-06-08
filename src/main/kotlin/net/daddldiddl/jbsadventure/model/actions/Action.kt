@@ -327,7 +327,7 @@ data class ModifyExitAction(
         if (locked != null && exit.locked && !locked) {
             if(!exit.unlock()){
                 LOG.warn("Failed to unlock exit ${exit.debugName()} as part of ModifyExitAction.")
-                return false;
+                return false
             } else {
                 if(exit.consumeKeyOnUnlock && exit.keyId != null){
                     gameData.getItemById(exit.keyId)?.let { key ->
@@ -356,7 +356,7 @@ data class ModifyExitAction(
         if (locked != null && !exit.locked && locked) {
             if(!exit.lock()){
                 LOG.warn("Failed to lock exit ${exit.debugName()} as part of ModifyExitAction.")
-                return false;
+                return false
             } else {
                 if(exit.consumeKeyOnLock && exit.keyId != null){
                     gameData.getItemById(exit.keyId)?.let { key ->
@@ -447,7 +447,7 @@ data class ModifyContainerAction(
         if (locked != null && container.locked && !locked) {
             if(!container.unlock()){
                 LOG.warn("Failed to unlock ${container.debugName()} as part of ModifyContainerAction.")
-                return false;
+                return false
             } else {
                 if(container.consumeKeyOnUnlock && container.keyId != null){
                     gameData.getItemById(container.keyId)?.let { key ->
@@ -476,7 +476,7 @@ data class ModifyContainerAction(
         if (locked != null && !container.locked && locked) {
             if(!container.lock()){
                 LOG.warn("Failed to lock ${container.debugName()} as part of ModifyContainerAction.")
-                return false;
+                return false
             } else {
                 if(container.consumeKeyOnLock && container.keyId != null){
                     gameData.getItemById(container.keyId)?.let { key ->

@@ -9,7 +9,7 @@ import net.daddldiddl.jbsadventure.LOG
  * Copyright (c) 2026. This file is part of JB's Adventure Engine, licensed under the MIT License (MIT).
  * See LICENSE file in the project root for full license information.
  */
-public enum class ConsoleColor(private val code: String) {
+enum class ConsoleColor(private val code: String) {
     RESET("\u001B[0m"),
     BLACK("\u001B[30m"),
     RED("\u001B[31m"),
@@ -42,29 +42,29 @@ public enum class ConsoleColor(private val code: String) {
  */
 class ConsoleOutput {
     /** Prints a message in default color and mirrors it to the log. */
-    public fun print(message: String?) {
+    fun print(message: String?) {
         print(message, ConsoleColor.WHITE)
     }
 
     /** Prints a message in the specified color and mirrors it to the log. */
-    public fun print(message: String?, color: ConsoleColor) {
+    fun print(message: String?, color: ConsoleColor) {
         println("$color${wrapText(message, 80)}${ConsoleColor.RESET}")
         LOG.console(message ?: "")
     }
 
     /** Prints an empty line to console and log. */
-    public fun print() {
+    fun print() {
         println()
         LOG.console("")
     }
 
     /** Prints a warning-styled message. */
-    public fun warn(message: String?) {
+    fun warn(message: String?) {
         print(message, ConsoleColor.LIGHTRED)
     }
 
     /** Prints a log line using a level-dependent color without writing file logs. */
-    public fun printLog(message: String, level: LogLevel) {
+    fun printLog(message: String, level: LogLevel) {
             val colorCode = when (level) {
                 LogLevel.DEBUG -> "${ConsoleColor.LIGHTGRAY}" // Blue
                 LogLevel.ERROR -> "${ConsoleColor.RED}" // Red

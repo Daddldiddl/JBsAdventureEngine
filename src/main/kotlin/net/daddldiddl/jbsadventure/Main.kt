@@ -5,10 +5,10 @@ import net.daddldiddl.jbsadventure.model.GameData
 import net.daddldiddl.jbsadventure.tools.*
 import java.io.File
 
-public lateinit var LOG: SimpleFileLog
-public lateinit var CONSOLE: ConsoleOutput
-public lateinit var LANG: LanguageData
-public lateinit var DATA: GameData
+lateinit var LOG: SimpleFileLog
+lateinit var CONSOLE: ConsoleOutput
+lateinit var LANG: LanguageData
+lateinit var DATA: GameData
 
 /**
  * Application entry point for JB's Adventure Engine.

@@ -389,8 +389,8 @@
                                     "roomId": 8,
                                     "direction": "east",
                                     "blocked": true
-                                 }
-                             ]
+                                }
+                            ]
                         }
                     ],
                     "consumeUsedItem": true
