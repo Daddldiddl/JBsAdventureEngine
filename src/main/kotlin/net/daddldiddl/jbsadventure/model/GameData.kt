@@ -1,7 +1,6 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.GameDataSerializer
 
 /**
@@ -236,10 +235,19 @@ data class GameData(
      * Sets the current value of the game state with the specified key.
      */
     fun setCurrentStateValue(key: String, newState: String) {
-        if(isAllowedStateForKey(key, newState)) {
+        if (isAllowedStateForKey(key, newState)) {
             States[key]?.currentValue = newState
         } else {
-            LOG.warn("Attempted to set state '$key' to invalid value '$newState'. Valid values are: ${States[key]?.possibleValues}")
+            throw IllegalArgumentException("Cannot set state '$key' to '$newState'. Valid values: ${States[key]?.possibleValues}")
         }
+    }
+
+    companion object {
+        /**
+         * The active game data instance used throughout the application.
+         * Set once at startup (or when loading a new game) via [GlobalContext.setGameData].
+         * Model classes access this directly; engine/editor set it via GlobalContext.
+         */
+        lateinit var current: GameData
     }
 }

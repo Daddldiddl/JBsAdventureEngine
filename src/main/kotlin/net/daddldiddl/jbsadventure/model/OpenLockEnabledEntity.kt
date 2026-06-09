@@ -1,8 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
-import net.daddldiddl.jbsadventure.DATA
-import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.lang.LanguageData
 import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
@@ -18,18 +17,19 @@ interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
 
     /** Returns a descriptive name including translated open/lock state. */
     override fun getDescriptiveName(definite: Boolean?): String {
+        val lang = LanguageData.current
         val definiteArticle = definite == true
-        var template = LANG.getTemplate(Keys.Part.descriptiveName)
-        template =  trimEmptySpaces(template
-            .replace(Keys.StandIn.state, getOpenLockState())
-            .replace(Keys.StandIn.name, name.name)
-            .trim())
+        var template = lang.getTemplate(Keys.Part.descriptiveName)
+        template = trimEmptySpaces(
+            template
+                .replace(Keys.StandIn.state, getOpenLockState())
+                .replace(Keys.StandIn.name, name.name)
+                .trim()
+        )
         var article = getArticle(definiteArticle)
-        if(!definiteArticle && LANG.languageKey == Keys.languageKeyEn && !name.isPlural) {
+        if (!definiteArticle && lang.languageKey == Keys.languageKeyEn && !name.isPlural) {
             val nameWithoutArticle = template.replace(Keys.StandIn.article, "").trim()
-            // English has the special rule of using "an" instead of "a" before vowel sounds, so we handle this as a special case.
-            // Note that this is a very simplified rule and does not cover all cases (e.g., "a university" vs. "an hour"), but it should work for most common cases in a text adventure game.
-            article = if (nameWithoutArticle.subSequence(0,0).matches(Regex("[aeiouAEIOU]"))) "an" else "a"
+            article = if (nameWithoutArticle.isNotEmpty() && nameWithoutArticle[0].lowercaseChar() in "aeiou") "an" else "a"
         }
         return template.replace(Keys.StandIn.article, article).trim()
     }
@@ -41,16 +41,12 @@ interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 interface OpenLockEnabledEntity {
-    // Defaults for entities that do not support these interactions.
-    val supportsOpenClose: Boolean
-        get() = false
-    val supportsLockUnlock: Boolean
-        get() = false
+    val supportsOpenClose: Boolean get() = false
+    val supportsLockUnlock: Boolean get() = false
     val onOpen: List<Action> get() = emptyList()
     val onClose: List<Action> get() = emptyList()
     val onLock: List<Action> get() = emptyList()
     val onUnlock: List<Action> get() = emptyList()
-
 
     var open: Boolean
     var locked: Boolean
@@ -58,64 +54,45 @@ interface OpenLockEnabledEntity {
     val consumeKeyOnUnlock: Boolean
     val consumeKeyOnLock: Boolean
 
-    /** Returns whether the entity is currently open. */
-    fun isOpen(): Boolean {
-        return open
-    }
-
-    /** Returns whether the entity is currently closed. */
-    fun isClosed(): Boolean {
-        return !open
-    }
-
-    /** Returns whether the entity is currently locked. */
-    fun isLocked(): Boolean {
-        return locked
-    }
+    fun isOpen(): Boolean = open
+    fun isClosed(): Boolean = !open
+    fun isLocked(): Boolean = locked
 
     /** Attempts to open the entity and returns success state. */
-    fun open() : Boolean{
-        if(!isOpen() && !isLocked()) {
+    fun open(): Boolean {
+        if (!isOpen() && !isLocked()) {
             open = true
-            if(onOpen.isNotEmpty()) {
-                onOpen.forEach { it.execute(DATA) }
-            }
+            if (onOpen.isNotEmpty()) onOpen.forEach { it.execute(GameData.current) }
             return isOpen()
         }
         return false
-     }
+    }
 
     /** Attempts to close the entity and returns success state. */
     fun close(): Boolean {
-        if(isOpen() && !isLocked()) {
+        if (isOpen() && !isLocked()) {
             open = false
-            if(onClose.isNotEmpty()) {
-                onClose.forEach { it.execute(DATA) }
-            }
+            if (onClose.isNotEmpty()) onClose.forEach { it.execute(GameData.current) }
             return !isOpen()
         }
         return false
     }
-    
+
     /** Attempts to lock the entity and returns success state. */
-    fun lock() : Boolean{
-        if(!isLocked()) {
+    fun lock(): Boolean {
+        if (!isLocked()) {
             locked = true
-            if(onLock.isNotEmpty()) {
-                onLock.forEach { if (it.checkPreconditions(DATA)) it.execute(DATA) }
-            }
+            if (onLock.isNotEmpty()) onLock.forEach { if (it.checkPreconditions(GameData.current)) it.execute(GameData.current) }
             return isLocked()
         }
         return false
     }
 
     /** Attempts to unlock the entity and returns success state. */
-    fun unlock() : Boolean{
-        if(isLocked()) {
+    fun unlock(): Boolean {
+        if (isLocked()) {
             locked = !isLocked()
-            if(onUnlock.isNotEmpty()) {
-                onUnlock.forEach { if (it.checkPreconditions(DATA)) it.execute(DATA) }
-            }
+            if (onUnlock.isNotEmpty()) onUnlock.forEach { if (it.checkPreconditions(GameData.current)) it.execute(GameData.current) }
             return !isLocked()
         }
         return false
@@ -123,11 +100,12 @@ interface OpenLockEnabledEntity {
 
     /** Returns the localized state label for open/closed/locked combinations. */
     fun getOpenLockState(): String {
+        val lang = LanguageData.current
         return when {
-            supportsLockUnlock && isLocked() && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.lockedClosed)
-            supportsLockUnlock && isLocked() && isOpen() -> LANG.getStateValueFromKey(Keys.StateValue.lockedOpen)
-            supportsOpenClose && isClosed() -> LANG.getStateValueFromKey(Keys.StateValue.closed)
-            supportsOpenClose -> LANG.getStateValueFromKey(Keys.StateValue.open)
+            supportsLockUnlock && isLocked() && isClosed() -> lang.getStateValueFromKey(Keys.StateValue.lockedClosed)
+            supportsLockUnlock && isLocked() && isOpen()   -> lang.getStateValueFromKey(Keys.StateValue.lockedOpen)
+            supportsOpenClose && isClosed()                -> lang.getStateValueFromKey(Keys.StateValue.closed)
+            supportsOpenClose                              -> lang.getStateValueFromKey(Keys.StateValue.open)
             else -> ""
         }
     }

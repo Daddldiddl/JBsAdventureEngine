@@ -1,7 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.LANG
+import net.daddldiddl.jbsadventure.lang.LanguageData
 import net.daddldiddl.jbsadventure.model.actions.Action
 import net.daddldiddl.jbsadventure.tools.serializers.RoomSerializer
 
@@ -47,11 +47,9 @@ data class Room(
     /** Resolves an exit by direction alias first, then by exit name/alias. */
     fun findExitByAlias(input: String): Exit? {
         val roomExits = exits.orEmpty()
-        val directionKey = LANG.getDirectionKeyFromAlias(input)
+        val directionKey = LanguageData.current.getDirectionKeyFromAlias(input)
         val byDirection = roomExits[directionKey]
-        if (byDirection != null) {
-            return byDirection
-        }
+        if (byDirection != null) return byDirection
         return roomExits.values.find { it.nameMatches(input) }
     }
 

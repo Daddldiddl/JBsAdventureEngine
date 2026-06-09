@@ -1,8 +1,6 @@
 package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.LANG
-import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.tools.serializers.LanguageDataSerializer
 
 /**
@@ -131,15 +129,9 @@ data class LanguageData(
      */
     fun getTemplate(key: String): String {
         if (key.startsWith("msgPart")) {
-            return messageParts[key] ?: run {
-                LOG.warn("Warning: No message part found for key '$key', returning key as message.")
-                return "Unknown message part key: $key"
-            }
+            return messageParts[key] ?: "Unknown message part key: $key"
         }
-        return messages[key]  ?: run {
-            LOG.warn("Warning: No message found for key '$key', returning key as message.")
-            return "Unknown message key: $key"
-        }
+        return messages[key] ?: "Unknown message key: $key"
     }
 
     /**
@@ -165,7 +157,7 @@ data class LanguageData(
                 return key
             }
         }
-        if(LANG.getAllDirectionAliases().contains(input)) {
+        if(getAllDirectionAliases().contains(input)) {
             return Keys.Command.go
         }
         return ""
@@ -213,9 +205,16 @@ data class LanguageData(
      * Returns the translated state value for the given key, or the key itself if no translation is found.
      */
     fun getStateValueFromKey(key: String): String {
-        return stateValues[key] ?: run {
-            LOG.warn("Warning: No state value found for key '$key', returning key as value.")
-            return "Unknown state value key: $key"
-        }
+        return stateValues[key] ?: "Unknown state value key: $key"
+    }
+
+    companion object {
+        /**
+         * The active language data instance used throughout the application.
+         * Set once at startup (or when switching language) via [GlobalContext.initialize].
+         * Model classes access this directly; engine/editor set it via GlobalContext.
+         */
+        @Volatile
+        var current: LanguageData = LanguageData("en")
     }
 }

@@ -1,8 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
-import net.daddldiddl.jbsadventure.DATA
-import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.Keys
+import net.daddldiddl.jbsadventure.lang.LanguageData
 import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
@@ -60,17 +59,16 @@ class Container(
 
     /** Returns base description and, if open, details about contained items. */
     override fun getDetailedDescription(): String {
+        val lang = LanguageData.current
         val base = super<Item>.getDetailedDescription()
-        if (!isOpen()) {
-            return base
-        }
+        if (!isOpen()) return base
 
-        val containedItemNames = getContainedItems(DATA).joinToString(", ") { it.getDescriptiveName() }
+        val containedItemNames = getContainedItems(GameData.current).joinToString(", ") { it.getDescriptiveName() }
         val details = if (containedItemNames.isBlank()) {
-            LANG.getTemplate(Keys.Message.msgContainerEmpty)
+            lang.getTemplate(Keys.Message.msgContainerEmpty)
                 .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
         } else {
-            LANG.getTemplate(Keys.Message.msgContainerContent)
+            lang.getTemplate(Keys.Message.msgContainerContent)
                 .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
                 .replace(Keys.StandIn.items, containedItemNames)
         }

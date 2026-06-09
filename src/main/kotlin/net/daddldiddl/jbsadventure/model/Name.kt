@@ -1,7 +1,6 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.lang.*
 import net.daddldiddl.jbsadventure.model.actions.Action
 
@@ -14,14 +13,13 @@ import net.daddldiddl.jbsadventure.model.actions.Action
 data class Name(
     val name: String,
     val aliases: List<String> = emptyList(),
-    val genderKey: String = LANG.defaultPronoun.genderKey,
+    val genderKey: String = Keys.Pronouns.defaultDefaultPronounGroupKey,
     val isPlural: Boolean = false
-) {
-    constructor(name: String, aliases: List<String>) : this(name, aliases, LANG.defaultPronoun.genderKey, false)
-}
+)
 
 /**
  * Base interface for named, describable game entities with language-aware helpers.
+ * All formatting methods use [LanguageData.current] – set via GlobalContext.initialize().
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
@@ -32,19 +30,14 @@ interface NamedEntity {
 
     fun debugName(): String
 
-    private val regexVocalStart: Regex
-        get() = "^[aeouiAEOUI]".toRegex()
-
-    /**
-     * Returns the appropriate article based on definiteness, plurality, and gender.
-     */
+    /** Returns the appropriate article based on definiteness and gender. */
     fun getArticle(definite: Boolean = false): String {
+        val lang = LanguageData.current
         return when (definite) {
-            true -> LANG.pronounGroups[name.genderKey]?.definiteArticle ?: LANG.defaultPronoun.definiteArticle
-            else -> LANG.pronounGroups[name.genderKey]?.indefiniteArticle ?: LANG.defaultPronoun.indefiniteArticle
+            true -> lang.pronounGroups[name.genderKey]?.definiteArticle ?: lang.defaultPronoun.definiteArticle
+            else -> lang.pronounGroups[name.genderKey]?.indefiniteArticle ?: lang.defaultPronoun.indefiniteArticle
         }
     }
-
 
     /** Replaces `<name>` placeholders with entity-specific values. */
     fun replacePlaceholdersName(msg: String): String {
@@ -53,7 +46,7 @@ interface NamedEntity {
             .replace(Keys.StandIn.definiteName, getDefiniteName())
     }
 
-    /** Replaces `<name>` placeholders with entity-specific values. */
+    /** Replaces `<nameTarget>` placeholders with entity-specific values. */
     fun replacePlaceholdersTargetName(msg: String): String {
         return msg.replace(Keys.StandIn.nameTarget, name.name)
             .replace(Keys.StandIn.indefiniteNameTarget, getIndefiniteName())
@@ -70,52 +63,37 @@ interface NamedEntity {
         return msg.replace(Keys.StandIn.pronounObject, getPronounObject() ?: "")
     }
 
-    /**
-     * Returns the name of the entity in its indefinite form, including the appropriate article based on the language's grammar rules.
-     */
+    /** Returns the name in its indefinite form with the appropriate article. */
     fun getIndefiniteName(): String {
-        val article: String = getArticle(definite=false)
-        return trimEmptySpaces("$article ${name.name}".trim())
+        return trimEmptySpaces("${getArticle(definite = false)} ${name.name}".trim())
     }
 
-    /**
-     * Returns the name of the entity in its definite form, including the appropriate article based on the language's grammar rules.
-     */
+    /** Returns the name in its definite form with the appropriate article. */
     fun getDefiniteName(): String {
-        return trimEmptySpaces("${getArticle(definite=true)} ${name.name}".trim())
+        return trimEmptySpaces("${getArticle(definite = true)} ${name.name}".trim())
     }
 
-    /**
-     * Returns the subject pronoun for the entity, based on its gender and plurality.
-     */
+    /** Returns the subject pronoun based on gender. */
     fun getPronounSubject(): String? {
-        return LANG.getPronounSubject(genderKey = name.genderKey).trim()
+        return LanguageData.current.getPronounSubject(genderKey = name.genderKey).trim()
     }
 
-    /**
-     * Returns the object pronoun for the entity, based on its gender and plurality.
-     */
+    /** Returns the object pronoun based on gender. */
     fun getPronounObject(): String? {
-        return LANG.getPronounObject(genderKey = name.genderKey).trim()
+        return LanguageData.current.getPronounObject(genderKey = name.genderKey).trim()
     }
 
-    /**
-     * Returns the possessive adjective for the entity, based on its gender and plurality.
-     */
+    /** Returns the possessive adjective based on gender. */
     fun getPossessiveAdjective(): String? {
-        return LANG.getPossessiveAdjective(genderKey = name.genderKey).trim()
+        return LanguageData.current.getPossessiveAdjective(genderKey = name.genderKey).trim()
     }
 
-    /**
-     * Returns the possessive noun for the entity, based on its gender and plurality.
-     */
+    /** Returns the possessive noun based on gender. */
     fun getPossessiveNoun(): String? {
-        return LANG.getPossessiveNoun(genderKey = name.genderKey).trim()
+        return LanguageData.current.getPossessiveNoun(genderKey = name.genderKey).trim()
     }
 
-    /**
-     * Checks if the provided name matches the entity's name or any of its aliases (non-case-sensitive!).
-     */
+    /** Checks if the provided name matches the entity's name or any alias (case-insensitive). */
     fun nameMatches(lookupName: String): Boolean {
         val lowerName = lookupName.lowercase()
         return lowerName == this.name.name.lowercase() ||
@@ -124,10 +102,10 @@ interface NamedEntity {
 
     /** Builds a localized message part describing the current state value. */
     fun getStateMessage(stateValue: String): String {
-        val msgPart = LANG.getTemplate(if (name.isPlural) Keys.Part.statePlural else Keys.Part.state)
+        val lang = LanguageData.current
+        val msgPart = lang.getTemplate(if (name.isPlural) Keys.Part.statePlural else Keys.Part.state)
             .replace(Keys.StandIn.state, stateValue)
             .replace(Keys.StandIn.pronounSubject, getPronounSubject() ?: "").trim()
-
         return startUpperCase(msgPart)
     }
 
@@ -137,9 +115,9 @@ interface NamedEntity {
     }
 
     /** Returns text with an uppercased first character after trimming. */
-    fun startUpperCase(input: String) : String {
+    fun startUpperCase(input: String): String {
         val inputTrimmed = trimEmptySpaces(input)
-        if(inputTrimmed.isEmpty()) return inputTrimmed
+        if (inputTrimmed.isEmpty()) return inputTrimmed
         else return inputTrimmed.replaceFirstChar { it.uppercase() }
     }
 
@@ -150,10 +128,11 @@ interface NamedEntity {
 
     /** Returns a formatted, sentence-cased detailed description. */
     fun getDetailedDescription(): String {
-        return startUpperCase(description  ?: "")
+        return startUpperCase(description ?: "")
     }
 
-    fun getPronumGroup() : PronounGroup {
-        return LANG.pronounGroups[name.genderKey] ?: LANG.defaultPronoun
+    fun getPronumGroup(): PronounGroup {
+        val lang = LanguageData.current
+        return lang.pronounGroups[name.genderKey] ?: lang.defaultPronoun
     }
 }

@@ -1,14 +1,8 @@
 package net.daddldiddl.jbsadventure
 
-import net.daddldiddl.jbsadventure.lang.LanguageData
-import net.daddldiddl.jbsadventure.model.GameData
 import net.daddldiddl.jbsadventure.tools.*
 import java.io.File
 
-lateinit var LOG: SimpleFileLog
-lateinit var CONSOLE: ConsoleOutput
-lateinit var LANG: LanguageData
-lateinit var DATA: GameData
 
 /**
  * Application entry point for JB's Adventure Engine.
@@ -19,7 +13,7 @@ lateinit var DATA: GameData
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 fun main(args: Array<String>) {
-    // need to show hel?
+    // need to show help?
     if(args.contains("--help") || args.contains("-h") || args.contains("-?")) {
         printCommandLineHelp()
         return
@@ -27,16 +21,25 @@ fun main(args: Array<String>) {
 
     // load persisted config first; command-line arguments then override selected values.
     val effectiveConfig = Config.current.copy()
-    if (args.contains("--consoleDebug")) {
+    if (args.contains("--consoleLog")) {
         effectiveConfig.writeLogToConsole = true
-        effectiveConfig.logLevel = LogLevel.DEBUG
     }
-    if (args.contains("--log")) {
+    if (args.contains("--fileLog")) {
         effectiveConfig.writeFileLog = true
     }
-    if (args.contains("--logDebug")) {
-        effectiveConfig.writeFileLog = true
+    if (args.contains("--debug")) {
         effectiveConfig.logLevel = LogLevel.DEBUG
+    }
+    if (args.contains("--info")) {
+        effectiveConfig.logLevel = LogLevel.INFO
+    }
+    if (args.contains("--warn")) {
+        effectiveConfig.logLevel = LogLevel.WARN
+    }
+    if (args.contains("--noLog")) {
+        effectiveConfig.writeFileLog = false
+        effectiveConfig.writeLogToConsole = false
+        effectiveConfig.logLevel = LogLevel.INFO
     }
     if (args.contains("--lang")) {
         effectiveConfig.languageCode = args.getOrNull(args.indexOf("--lang") + 1) ?: effectiveConfig.languageCode
@@ -44,14 +47,19 @@ fun main(args: Array<String>) {
 
     val dataFilePath = if (args.contains("--data")) args.getOrNull(args.indexOf("--data") + 1) else null
 
-    // initialize global variables
-    LOG = SimpleFileLog(
+    // initialize global context
+    val log = SimpleFileLog(
         consoleLogEnabled = effectiveConfig.writeLogToConsole,
         writeToFile = effectiveConfig.writeFileLog,
         logLevel = effectiveConfig.logLevel
     )
-    CONSOLE = ConsoleOutput()
-    LANG = GameLoader.loadLanguageData(effectiveConfig.languageCode)
+    GlobalContext.initLog(log)  // make LOG available before loadLanguageData uses it
+
+    val console = ConsoleOutput()
+    val lang = GameLoader.loadLanguageData(effectiveConfig.languageCode)
+
+    GlobalContext.initialize(log, console, lang)
+
     Config.current = effectiveConfig
     Config.save()
 
@@ -59,7 +67,7 @@ fun main(args: Array<String>) {
     LOG.debug("Command line arguments: ${args.joinToString(" ")}")
 
     // load game data
-    DATA = when {
+    val gameData = when {
         dataFilePath != null && !File(dataFilePath).exists() -> {
             LOG.error("External data file not found at '$dataFilePath'")
             return
@@ -67,10 +75,11 @@ fun main(args: Array<String>) {
         dataFilePath != null -> GameLoader.loadGameData(dataFilePath)
         else -> GameLoader.loadGameData()
     }
-    LOG.info("Game data for ${DATA.title} loaded successfully, starting game loop")
+    GlobalContext.setGameData(gameData)
+    LOG.info("Game data for ${gameData.title} loaded successfully, starting game loop")
 
     // initialize and run the game
-    val game = Game(DATA)
+    val game = Game(gameData)
     game.printWelcome()
     val reader = System.`in`.bufferedReader()
 
@@ -92,7 +101,6 @@ fun main(args: Array<String>) {
  * Prints usage instructions for running the application from the command line.
  */
 fun printCommandLineHelp() {
-    // Get the name of the currently running JAR file for display in the usage instructions
     val location = object {}.javaClass.protectionDomain
         .codeSource
         .location
@@ -100,7 +108,6 @@ fun printCommandLineHelp() {
     val fileName = File(location).name
     val title = "JB's Adventure Engine - Command Line Usage"
  
-    // Print usage instructions
     println("${ConsoleColor.WHITE}")
     println("${"=".repeat(title.length + 4)}")
     println("| $title |")
@@ -109,12 +116,15 @@ fun printCommandLineHelp() {
     println("${ConsoleColor.WHITE}Usage: ${ConsoleColor.LIGHTCYAN}java -jar $fileName ${ConsoleColor.LIGHTYELLOW}[options]")
     println()
     println("${ConsoleColor.WHITE}Options:")
-    println("  ${ConsoleColor.LIGHTYELLOW}--consoleDebug   ${ConsoleColor.WHITE}Enable DEBUG level logging to console")
-    println("  ${ConsoleColor.LIGHTYELLOW}--log            ${ConsoleColor.WHITE}Enable INFO level file logging")
-    println("  ${ConsoleColor.LIGHTYELLOW}--logDebug       ${ConsoleColor.WHITE}Enable DEBUG level file logging")
+    println("  ${ConsoleColor.LIGHTYELLOW}--consoleLog     ${ConsoleColor.WHITE}Enable logging to console")
+    println("  ${ConsoleColor.LIGHTYELLOW}--fileLog        ${ConsoleColor.WHITE}Enable logging to a file")
+    println("  ${ConsoleColor.LIGHTYELLOW}--noLog          ${ConsoleColor.WHITE}Disable logging entirely (overrides other log options)")
+    println("  ${ConsoleColor.LIGHTYELLOW}--debug          ${ConsoleColor.WHITE}Set logging to DEBUG level (most verbose)")
+    println("  ${ConsoleColor.LIGHTYELLOW}--info           ${ConsoleColor.WHITE}Set logging to INFO level (default)")
+    println("  ${ConsoleColor.LIGHTYELLOW}--warn           ${ConsoleColor.WHITE}Set logging to WARN level (issues only)")
     println("  ${ConsoleColor.LIGHTYELLOW}--data ${ConsoleColor.LIGHTCYAN}<path>    ${ConsoleColor.WHITE}Load game data from the specified JSON file instead of the bundled data.json")
     println("  ${ConsoleColor.LIGHTYELLOW}--lang ${ConsoleColor.LIGHTCYAN}<code>    ${ConsoleColor.WHITE}Load language data for the specific country code.")
-    println("                   Supported codes: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE} (default: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE})")
+    println("                   Supported codes: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE}, ${ConsoleColor.LIGHTCYAN}de${ConsoleColor.WHITE} (default: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE})")
     println("  ${ConsoleColor.LIGHTYELLOW}--help -h -?     ${ConsoleColor.WHITE}Show this help message")
     println("${ConsoleColor.RESET}")
 }

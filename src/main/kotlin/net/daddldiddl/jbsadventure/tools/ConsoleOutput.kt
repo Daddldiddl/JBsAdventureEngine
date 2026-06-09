@@ -1,82 +1,52 @@
 package net.daddldiddl.jbsadventure.tools
 
+import net.daddldiddl.jbsadventure.IConsole
 import net.daddldiddl.jbsadventure.LOG
 
 /**
- * Enum representing console colors for text output.
- * Each color is associated with an ANSI escape code.
- * 
- * Copyright (c) 2026. This file is part of JB's Adventure Engine, licensed under the MIT License (MIT).
- * See LICENSE file in the project root for full license information.
- */
-enum class ConsoleColor(private val code: String) {
-    RESET("\u001B[0m"),
-    BLACK("\u001B[30m"),
-    RED("\u001B[31m"),
-    GREEN("\u001B[32m"),
-    YELLOW("\u001B[33m"),
-    BLUE("\u001B[34m"),
-    MAGENTA("\u001B[35m"),
-    CYAN("\u001B[36m"),
-    LIGHTGRAY("\u001B[37m"),
-    DARKGRAY("\u001B[90m"),
-    LIGHTRED("\u001B[91m"),
-    LIGHTGREEN("\u001B[92m"),
-    LIGHTYELLOW("\u001B[93m"),
-    LIGHTBLUE("\u001B[94m"),
-    LIGHTMAGENTA("\u001B[95m"),
-    LIGHTCYAN("\u001B[96m"),
-    WHITE("\u001B[97m");
-
-    override fun toString(): String {
-        return code
-    }
-}
-
-/**
- * Utility class for console output. Provides a simple interface to print messages 
+ * Utility class for console output. Provides a simple interface to print messages
  * to the console while also logging them via the global [LOG] instance.
- * 
+ *
  * Copyright (c) 2026. This file is part of JB's Adventure Engine, licensed under the MIT License (MIT).
  * See LICENSE file in the project root for full license information.
  */
-class ConsoleOutput {
+class ConsoleOutput : IConsole {
     /** Prints a message in default color and mirrors it to the log. */
-    fun print(message: String?) {
+    override fun print(message: String?) {
         print(message, ConsoleColor.WHITE)
     }
 
     /** Prints a message in the specified color and mirrors it to the log. */
-    fun print(message: String?, color: ConsoleColor) {
+    override fun print(message: String?, color: ConsoleColor) {
         println("$color${wrapText(message, 80)}${ConsoleColor.RESET}")
         LOG.console(message ?: "")
     }
 
     /** Prints an empty line to console and log. */
-    fun print() {
+    override fun print() {
         println()
         LOG.console("")
     }
 
     /** Prints a warning-styled message. */
-    fun warn(message: String?) {
+    override fun warn(message: String?) {
         print(message, ConsoleColor.LIGHTRED)
     }
 
     /** Prints a log line using a level-dependent color without writing file logs. */
     fun printLog(message: String, level: LogLevel) {
-            val colorCode = when (level) {
-                LogLevel.DEBUG -> "${ConsoleColor.LIGHTGRAY}" // Blue
-                LogLevel.ERROR -> "${ConsoleColor.RED}" // Red
-                LogLevel.WARN -> "${ConsoleColor.YELLOW}"  // Yellow
-                LogLevel.INFO -> "${ConsoleColor.GREEN}"  // Green
-                else -> "${ConsoleColor.RESET}" // Reset
-            }
-            println("$colorCode${wrapText(message, 120)}${ConsoleColor.RESET}") // Reset color after printing
+        val colorCode = when (level) {
+            LogLevel.DEBUG -> "${ConsoleColor.LIGHTGRAY}"
+            LogLevel.ERROR -> "${ConsoleColor.RED}"
+            LogLevel.WARN -> "${ConsoleColor.YELLOW}"
+            LogLevel.INFO -> "${ConsoleColor.GREEN}"
+            else -> "${ConsoleColor.RESET}"
+        }
+        println("$colorCode${wrapText(message, 120)}${ConsoleColor.RESET}")
     }
 
-    private fun wrapText(text: String?, width :Int): String {
-        if(text == null || text.isEmpty()) return ""
+    private fun wrapText(text: String?, width: Int): String {
+        if (text == null || text.isEmpty()) return ""
         val words = text.split(Regex("\\s+"))
         val builder = StringBuilder()
         var lineLength = 0

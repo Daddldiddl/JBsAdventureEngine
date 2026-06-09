@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.model.Exit
 import net.daddldiddl.jbsadventure.model.ItemUsage
 import net.daddldiddl.jbsadventure.model.Name
@@ -47,7 +46,7 @@ object ExitSerializer : KSerializer<Exit>{
         return Exit(
             direction = surrogate.direction,
             targetRoomId = surrogate.targetRoomId,
-            name = surrogate.name ?: Name(LANG.getDirectionAliasFromKey(surrogate.direction)),
+            name = surrogate.name ?: Name(surrogate.direction),
             supportsOpenClose = surrogate.supportsOpenClose ?: false,
             supportsLockUnlock = surrogate.supportsLockUnlock ?: false,
             onOpen = surrogate.onOpen ?: emptyList(),
