@@ -67,7 +67,7 @@ Language switching is trivially supported: `GlobalContext.switchLanguage(newLang
 2. ✅ Infrastructure: `ILogger` + `IConsole` interfaces, `ConsoleColor` extracted, `GlobalContext` decoupled from engine types, `SimpleFileLog` implements `ILogger`, `ConsoleOutput` implements `IConsole`, `Main.kt` migrated to `GlobalContext`
 3. ✅ Fix LanguageData.kt (remove LANG self-reference, remove LOG dependency)
 4. ✅ Fix Name.kt & NamedEntity (add lang: LanguageData parameter to all LANG-dependent methods)
-5. ✅ **Redesign: Switch to companion objects** – reverted explicit `lang` parameters; `LanguageData.current` and `GameData.current` companion objects introduced; `GlobalContext` simplified; `DATA`/`LANG` global accessors now delegate to companions; model classes (Name, OpenLockEnabledEntity, Exit, Item, Container, Room) use companions directly; `GameData.setCurrentStateValue` throws `IllegalArgumentException` instead of LOG.warn; `Game.kt` reverted to original clean call sites
+5. ✅ **Redesign: Switch to companion objects** – reverted explicit `lang` parameters; `LanguageData.current`, `GameData.current` and `ILogger.current` companion objects introduced; `GlobalContext` simplified; `DATA`/`LANG`/`LOG` global accessors now delegate to companions; model classes use companions directly; `GameData.setCurrentStateValue` logs gracefully via `ILogger.current.warn`; `LanguageData.getTemplate/getStateValueFromKey` log missing-key warnings via `ILogger.current.warn`; `Game.kt` reverted to original clean call sites
 6. ⏳ Fix Action.kt (remove LOG, CONSOLE)
 7. ⏳ Fix Precondition.kt (remove LOG)
 8. ⏳ Fix GameData.kt (LOG already removed in Step 5)

@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.lang
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.ILogger
 import net.daddldiddl.jbsadventure.tools.serializers.LanguageDataSerializer
 
 /**
@@ -129,9 +130,15 @@ data class LanguageData(
      */
     fun getTemplate(key: String): String {
         if (key.startsWith("msgPart")) {
-            return messageParts[key] ?: "Unknown message part key: $key"
+            return messageParts[key] ?: run {
+                ILogger.current.warn("No message part found for key '$key', returning fallback.")
+                "Unknown message part key: $key"
+            }
         }
-        return messages[key] ?: "Unknown message key: $key"
+        return messages[key] ?: run {
+            ILogger.current.warn("No message found for key '$key', returning fallback.")
+            "Unknown message key: $key"
+        }
     }
 
     /**
@@ -205,7 +212,10 @@ data class LanguageData(
      * Returns the translated state value for the given key, or the key itself if no translation is found.
      */
     fun getStateValueFromKey(key: String): String {
-        return stateValues[key] ?: "Unknown state value key: $key"
+        return stateValues[key] ?: run {
+            ILogger.current.warn("No state value found for key '$key', returning fallback.")
+            "Unknown state value key: $key"
+        }
     }
 
     companion object {

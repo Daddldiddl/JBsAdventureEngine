@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import net.daddldiddl.jbsadventure.ILogger
 import net.daddldiddl.jbsadventure.tools.serializers.GameDataSerializer
 
 /**
@@ -238,7 +239,7 @@ data class GameData(
         if (isAllowedStateForKey(key, newState)) {
             States[key]?.currentValue = newState
         } else {
-            throw IllegalArgumentException("Cannot set state '$key' to '$newState'. Valid values: ${States[key]?.possibleValues}")
+            ILogger.current.warn("Attempted to set state '$key' to invalid value '$newState'. Valid values are: ${States[key]?.possibleValues}")
         }
     }
 

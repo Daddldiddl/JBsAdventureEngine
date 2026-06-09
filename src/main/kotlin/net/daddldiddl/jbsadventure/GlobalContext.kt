@@ -48,6 +48,7 @@ object GlobalContext {
      */
     fun initLog(log: ILogger) {
         _log = log
+        ILogger.current = log
     }
 
     /**
@@ -59,6 +60,7 @@ object GlobalContext {
     fun initialize(log: ILogger, console: IConsole, lang: LanguageData) {
         _log = log
         _console = console
+        ILogger.current = log
         LanguageData.current = lang
     }
 
@@ -95,7 +97,7 @@ object GlobalContext {
 }
 
 // Convenience accessors – delegates to companion objects
-val LOG: ILogger get() = GlobalContext.log
+val LOG: ILogger get() = ILogger.current
 val CONSOLE: IConsole get() = GlobalContext.console
 val LANG: LanguageData get() = LanguageData.current
 val DATA: GameData get() = GameData.current

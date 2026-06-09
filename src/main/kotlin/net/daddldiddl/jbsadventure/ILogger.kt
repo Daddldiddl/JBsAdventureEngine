@@ -4,8 +4,8 @@ package net.daddldiddl.jbsadventure
  * Logger interface for structured logging.
  *
  * Implemented by the engine's [net.daddldiddl.jbsadventure.tools.SimpleFileLog].
- * Defined in the model package so that model classes can depend on this interface
- * without importing engine-specific types.
+ * Defined here so that model classes can use [ILogger.current] for logging without
+ * importing engine-specific types.
  *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
@@ -24,5 +24,23 @@ interface ILogger {
 
     /** Logs a player-visible console text message (for file-mirroring). */
     fun console(msg: String)
-}
 
+    companion object {
+        /**
+         * The active logger instance. Set at startup via [GlobalContext.initLog].
+         * Defaults to [NoOpLogger] so model classes never throw on logging calls
+         * even if the engine layer has not yet initialized.
+         */
+        @Volatile
+        var current: ILogger = NoOpLogger
+    }
+
+    /** Silent fallback logger used before [GlobalContext] has been initialized. */
+    object NoOpLogger : ILogger {
+        override fun debug(msg: String) {}
+        override fun info(msg: String) {}
+        override fun warn(msg: String) {}
+        override fun error(msg: String) {}
+        override fun console(msg: String) {}
+    }
+}
