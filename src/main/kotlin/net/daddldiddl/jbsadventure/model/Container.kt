@@ -65,14 +65,11 @@ class Container(
 
         val containedItemNames = getContainedItems(GameData.current).joinToString(", ") { it.getDescriptiveName() }
         val details = if (containedItemNames.isBlank()) {
-            lang.getTemplate(Keys.Message.msgContainerEmpty)
-                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+            replacePlaceholdersName(lang.getTemplate(Keys.Message.msgContainerEmpty))
         } else {
-            lang.getTemplate(Keys.Message.msgContainerContent)
-                .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+            replacePlaceholdersName(lang.getTemplate(Keys.Message.msgContainerContent))
                 .replace(Keys.StandIn.items, containedItemNames)
         }
-
         return "$base\n$details".trim()
     }
 
