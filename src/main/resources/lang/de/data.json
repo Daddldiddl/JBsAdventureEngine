@@ -55,13 +55,13 @@
                     "onClose": [
                         {
                             "type": "Message",
-                            "description": "Das Tor schwingt zu und blockiert den Eingang zur Mine."
+                            "description": "Das Tor schwingt zu und blockiert nun den Eingang zur Mine."
                         }
                     ],
                     "onOpen": [
                         {
                             "type": "Message",
-                            "description": "Das Tor quietscht beim Öffnen und ermöglicht dir den Zugang zur Mine."
+                            "description": "Das Tor quietscht beim Öffnen und ermöglicht dir nun das Verlassen der Mine."
                         }
                     ]
 
@@ -99,7 +99,7 @@
                         "onOpen": [
                             {
                                 "type": "Message",
-                                "description": "Das Tor quietscht beim Öffnen und ermöglicht dir nundas Verlassen der Mine."
+                                "description": "Das Tor quietscht beim Öffnen und ermöglicht dir nun das Verlassen der Mine."
                             }
                         ]
                     },
@@ -173,6 +173,7 @@
                             "type": "ModifyContainer",
                             "description": "Du benutzt das Brecheisen um die Sprengstoffkiste zu öffnen.\nSie enthält ein paar Stangen Dynamit.",
                             "containerId": 15,
+                            "locked": false,
                             "open": true,
                             "preconditions": [
                                 {

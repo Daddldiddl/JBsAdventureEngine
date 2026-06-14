@@ -162,6 +162,7 @@
                             "type": "ModifyContainer",
                             "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
                             "containerId": 15,
+                            "locked": false,
                             "open": true,
                             "preconditions": [
                                 {
@@ -185,6 +186,7 @@
                             "type": "ModifyContainer",
                             "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
                             "containerId": 15,
+                            "locked": false,
                             "open": true,
                             "preconditions": [
                                 {

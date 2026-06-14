@@ -367,7 +367,7 @@ data class ModifyExitAction(
             }
         }
 
-        if (blocked != null && !exit.locked && exit.blocked != blocked) {
+        if (blocked != null && exit.blocked != blocked) {
             LOG.debug("Changed exit blocked from ${exit.blocked} to $blocked as part of ModifyExitAction.")
             exit.blocked = blocked
         }
