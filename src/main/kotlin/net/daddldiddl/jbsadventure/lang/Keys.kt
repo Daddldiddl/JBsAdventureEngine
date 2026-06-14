@@ -130,6 +130,10 @@ object Keys {
         const val items = "msgPartItems"
         const val inventory = "msgPartInventory"
         const val noInventory = "msgPartNoInventory"
+        const val exitShortDescriptionWithState = "msgPartExitShortDescriptionWithState"
+        const val exitShortDescriptionNoState = "msgPartExitShortDescriptionNoState"
+        const val exitShortDescriptionNoNameNoState = "msgPartExitShortDescriptionNoNameNoState"
+        const val exitShortDescriptionNoNameWithState = "msgPartExitShortDescriptionNoNameWithState"
     }
 
     /**

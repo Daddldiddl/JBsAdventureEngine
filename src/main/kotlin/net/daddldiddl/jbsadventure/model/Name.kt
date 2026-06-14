@@ -3,6 +3,7 @@ package net.daddldiddl.jbsadventure.model
 import kotlinx.serialization.Serializable
 import net.daddldiddl.jbsadventure.lang.*
 import net.daddldiddl.jbsadventure.model.actions.Action
+import java.text.Normalizer
 
 /**
  * Localizable name metadata for entities.
@@ -95,9 +96,57 @@ interface NamedEntity {
 
     /** Checks if the provided name matches the entity's name or any alias (case-insensitive). */
     fun nameMatches(lookupName: String): Boolean {
-        val lowerName = lookupName.lowercase()
-        return lowerName == this.name.name.lowercase() ||
-                name.aliases.any { it.lowercase() == lowerName }
+        val lookupVariants = normalizedNameVariants(lookupName)
+        if (lookupVariants.isEmpty()) {
+            return false
+        }
+
+        val allNames = sequenceOf(this.name.name) + name.aliases.asSequence()
+        return allNames.any { candidate ->
+            val candidateVariants = normalizedNameVariants(candidate)
+            lookupVariants.any { it in candidateVariants }
+        }
+    }
+
+    private fun normalizedNameVariants(value: String): Set<String> {
+        val lower = value.lowercase().trim()
+        if (lower.isBlank()) {
+            return emptySet()
+        }
+
+        val collapsedWhitespace = lower.replace("\\s+".toRegex(), " ")
+        val lettersDigitsOnly = collapsedWhitespace.replace("[^\\p{L}\\p{Nd}]".toRegex(), "")
+        val noSpaces = collapsedWhitespace.replace(" ", "")
+
+        val nfd = Normalizer.normalize(lettersDigitsOnly, Normalizer.Form.NFD)
+        val withoutDiacritics = nfd.replace("\\p{M}+".toRegex(), "")
+
+        val umlautExpanded = lettersDigitsOnly
+            .replace("ä", "ae")
+            .replace("ö", "oe")
+            .replace("ü", "ue")
+            .replace("ß", "ss")
+        val umlautFlattened = lettersDigitsOnly
+            .replace("ä", "a")
+            .replace("ö", "o")
+            .replace("ü", "u")
+            .replace("ß", "ss")
+        val umlautDropped = lettersDigitsOnly
+            .replace("ä", "")
+            .replace("ö", "")
+            .replace("ü", "")
+            .replace("ß", "ss")
+
+        return setOf(
+            lower,
+            collapsedWhitespace,
+            noSpaces,
+            lettersDigitsOnly,
+            withoutDiacritics,
+            umlautExpanded,
+            umlautFlattened,
+            umlautDropped
+        ).filter { it.isNotBlank() }.toSet()
     }
 
     /** Builds a localized message part describing the current state value. */

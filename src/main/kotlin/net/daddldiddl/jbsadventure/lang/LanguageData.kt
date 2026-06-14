@@ -204,8 +204,10 @@ data class LanguageData(
      * Returns the alias of a direction based on its internal representation.
      */
     fun getDirectionAliasFromKey(directionKey: String): String {
-        val  firstOrNull = directions[directionKey]?.firstOrNull { it == directionKey }
-        return firstOrNull ?: "<unknown direction key: '$directionKey'>"
+        val aliases = directions[directionKey] ?: return "<unknown direction key: '$directionKey'>"
+        return aliases.firstOrNull { it.equals(directionKey, ignoreCase = true) }
+            ?: aliases.firstOrNull()
+            ?: "<unknown direction key: '$directionKey'>"
     }
     
     /**

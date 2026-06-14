@@ -1,0 +1,839 @@
+{
+    "title": "JB's Kleines Abenteuer",
+    "introductionMessage": "Dies ist ein Beispielabenteuer, das die Möglichkeiten der JB's Adventure Engine zeigt.\nViel Spaß beim Erkunden der Mine und beim Entdecken ihrer Geheimnisse - dann erstelle dein eigenes Abenteuer!",
+    "exitMessage": "Danke fürs Spielen von JB's Kleines Abenteuer!\nWir hoffen, du hattest Spaß beim Erkunden der Mine.\nBis zum nächsten Mal!",
+    "Rooms": [
+        {
+            "id": 1,
+            "name": {
+                "name": "Mineneingang",
+                "aliases": []
+            },
+            "description": "Du stehst am Eingang einer dunklen Mine.\nDie Luft ist feucht und du kannst das leise Tropfen von Wasser hören, das aus der Tiefe widerhallt.",
+            "exits": [
+                {
+                    "name": {
+                        "name": "rostiges Tor",
+                        "aliases": ["Tor"]
+                    },
+                    "description": "Ein rostiges Tor, das in die Tiefen der Mine führt.",
+                    "direction": "north",
+                    "targetRoomId": 2,
+                    "supportsOpenClose": true,
+                    "open": false,
+                    "supportsLockUnlock": true,
+                    "locked": true,
+                    "keyId": 18,
+                    "consumeKeyOnUnlock": true,
+                    "onUnlock": [
+                        {
+                            "type": "Message",
+                            "description": "Leider bricht der Schlüssel im Schloss, als du ihn drehst, aber das Tor ist jetzt entriegelt und schwingt auf."
+                        },
+                        {
+                            "type": "ModifyExit",
+                            "roomId": 1,
+                            "direction": "north",
+                            "locked": false,
+                            "open": true,
+                            "delayInMillis": 500,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 1,
+                                    "direction": "north",
+                                    "locked": false,
+                                    "open": false
+                                }
+                            ]
+                        }
+                    ],
+                    "onClose": [
+                        {
+                            "type": "Message",
+                            "description": "Das Tor schwingt zu und blockiert den Eingang zur Mine."
+                        }
+                    ],
+                    "onOpen": [
+                        {
+                            "type": "Message",
+                            "description": "Das Tor quietscht beim Öffnen und ermöglicht dir den Zugang zur Mine."
+                        }
+                    ]
+
+                }
+            ],
+            "itemUsages": [ ]
+        },
+        {
+            "id": 2,
+            "name": {
+                "name": "Minentunnel",
+                "aliases": []
+            },
+            "description": "Du hast den Minentunnel betreten.\nDie Wände sind mit Holzstützen versehen, und der Boden ist uneben.\nDu kannst schwaches Tageslicht aus dem Süden sehen.",
+            "exits": [
+                    {
+                        "name": {
+                            "name": "rostiges Tor",
+                            "aliases": ["Tor"]
+                        },
+                        "description": "Ein rostiges Tor, das zum Eingang der Mine führt.",
+                        "direction": "south",
+                        "targetRoomId": 1,
+                        "onClose": [
+                            {
+                                "type": "Message",
+                                "description": "Das Tor schwingt zu und blockiert den Ausgang der Mine."
+                             }
+                        ],
+                        "onOpen": [
+                            {
+                                "type": "Message",
+                                "description": "Das Tor quietscht beim Öffnen und ermöglicht dir das Verlassen der Mine."
+                            }
+                        ]
+                    },
+                {
+                    "direction": "east",
+                    "targetRoomId": 3
+                },
+                {
+                    "direction": "west",
+                    "targetRoomId": 4
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": {
+                "name": "Minenkammer",
+                "aliases": ["kammer"]
+                },
+            "description": "Du hast eine große Kammer innerhalb der Mine erreicht.\nDie Decke ist hoch, und es gibt Haufen von Steinen, die verstreut sind.\nIn der Mitte der Kammer siehst du einen leuchtenden Kristall, der ein sanftes Licht ausstrahlt.\nHinter dem Kristall gibt es einen breiten Riss im Boden, der bodenlos zu sein scheint.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 2
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": {
+                "name": "Minenstollen",
+                "aliases": ["stollen"]
+            },
+            "description": "Du hast einen engen Minenstollen betreten.\nDie Wände sind dicht beieinander, und die Luft ist dick mit Staub.\nDu kannst das Geräusch von Maschinen aus dem Norden hören.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 2
+                },
+                {
+                    "direction": "west",
+                    "targetRoomId": 5
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "name": {
+                "name": "Maschinenraum der Mine",
+                "aliases": ["maschinenraum"]
+            },
+            "description": "Du hast einen Raum betreten, der mit alten Bergbaumaschinen gefüllt ist.\nDie Maschinen sind rostig, und die Luft ist erfüllt vom Geruch von Öl.\nAn der Wand siehst du ein Bedienfeld.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 4
+                },
+                {
+                    "direction": "north",
+                    "targetRoomId": 10
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 16,
+                    "actions": [
+                        {
+                            "type": "ModifyContainer",
+                            "description": "Du benutzt das Brecheisen um die Sprengstoffkiste zu öffnen.\nSie enthält ein paar Stangen Dynamit.",
+                            "containerId": 15,
+                            "open": true,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionItem",
+                                    "itemId": 16,
+                                    "location": -1
+                                },
+                                {
+                                    "type": "PreconditionContainer",
+                                    "itemId": 15,
+                                    "locked": true
+                                }
+                            ]
+                        }
+                    ],
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 2,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du betrittst den Aufzug und ziehst den Hebel.\nDer Aufzug fährt sanft hinunter auf die Ebene des unterirdischen Sees.",
+                            "moveToRoomId": 6
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 3,
+                    "actions": [
+                        {
+                            "type": "SetItemRoom",
+                            "description": "Du drückst den Knopf am Bedienfeld.\nDer Aufzug ist jetzt auf dieser Ebene.",
+                            "affectedItemIds": [
+                                2
+                            ],
+                            "moveToRoomIdForItems": 5
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 7,
+                    "actions": [
+                        {
+                            "type": "ChangeState",
+                            "description": "Du schraubst die Sicherung in die Dose am Bedienfeld des Aufzugs.\nDas Bedienfeld erwacht zum Leben. Du kannst den Aufzug jetzt auf diese Ebene rufen.",
+                            "changedStateKey": "ELEVATORPANEL_STATE",
+                            "newStateValue": "operational",
+                            "preconditions": [
+                                {
+                                    "requiredStateKey": "ELEVATORPANEL_STATE",
+                                    "requiredStateValues": [
+                                        "broken"
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "becomesUsable": true,
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "name": {
+                "name": "unterirdischer See in der Mine",
+                "aliases": []
+            },
+            "description": "Du hast einen unterirdischen See in der Mine erreicht.\nDas Wasser ist dunkel und still, und du kannst die Reflexion einer einsamen Fackel sehen, die den Eingang zu einem dunklen Tunnel markiert.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 7
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 1,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du löst das Boot und steigst hinein. Du benutzt das Boot, um\nden unterirdischen See zu überqueren und die Insel auf der anderen Seite zu erreichen.",
+                            "moveToRoomId": 9
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 2,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du betrittst den Aufzug und ziehst den Hebel.\nDer Aufzug fährt sanft hinauf zur Eingangsebene.",
+                            "moveToRoomId": 5
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 4,
+                    "actions": [
+                        {
+                            "type": "SetItemRoom",
+                            "description": "Du drückst den Knopf am Bedienfeld.\nDer Aufzug ist jetzt auf dieser Ebene.",
+                            "affectedItemIds": [
+                                2
+                            ],
+                            "moveToRoomIdForItems": 6
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 7,
+                    "actions": [
+                        {
+                            "type": "ChangeState",
+                            "description": "Du schraubst die Sicherung in die Dose am Bedienfeld des Aufzugs.\nDas Bedienfeld erwacht zum Leben. Du kannst den Aufzug jetzt auf diese Ebene rufen.",
+                            "changedStateKey": "ELEVATORPANEL2_STATE",
+                            "newStateValue": "operational",
+                            "preconditions": [
+                                {
+                                    "requiredStateKey": "ELEVATORPANEL2_STATE",
+                                    "requiredStateValues": [
+                                        "broken"
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "becomesUsable": true,
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "name": {
+                "name": "Entwässerungstunnel der Mine",
+                "aliases": []
+            },
+            "description": "Du hast einen engen Entwässerungstunnel in der Mine betreten.\nDie Wände sind feucht, und das Geräusch von tropfendem Wasser hallt durch den Tunnel.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 6
+                },
+                {
+                    "direction": "east",
+                    "targetRoomId": 8
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "name": {
+                "name": "Einsturzstelle",
+                "aliases": []
+            },
+            "description": "Du hast eine Stelle erreicht, an der der Tunnel eingestürzt ist.\nDurch einen Riss weit oben ist ein schwaches Leuchten zu sehen.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 7
+                },
+                {
+                    "direction": "east",
+                    "name": {
+                        "name": "eingestürzte Passage",
+                        "aliases": ["Tunnel", "Passage"]
+                    },
+                    "description": "Eine ehemalige Passage nach Osten ist durch den Einsturz blockiert.",
+                    "targetRoomId": 11,
+                    "blocked": true,
+                    "visible": true,
+                    "blockDescription": "Eine Passage nach Osten, die zuvor durch den Einsturz blockiert war."
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 14,
+                    "actions": [
+                        {
+                            "type": "ModifyExit",
+                            "description": "Du platzierst das Dynamit zwischen den Felsbrocken der Einsturzstelle, zündest die Lunte an und gehst schnell in Deckung.\nNach einem Moment explodiert das Dynamit, sprengt die Felsbrocken weg und räumt den Weg nach Osten frei.",
+                            "direction": "east",
+                            "roomId": 8,
+                            "blocked": false,
+                            "newName": {
+                                "name": "Passage nach Osten",
+                                "aliases": ["Tunnel", "Passage"]
+                            },
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 8,
+                                    "direction": "east",
+                                    "blocked": true
+                                }
+                            ]
+                        }
+                    ],
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "name": {
+                "name": "Kleine Insel im See",
+                "aliases": []
+            },
+            "description": "Du hast eine kleine Insel in der Mitte des unterirdischen Sees erreicht.\nDie Insel ist mit Moos und kleinen Pflanzen bedeckt.",
+            "exits": [],
+            "itemUsages": [
+                {
+                    "itemId": 1,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du löst das Boot, steigst hinein und überquerst den unterirdischen See zurück zum Ufer.",
+                            "moveToRoomId": 6
+                        }
+                    ]
+                },
+                {
+                    "itemId": 5,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du kletterst die Leiter hinauf, um die höhere Ebene zu erreichen.",
+                            "moveToRoomId": 10
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "name": {
+                "name": "Schacht mit Leiter",
+                "aliases": []
+            },
+            "description": "Du hast einen engen Schacht innerhalb der Mine betreten.\nEine stabile Holzleiter führt nach unten zu den unteren Ebenen.",
+            "exits": [
+                {
+                    "direction": "south",
+                    "targetRoomId": 5
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 6,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "Du kletterst die Leiter hinunter, um die unteren Ebenen zu erreichen.",
+                            "moveToRoomId": 9
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id":11,
+            "name": {
+                "name": "Zuvor blockierte Höhle",
+                "aliases": ["Höhle", "versteckte Höhle"]
+            },
+            "description": "Du hast eine versteckte Höhle betreten, die zuvor durch Trümmer blockiert war.\nDie Höhle ist klein und schwach beleuchtet.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 8
+                }
+            ]
+        }
+    ],
+    "Items": [
+        {
+            "comment": "the boat between location 6 (underground lake location) and location 9 (island location)",
+            "id": 1,
+            "name": {
+                "name": "boat",
+                "aliases": [
+                    "boat",
+                    "small boat"
+                ]
+            },
+            "description": "Ein kleines Holzboot, geeignet für die Überquerung des unterirdischen Sees.",
+            "driveable": true,
+            "location": 6
+        },
+        {
+            "comment": "the elevator between location 5 (upper level machine room) and location 6 (underground lake location)",
+            "id": 2,
+            "name": {
+                "name": "elevator",
+                "aliases": [
+                    "elevator",
+                    "lift"
+                ]
+            },
+            "description": "Ein stabil aussehender Aufzugskorb, geeignet für den Transport von Bergbauausrüstung oder Personen zwischen den Ebenen.",
+            "driveable": true,
+            "location": 6
+        },
+        {
+            "comment": "the elevator controls located in location 5 (upper level machine room)",
+            "id": 3,
+            "name": {
+                "name": "control panel",
+                "aliases": [
+                    "panel",
+                    "controls",
+                    "button"
+                ]
+            },
+            "description": "Ein stabil aussehendes Bedienfeld mit einem Knopf, um den Aufzug nach oben zu rufen.\nAn der Seite des Panels befindet sich eine Sicherungsbuchse.",
+            "location": 5,
+            "stateKey": "ELEVATORPANEL_STATE"
+        },
+        {
+            "comment": "the elevator controls located in location 6 (underground lake location)",
+            "id": 4,
+            "name": {
+                "name": "control panel",
+                "aliases": [
+                    "panel",
+                    "controls",
+                    "button"
+                ]
+            },
+            "description": "Ein stabil aussehendes Bedienfeld mit einem Knopf, um den Aufzug nach unten zu rufen.\nAn der Seite des Panels befindet sich eine Sicherungsbuchse.",
+            "location": 6,
+            "stateKey": "ELEVATORPANEL2_STATE"
+        },
+        {
+            "comment": "the ladder located in location 9 (island location)",
+            "id": 5,
+            "name": {
+                "name": "ladder",
+                "aliases": [
+                    "ladder",
+                    "wooden ladder"
+                ]
+            },
+            "description": "Eine stabile Holzleiter, geeignet zum Erklimmen höherer Ebenen.",
+            "location": 9
+        },
+        {
+            "comment": "the ladder located in location 10 (corridor above island location)",
+            "id": 6,
+            "name": {
+                "name": "ladder",
+                "aliases": [
+                    "wooden ladder"
+                ]
+            },
+            "description": "Eine stabile Holzleiter, geeignet zum Abstieg in tiefere Ebenen.",
+            "location": 10
+        },
+        {
+            "comment": "a fuse pack found in the mine, located in location 3 (mine chamber)",
+            "id": 7,
+            "name": {
+                "name": "fuse pack",
+                "aliases": [
+                    "fuse",
+                    "fuses",
+                    "pack"
+                ]
+            },
+            "description": "Ein kleines Sicherungspaket, nützlich zum Reparieren elektrischer Geräte.\nEs sind noch <numberOfUses> Sicherungen übrig.",
+            "carriable": true,
+            "numberOfUses": 2,
+            "location": -2
+        },
+        {
+            "comment": "a key found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 8,
+            "name": {
+                "name": "rostiger Schlüssel",
+                "aliases": [
+                    "Schlüssel",
+                    "rostiger Schlüssel"
+                ]
+            },
+            "description": "Ein kleiner rostiger Schlüssel, er sieht aus, als könnte er ein einfaches Schloss öffnen.",
+            "carriable": true,
+            "location": 0
+        },
+        {
+            "comment": "a treasure item found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 9,
+            "name": {
+                "name": "glänzender Edelstein",
+                "aliases": [
+                    "Edelstein",
+                    "Juwel",
+                    "Schatz"
+                ]
+            },
+            "description": "Der Edelstein glitzert im Licht. Er sieht wertvoll aus.",
+            "onExamine": [
+                {
+                    "type": "ChangeState",
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_ONCE",
+                            "requiredStateValues": [
+                                "true"
+                            ]
+                        },
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_TWICE",
+                            "requiredStateValues": [
+                                "false"
+                            ]
+                        }
+                    ],
+                    "description": "Während du den Edelstein weiter untersuchst, erkennst du, dass dies das berühmte Auge von Bengal ist.",
+                    "changedStateKey": "GEM_EXAMINED_TWICE",
+                    "newStateValue": "true"
+                },
+                {
+                    "type": "ChangeState",
+                    "description": "Beim schnellen Betrachten des Edelsteins kommt er dir bekannt vor. Aber du kannst dich nicht erinnern, woher...",
+                    "changedStateKey": "GEM_EXAMINED_ONCE",
+                    "newStateValue": "true",
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_ONCE",
+                            "requiredStateValues": [
+                                "false"
+                            ]
+                        }
+                    ]
+                },{
+                    "type": "TransformIntoItem",
+                    "description": "Dies ist ein enormer Schatz! Es sieht so aus, als hätte sich deine Expedition tatsächlich gelohnt...",
+                    "affectedItemIds": [9],
+                    "transformsIntoItemIds": [10],
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_TWICE",
+                            "requiredStateValues": [
+                                "true"
+                            ]
+                        }, {
+                            "type": "PreconditionItemsLocation",
+                            "requiredItems": [10],
+                            "requiredRoomForItems": 0
+                        }
+
+                    ]
+                }
+            ],
+            "carriable": true,
+            "location": -2
+        },
+        {
+            "comment": "replaces the 'shiny gem' when that item is examined",
+            "id": 10,
+            "name": {
+                "name": "Eye Of Bengal",
+                "aliases": [
+                    "eye",
+                    "eye of bengal",
+                    "jewel",
+                    "treasure",
+                    "gem",
+                    "shiny gem"
+                ]
+            },
+            "description": "Ein wunderschöner Edelstein, bekannt als das Auge von Bengal. Er soll ein Vermögen wert sein.",
+            "carriable": true,
+            "location": 0
+        },
+        {
+            "comment": "a crate located in location 3 (mine chamber) that contains a fuse pack",
+            "id": 11,
+            "name": {
+                "name": "Holzkiste",
+                "aliases": [
+                    "Kiste",
+                    "Box"
+                ]
+            },
+            "description": "Eine Holzkiste, die anscheinend von den Bergleuten zurückgelassen wurde.",
+            "carriable": false,
+            "location": 3,
+            "containedItems": [
+                7
+            ],
+            "isContainer": true
+        },
+        {
+            "comment": "a treasure chest located in location 9 (lake island) that contains a shiny gem",
+            "id": 12,
+            "name": {
+                "name": "verzierte Schatzkiste",
+                "aliases": [
+                    "Truhe",
+                    "Kiste",
+                    "Schatztruhe",
+                    "Schatzkiste"
+                ]
+            },
+            "description": "Eine verzierte Schatzkiste mit kunstvollen Schnitzereien auf der Oberfläche.",
+            "carriable": false,
+            "location": 9,
+            "containedItems": [
+                9
+            ],
+            "isContainer": true,
+            "supportsLockUnlock": true,
+            "open": false,
+            "locked": true,
+            "keyId": 8
+        },
+        {
+            "comment": "a stick of dynamite located in the machinery room (location 5) that can be used to blast through the cave-in in location 8",
+            "id": 14,
+            "name": {
+                "name": "Stangen Dynamit",
+                "isPlural": true,
+                "aliases": [
+                    "dynamit",
+                    "stangen",
+                    "sprengstoff"
+                ]
+            },
+            "description": "Ein paar Stangen Dynamit, damit sollte es möglich sein, etwas zu sprengen.",
+            "carriable": true,
+            "location": -2
+        },{
+            "comment": "a box of explosives located in the machinery room (location 5) that contains a sticks of dynamite that can be used to blast through the cave-in in location 8",
+            "id": 15,
+            "name": {
+                "name": "box of explosives",
+                "aliases": [
+                    "box"
+                ]
+            },
+            "description": "Eine Box mit Sprengstoff.",
+            "carriable": false,
+            "location": 5,
+            "containedItems": [14],
+            "isContainer": true,
+            "open": false,
+            "locked": true,
+            "supportsLockUnlock": true
+        },
+        {
+            "comment": "crowbar which can be used to open the box of explosives located in the machinery room (location 5)",
+            "id": 16,
+            "name": {
+                "name": "Brechstange",
+                "aliases": [
+                    "crowbar",
+                    "bar",
+                    "lever"
+                ]
+            },
+            "description": "Eine robuste Brechstange, nützlich zum Aufhebeln von Dingen.",
+            "carriable": true,
+            "location": 4
+        },{
+            "comment": "a mummified miner found in the hidden cave (location 11) that can be examined",
+            "id": 17,
+            "name": {
+                "name": "mumifizierter Bergmann",
+                "aliases": [
+                    "bergmann",
+                    "leiche",
+                    "mumie",
+                    "körper",
+                    "koerper"
+                ],
+                "genderKey": "male"
+            },
+            "description": "Die mumifzierten Überreste eines Bergmanns, der hier wohl beim Einsturz des Tunnels eingecshlossen wurde.",
+            "carriable": false,
+            "location": 11,
+            "onExamine": [
+                {
+                    "type": "SetItemRoom",
+                    "description": "Beim Untersuchen des mumifizierten Bergmanns finden Sie einen rostigen Schlüssel in seiner Tasche.\nSie stecken ihn in Ihre Tasche - wer weiß, wo er passen könnte!",
+                    "preconditions": [
+                        {
+                            "type": "PreconditionItemsLocation",
+                            "requiredItems": [8],
+                            "requiredRoomForItems": 0
+                        }
+                    ],
+                    "affectedItemIds": [8],
+                    "moveToRoomIdForItems": -1
+                 }
+             ]
+        },{
+            "comment": "the key to the locked gate blocking the entrance to the mine in location 1 (mine entrance)",
+            "id": 18,
+            "name": {
+                "name": "Schlüssel zur Mine",
+                 "aliases": [
+                    "Schlüssel",
+                    "Minens chlüssel"
+                ]
+            },
+            "description": "Der Schlüssel zum Tor des Mineneingangs. Er sieht alt und rostig aus, sollte aber noch funktionieren.",
+            "carriable": true,
+            "location": -1
+        }
+    ],
+    "States": [
+        {
+            "comment": "the state of the elevator panel leading down to the lake, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL_STATE",
+            "description": "Die Sicherung des Aufzugs sieht <currentValue> aus.",
+            "possibleValues": [
+                "operational",
+                "broken"
+            ],
+            "currentValue": "broken"
+        },
+        {
+            "comment": "the state of the elevator panel leading up to the upper level, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL2_STATE",
+            "description": "Die Sicherung des Aufzugs sieht <currentValue> aus.",
+            "possibleValues": [
+                "operational",
+                "broken"
+            ],
+            "currentValue": "broken"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_ONCE",
+            "description": "Sie haben einen ersten Blick auf den Edelstein geworfen.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_TWICE",
+            "description": "Sie haben den Edelstein gründlich untersucht.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        },
+        {
+            "comment": "discovered the previously blocked exit to the east in location 8 (cave-in location)",
+            "stateKey": "CAVEIN_CLEARED",
+            "description": "Sie haben einen zuvor blockierten Ausgang hinter dem Einsturz entdeckt.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        }
+    ]
+}

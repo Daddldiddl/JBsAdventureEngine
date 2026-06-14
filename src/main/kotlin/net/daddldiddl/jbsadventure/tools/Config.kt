@@ -64,7 +64,7 @@ data class Config(
                 return null
             }
 
-            return localFile.bufferedReader().use { reader ->
+            return localFile.bufferedReader(Charsets.UTF_8).use { reader ->
                 val text = reader.readText()
                 safeInfo("Loaded config data from $CONFIG_PATH")
                 val newConfig: Config = json.decodeFromString(text)

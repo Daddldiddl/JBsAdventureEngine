@@ -36,7 +36,35 @@ class Exit(
 ) : OpenLockEnabledNamedEntity {
 
     override fun getDescriptiveName(definite: Boolean?): String {
-        return if (direction == name.name) direction else "${super.getDescriptiveName(definite)} ($direction)"
+        val lang = LanguageData.current
+        val state = when {
+            blocked -> lang.getStateValueFromKey(Keys.StateValue.blocked)
+            isLocked() -> lang.getStateValueFromKey(Keys.StateValue.locked)
+            isClosed() -> lang.getStateValueFromKey(Keys.StateValue.closed)
+            supportsOpenClose -> lang.getStateValueFromKey(Keys.StateValue.open)
+            else -> null
+        }
+        val template = when (name.name) {
+            in lang.getAllDirectionAliases() -> {
+                when (state) {
+                    null -> lang.getTemplate(Keys.Part.exitShortDescriptionNoNameNoState)
+                    else -> lang.getTemplate(Keys.Part.exitShortDescriptionNoNameWithState)
+                }
+            }
+            else -> {
+                when (state) {
+                    null -> lang.getTemplate(Keys.Part.exitShortDescriptionNoState)
+                    else -> lang.getTemplate(Keys.Part.exitShortDescriptionWithState)
+                }
+            }
+        }
+        return template
+            .replace(Keys.StandIn.name, name.name)
+            .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
+            .replace(Keys.StandIn.definiteName, getDefiniteName())
+            .replace(Keys.StandIn.direction, lang.getDirectionAliasFromKey(direction))
+            .replace(Keys.StandIn.state, state ?: "")
+            .trim()
     }
 
     override fun getDetailedDescription(): String {
@@ -57,7 +85,8 @@ class Exit(
             }
         }
         var message = template
-            .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = false))
+            .replace(Keys.StandIn.definiteName, getDescriptiveName(definite = true))
+            .replace(Keys.StandIn.indefiniteName, getDescriptiveName(definite = false))
             .replace(Keys.StandIn.direction, lang.getDirectionAliasFromKey(direction))
             .replace(Keys.StandIn.description, desc ?: "")
             .trim()
@@ -79,10 +108,10 @@ class Exit(
     override fun isOpen(): Boolean = open && !blocked
 
     override fun toString(): String {
-        return if (direction == name.name) direction else "${name.name} ($direction)"
+        return if (direction == name.name) direction else "${name.name} (${LanguageData.current.getDirectionAliasFromKey(direction)})"
     }
 
     override fun debugName(): String {
-        return if (!name.name.equals(direction)) "'${name.name}' ($direction)" else "'$direction'"
+        return if (!name.name.equals(direction)) "'${name.name}' (<$direction>)" else "<$direction>"
     }
 }
