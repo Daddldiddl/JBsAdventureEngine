@@ -1,10 +1,9 @@
 package net.daddldiddl.jbsadventure.tools
 
 import kotlinx.serialization.json.Json
-import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.ILogger
 import net.daddldiddl.jbsadventure.lang.LanguageData
 import net.daddldiddl.jbsadventure.model.GameData
-import net.daddldiddl.jbsadventure.LANG
 import net.daddldiddl.jbsadventure.GlobalContext
 import java.io.File
 
@@ -18,25 +17,25 @@ object GameLoader {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadGameData(path: String): GameData {
-        LOG.debug("Attempting to load game data from $path")
+        ILogger.current.debug("Attempting to load game data from $path")
         val localFile = File(path)
         if (localFile.exists()) {
             localFile.bufferedReader(Charsets.UTF_8).use { reader ->
                 val text = reader.readText()
-                LOG.info("Loaded game data from $path")
+                ILogger.current.info("Loaded game data from $path")
                 val gameData = json.decodeFromString<GameData>(text)
-                LOG.info(
+                ILogger.current.info(
                         "Deserialized game data for ${gameData.title}: ${gameData.getRoomList().size} rooms, ${gameData.getItemList().size} items, ${gameData.getStateList().size} states"
                 )
                 if (!DataValidator.validate(gameData)) {
-                    LOG.warn(
+                    ILogger.current.warn(
                             "Game data validation failed, but loading will continue. Please check the warnings above for potential issues in your data.json."
                     )
                 }
                 return gameData
             }
         } else {
-            LOG.error("Game data file not found at $path")
+            ILogger.current.error("Game data file not found at $path")
             throw IllegalArgumentException("Game data file not found at $path")
         }
     }
@@ -48,7 +47,7 @@ object GameLoader {
      * @throws IllegalStateException if `data.json` cannot be found on the classpath.
      */
     fun loadGameData(): GameData {
-        LOG.debug("Attempting to load game data from data.json on classpath")
+        ILogger.current.debug("Attempting to load game data from data.json on classpath")
         val text =
                 GameLoader::class
                         .java
@@ -56,13 +55,13 @@ object GameLoader {
                         ?.bufferedReader(Charsets.UTF_8)
                         ?.readText()
                         ?: error("data.json not found in classpath")
-        LOG.info("Loaded game data from data.json")
+        ILogger.current.info("Loaded game data from data.json")
         val gameData = json.decodeFromString<GameData>(text)
-        LOG.info(
+        ILogger.current.info(
                 "Deserialized game data: ${gameData.getRoomList().size} rooms, ${gameData.getItemList().size} items, ${gameData.getStateList().size} states"
         )
         if (!DataValidator.validate(gameData)) {
-            LOG.warn(
+            ILogger.current.warn(
                     "Game data validation failed, but loading will continue. Please check the warnings above for potential issues in your data.json."
             )
         }
@@ -77,7 +76,7 @@ object GameLoader {
      * @throws IllegalStateException if the language data file cannot be found on the classpath.
      */
     fun loadLanguageData(langCode: String): LanguageData {
-        LOG.debug("Attempting to load language data for language code '$langCode'")
+        ILogger.current.debug("Attempting to load language data for language code '$langCode'")
         val localCandidates: List<File> = listOf(
             File("./lang.json"),
             File("./$langCode.json"),
@@ -93,7 +92,7 @@ object GameLoader {
 
         if (localFile != null) {
             val text = localFile.readText(Charsets.UTF_8)
-            LOG.info("Loaded language data for language code '$langCode' from file system (${localFile.path})")
+            ILogger.current.info("Loaded language data for language code '$langCode' from file system (${localFile.path})")
             return json.decodeFromString<LanguageData>(text)
         }
 
@@ -101,7 +100,7 @@ object GameLoader {
         val resourceStream = GameLoader::class.java.getResourceAsStream(resourcePath)
             ?: throw IllegalStateException("Language data file not found for language code '$langCode' at path '$resourcePath'")
         val text = resourceStream.bufferedReader(Charsets.UTF_8).readText()
-        LOG.info("Loaded language data for language code '$langCode'")
+        ILogger.current.info("Loaded language data for language code '$langCode'")
         return json.decodeFromString<LanguageData>(text)
     }
 }

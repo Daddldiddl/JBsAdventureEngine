@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.tools
 
-import net.daddldiddl.jbsadventure.LOG
+import kotlin.enums.enumEntries
+import net.daddldiddl.jbsadventure.ILogger
 import net.daddldiddl.jbsadventure.model.Container
 import net.daddldiddl.jbsadventure.model.FixedLocation
 import net.daddldiddl.jbsadventure.model.GameData
@@ -12,7 +13,7 @@ import net.daddldiddl.jbsadventure.model.actions.*
  */
 object DataValidator {
 
-    private val fixedLocationValues: Set<Int> = enumValues<FixedLocation>().map { it.value }.toSet()
+    private val fixedLocationValues: Set<Int> = enumEntries<FixedLocation>().map { it.value }.toSet()
 
     private fun isValidLocation(location: Int, gameData: GameData): Boolean {
         return location in fixedLocationValues || gameData.getRoomMap().containsKey(location)
@@ -35,13 +36,13 @@ object DataValidator {
      */
     fun validate(gameData: GameData): Boolean {
         var isValid = true
-        LOG.debug("Validating game data...")
+        ILogger.current.debug("Validating game data...")
 
         // Check that all room exits point to valid room IDs
         for (room in gameData.getRoomList()) {
             for ((direction, exit) in room.exits.orEmpty()) {
                 if (!gameData.getRoomMap().containsKey(exit.targetRoomId)) {
-                    LOG.warn(
+                    ILogger.current.warn(
                             "Room '${room.id}' has an exit '$direction' pointing to non-existent room ID '$exit.targetRoomId'"
                     )
                     isValid = false
@@ -54,13 +55,13 @@ object DataValidator {
             // Check that the item references a valid state key (if any)
             val stateKey = item.stateKey
             if (stateKey != null && !gameData.getStateMap().containsKey(stateKey)) {
-                LOG.warn("Item '${item.id}' has a usage referencing non-existent state '$stateKey'")
+                ILogger.current.warn("Item '${item.id}' has a usage referencing non-existent state '$stateKey'")
                 isValid = false
             }
             // Check that the item is located in a valid room (if any)
             val location = item.location
             if (!isValidLocation(location, gameData)) {
-                LOG.warn(
+                ILogger.current.warn(
                         "Item '${item.id}' has a usage referencing non-existent room ID '$location'"
                 )
                 isValid = false
@@ -71,10 +72,10 @@ object DataValidator {
                     .filter { it.containsItem(item.id) }
                     .map { it.id }
                 if (containers.isEmpty()){
-                    LOG.warn("Item '${item.id}' has no container")
+                    ILogger.current.warn("Item '${item.id}' has no container")
                     isValid = false
                 } else if (containers.size > 1) {
-                    LOG.warn("Item '${item.id}' has more than one container (itemIds: ${containers.joinToString(", ")})")
+                    ILogger.current.warn("Item '${item.id}' has more than one container (itemIds: ${containers.joinToString(", ")})")
                     isValid = false
                 }
             }
@@ -85,20 +86,20 @@ object DataValidator {
         for (room in gameData.getRoomList()) {
             for (usage: ItemUsage in room.itemUsages ?: emptyList()) {
                 if (!gameData.getItemMap().containsKey(usage.itemId)) {
-                    LOG.warn(
+                    ILogger.current.warn(
                         "Room '${room.id}' has an item usage referencing non-existent itemId '${usage.itemId}'"
                     )
                     isValid = false
                 }
 
                 if (usage.actions.isEmpty()) {
-                    LOG.warn("Room '${room.id}' has an item usage (itemId ${usage.itemId}) without actions")
+                    ILogger.current.warn("Room '${room.id}' has an item usage (itemId ${usage.itemId}) without actions")
                     isValid = false
                 }
 
                 for (action in usage.actions) {
                     if(action.validatePreconditions(gameData)) {
-                        LOG.warn(
+                        ILogger.current.warn(
                             "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with unsatisfied preconditions, which may prevent the action from executing as intended"
                         )
                         isValid = false
@@ -109,12 +110,12 @@ object DataValidator {
                         is ChangeStateAction -> {
                             val state = gameData.getStateByKey(action.changedStateKey)
                             if (state == null) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ChangeState action (itemId ${usage.itemId}) referencing non-existent state '${action.changedStateKey}'"
                                 )
                                 isValid = false
                             } else if (action.newStateValue !in state.possibleValues) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ChangeState action (itemId ${usage.itemId}) with invalid newStateValue '${action.newStateValue}' for state '${action.changedStateKey}'"
                                 )
                                 isValid = false
@@ -123,7 +124,7 @@ object DataValidator {
 
                         is MoveToAction -> {
                             if (!gameData.getRoomMap().containsKey(action.moveToRoomId)) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a MoveTo action (itemId ${usage.itemId}) referencing non-existent target room ID '${action.moveToRoomId}'"
                                 )
                                 isValid = false
@@ -132,14 +133,14 @@ object DataValidator {
 
                         is SetItemRoomAction -> {
                             if (!isValidLocation(action.moveToRoomId, gameData)) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a SetItemRoom action (itemId ${usage.itemId}) referencing invalid location '${action.moveToRoomId}'"
                                 )
                                 isValid = false
                             }
                             for (affectedItemId in action.affectedItemIds) {
                                 if (!gameData.getItemMap().containsKey(affectedItemId)) {
-                                    LOG.warn(
+                                    ILogger.current.warn(
                                         "Room '${room.id}' has a SetItemRoom action (itemId ${usage.itemId}) referencing non-existent affected item ID '$affectedItemId'"
                                     )
                                     isValid = false
@@ -150,7 +151,7 @@ object DataValidator {
                         is TransformIntoItemAction -> {
                             for (affectedItemId in action.affectedItemIds) {
                                 if (!gameData.getItemMap().containsKey(affectedItemId)) {
-                                    LOG.warn(
+                                    ILogger.current.warn(
                                         "Room '${room.id}' has a TransformIntoItem action (itemId ${usage.itemId}) referencing non-existent source item ID '$affectedItemId'"
                                     )
                                     isValid = false
@@ -158,7 +159,7 @@ object DataValidator {
                             }
                             for (transformedItemId in action.transformsIntoItemIds) {
                                 if (!gameData.getItemMap().containsKey(transformedItemId)) {
-                                    LOG.warn(
+                                    ILogger.current.warn(
                                         "Room '${room.id}' has a TransformIntoItem action (itemId ${usage.itemId}) referencing non-existent target item ID '$transformedItemId'"
                                     )
                                     isValid = false
@@ -169,12 +170,12 @@ object DataValidator {
                         is ModifyExitAction -> {
                             val targetRoom = gameData.getRoomById(action.roomId)
                             if (targetRoom == null) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ModifyExit action (itemId ${usage.itemId}) referencing non-existent room ID '${action.roomId}'"
                                 )
                                 isValid = false
                             } else if (!targetRoom.exits.orEmpty().containsKey(action.direction)) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ModifyExit action (itemId ${usage.itemId}) referencing unknown direction '${action.direction}' in room '${action.roomId}'"
                                 )
                                 isValid = false
@@ -184,12 +185,12 @@ object DataValidator {
                         is ModifyContainerAction -> {
                             val container = gameData.getItemById(action.containerId)
                             if (container == null) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ModifyContainer action (itemId ${usage.itemId}) referencing non-existent container ID '${action.containerId}'"
                                 )
                                 isValid = false
                             } else if (container !is Container) {
-                                LOG.warn(
+                                ILogger.current.warn(
                                     "Room '${room.id}' has a ModifyContainer action (itemId ${usage.itemId}) referencing item ID '${action.containerId}' which is not a container"
                                 )
                                 isValid = false
@@ -197,7 +198,7 @@ object DataValidator {
                         }
 
                         else -> {
-                            LOG.warn(
+                            ILogger.current.warn(
                                 "Room '${room.id}' has an item usage (itemId ${usage.itemId}) with unsupported action type '${action.type}'"
                             )
                             isValid = false
@@ -206,7 +207,7 @@ object DataValidator {
                 }
             }
         }
-        LOG.debug("Game data validation completed ${if(isValid) "successfully" else "with errors"}")
+        ILogger.current.debug("Game data validation completed ${if(isValid) "successfully" else "with errors"}")
         return isValid
     }
 }

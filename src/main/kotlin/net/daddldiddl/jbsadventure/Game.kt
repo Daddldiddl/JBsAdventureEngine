@@ -195,8 +195,8 @@ class Game(private val gameData: GameData) {
     fun handleExamine(parts: List<String>) {
         LOG.debug("Handling examine command with parts: $parts")
 
-        var namedEntity: NamedEntity? = null
-        var itemName: String? = null
+        var namedEntity: NamedEntity?
+        var itemName: String?
         var item: Item? = null
         var exit: Exit? = null
         if(parts.size > 1) {
@@ -216,6 +216,9 @@ class Game(private val gameData: GameData) {
             namedEntity.onExamine.forEach { action ->
                 if (action.checkPreconditions(gameData)) {
                     val executed = action.execute(gameData)
+                    if (executed && !action.description.isNullOrBlank()) {
+                        CONSOLE.print(action.description)
+                    }
                     LOG.debug("Executed onExamine action '${action.type}' for '${namedEntity.debugName()}', success=$executed, descriptionPresent=${!action.description.isNullOrBlank()}")
                 } else {
                     LOG.debug("Skipping onExamine action '${action.type}' for '${namedEntity.debugName()}' because preconditions are not met")
@@ -419,6 +422,13 @@ class Game(private val gameData: GameData) {
                 continue
             }
 
+            if (!action.actionDebug.isNullOrBlank()) {
+                LOG.debug("Executing action: ${action.actionDebug}")
+            }
+            if (!action.description.isNullOrBlank()) {
+                CONSOLE.print(action.description)
+            }
+
             itemUsed = true
             if (action.type == ActionType.MoveTo) {
                 movedToAnotherRoom = true
@@ -428,9 +438,7 @@ class Game(private val gameData: GameData) {
                 }
             }
 
-            LOG.debug(
-                "Executed action '${action.type}' for item '${item.debugName()}'; descriptionPresent=${!action.description.isNullOrBlank()}"
-            )
+            LOG.debug("Executed action '${action.type}' for item '${item.debugName()}'; descriptionPresent=${!action.description.isNullOrBlank()}")
         }
 
         if (!itemUsed) {

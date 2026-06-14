@@ -1,8 +1,6 @@
 package net.daddldiddl.jbsadventure.model.actions
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.CONSOLE
-import net.daddldiddl.jbsadventure.LOG
 import net.daddldiddl.jbsadventure.model.Container
 import net.daddldiddl.jbsadventure.model.FixedLocation
 import net.daddldiddl.jbsadventure.model.GameData
@@ -74,32 +72,17 @@ abstract class Action(
     /** Sleeps for [delayInMillis] if this action defines an execution delay. */
     fun delayIfRequired() {
         if (delayInMillis != null) {
-            LOG.debug("Delaying $type Action by ${String.format("%.3f", delayInMillis / 1000f)} seconds...")
             sleep(delayInMillis)
-        }
-    }
-
-    /** Writes optional debug info for action execution. */
-    fun logActionExecution() {
-        if (actionDebug != null) {
-            LOG.debug("Executing action: ${actionDebug}")
         }
     }
 
     /** Validates the action's preconditions */
     fun validatePreconditions(gameData: GameData): Boolean {
-        var valid: Boolean = true
+        var valid = true
         for(precondition in preconditions) {
             valid = precondition.validate(gameData) && valid
         }
         return valid
-    }
-
-    protected fun outputDescription(message: String?) {
-        if(message != null && message.isNotEmpty())
-        {
-            CONSOLE.print(message)
-        }
     }
 }
 
@@ -131,16 +114,10 @@ data class ChangeStateAction(
             if (state.possibleValues.contains(newStateValue)) {
                 delayIfRequired()
                 gameData.setCurrentStateValue(changedStateKey, newStateValue)
-                logActionExecution()
-                outputDescription(description)
                 return true
-            } else {
-                LOG.warn("Attempted to set state '$changedStateKey' to invalid value '$newStateValue'. Valid values are: ${state.possibleValues}")
-                return false
             }
-        } else {
-            return false
         }
+        return false
     }
 }
 
@@ -171,12 +148,9 @@ data class MoveToAction(
         if (room != null && checkPreconditions(gameData)) {
             delayIfRequired()
             gameData.currentRoom = room
-            logActionExecution()
-            outputDescription(description)
             return true
-        } else {
-            return false
         }
+        return false
     }
 }
 
@@ -210,8 +184,6 @@ data class SetItemRoomAction(
         for (itemId in affectedItemIds) {
             gameData.setItemLocation(itemId, moveToRoomId)
         }
-        logActionExecution()
-        outputDescription(description)
         return true
     }
 }
@@ -261,8 +233,6 @@ data class TransformIntoItemAction(
                 gameData.setItemLocation(targetItem.id, sourceLocation)
             }
         }
-        logActionExecution()
-        outputDescription(description)
         return true
     }
 }
@@ -325,34 +295,26 @@ data class ModifyExitAction(
         val exit = room.exits?.get(direction) ?: return false
 
         if (open == null && locked == null && visible == null && blocked == null) {
-            LOG.warn("The ModifyContainer action for ${exit.debugName()} has no values for locked, open, blocked or visible!")
             return false
         }
 
         // if open/close is combined with lock/unlock, then unlock goes first
         if (locked != null && exit.locked && !locked) {
             if(!exit.unlock()){
-                LOG.warn("Failed to unlock exit ${exit.debugName()} as part of ModifyExitAction.")
                 return false
-            } else {
-                if(exit.consumeKeyOnUnlock && exit.keyId != null){
-                    gameData.getItemById(exit.keyId)?.let { key ->
-                        key.location = FixedLocation.NOT_ASSIGNED.value
-                        LOG.debug("Consumed key ${key.debugName()} on unlocking ${exit.debugName()}.")
-                    }
-                }
+            } else if(exit.consumeKeyOnUnlock && exit.keyId != null){
+                val key = gameData.getItemById(exit.keyId) ?: return false
+                key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
 
         if (open != null) {
             if(open && exit.isClosed()){
                 if(!exit.open()){
-                    LOG.warn("Failed to open exit ${exit.debugName()} as part of ModifyExitAction.")
                     return false
                 }
             } else if (!open && exit.isOpen()){
                 if(!exit.close()){
-                    LOG.warn("Failed to close exit ${exit.debugName()} as part of ModifyExitAction.")
                     return false
                 }
             }
@@ -361,30 +323,21 @@ data class ModifyExitAction(
         // if open/close is combined with lock/unlock, then lock goes last
         if (locked != null && !exit.locked && locked) {
             if(!exit.lock()){
-                LOG.warn("Failed to lock exit ${exit.debugName()} as part of ModifyExitAction.")
                 return false
-            } else {
-                if(exit.consumeKeyOnLock && exit.keyId != null){
-                    gameData.getItemById(exit.keyId)?.let { key ->
-                        key.location = FixedLocation.NOT_ASSIGNED.value
-                        LOG.debug("Consumed key ${key.debugName()} on locking ${exit.debugName()}.")
-                    }
-                }
+            } else if(exit.consumeKeyOnLock && exit.keyId != null){
+                val key = gameData.getItemById(exit.keyId) ?: return false
+                key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
 
         if (blocked != null && exit.blocked != blocked) {
-            LOG.debug("Changed exit blocked from ${exit.blocked} to $blocked as part of ModifyExitAction.")
             exit.blocked = blocked
         }
 
         if (visible != null && exit.visible != visible) {
-            LOG.debug("Changed exit visible from ${exit.visible} to $visible as part of ModifyExitAction.")
             exit.visible = visible
         }
 
-        logActionExecution()
-        outputDescription(description)
         return true
     }
 }
@@ -430,20 +383,16 @@ data class ModifyContainerAction(
         }
         val item = gameData.getItemById(containerId) ?: return false
         if (item !is Container) {
-            LOG.warn("Attempted to execute ModifyContainerAction on ${item.debugName()}, but it is not a container.")
             return false
         }
         val container = item
         if (!container.supportsOpenClose && open != null) {
-            LOG.warn("${container.debugName()} does not support open/close, but action attempted to set open to $open.")
             return false
         }
         if (!container.supportsLockUnlock && locked != null) {
-            LOG.warn("${container.debugName()} does not support lock/unlock, but action attempted to set locked to $locked.")
             return false
         }
         if (open == null && locked == null) {
-            LOG.warn("The ModifyContainer action for ${container.debugName()} has no values for locked or open!")
             return false
         }
 
@@ -452,27 +401,20 @@ data class ModifyContainerAction(
         // if open/close is combined with lock/unlock, then unlock goes first
         if (locked != null && container.locked && !locked) {
             if(!container.unlock()){
-                LOG.warn("Failed to unlock ${container.debugName()} as part of ModifyContainerAction.")
                 return false
-            } else {
-                if(container.consumeKeyOnUnlock && container.keyId != null){
-                    gameData.getItemById(container.keyId)?.let { key ->
-                        key.location = FixedLocation.NOT_ASSIGNED.value
-                        LOG.debug("Consumed key ${key.debugName()} on unlocking ${container.debugName()}.")
-                    }
-                }
+            } else if(container.consumeKeyOnUnlock && container.keyId != null){
+                val key = gameData.getItemById(container.keyId) ?: return false
+                key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
 
         if (open != null) {
             if(open && container.isClosed()){
                 if(!container.open()){
-                    LOG.warn("Failed to open ${container.debugName()} as part of ModifyContainerAction.")
                     return false
                 }
             } else if (!open && container.isOpen()){
                 if(!container.close()){
-                    LOG.warn("Failed to close ${container.debugName()} as part of ModifyContainerAction.")
                     return false
                 }
             }
@@ -481,20 +423,12 @@ data class ModifyContainerAction(
         // if open/close is combined with lock/unlock, then lock goes last
         if (locked != null && !container.locked && locked) {
             if(!container.lock()){
-                LOG.warn("Failed to lock ${container.debugName()} as part of ModifyContainerAction.")
                 return false
-            } else {
-                if(container.consumeKeyOnLock && container.keyId != null){
-                    gameData.getItemById(container.keyId)?.let { key ->
-                        key.location = FixedLocation.NOT_ASSIGNED.value
-                        LOG.debug("Consumed key ${key.debugName()} on locking ${container.debugName()}.")
-                    }
-                }
+            } else if(container.consumeKeyOnLock && container.keyId != null){
+                val key = gameData.getItemById(container.keyId) ?: return false
+                key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
-
-        logActionExecution()
-        outputDescription(description)
         return true
     }
 }
@@ -520,8 +454,6 @@ data class MessageAction (
             return false
         }
         delayIfRequired()
-        logActionExecution()
-        CONSOLE.print(description)
         return true
     }
 }

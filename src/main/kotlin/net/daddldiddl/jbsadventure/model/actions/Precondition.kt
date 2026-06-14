@@ -1,7 +1,7 @@
 package net.daddldiddl.jbsadventure.model.actions
 
 import kotlinx.serialization.Serializable
-import net.daddldiddl.jbsadventure.LOG
+import net.daddldiddl.jbsadventure.ILogger
 import net.daddldiddl.jbsadventure.model.*
 import net.daddldiddl.jbsadventure.tools.serializers.PreconditionSerializer
 
@@ -43,7 +43,7 @@ class PreconditionState(
     override fun validate(gameData: GameData): Boolean {
         val state = gameData.getStateByKey(requiredStateKey)
         if (state == null) {
-            LOG.warn(
+            ILogger.current.warn(
                 "Invalid precondition referencing non-existent state '${requiredStateKey}'"
             )
             return false
@@ -51,7 +51,7 @@ class PreconditionState(
 
         val invalidValues = requiredStateValues.filter { it !in state.possibleValues }
         if (invalidValues.isNotEmpty()) {
-            LOG.warn(
+            ILogger.current.warn(
                 "Invalid precondition values ${invalidValues.joinToString(", ")} for state '${requiredStateKey}'"
             )
             return false
@@ -210,27 +210,27 @@ class PreconditionItemsLocation(
 
     override fun validate(gameData: GameData): Boolean {
         if (requiredItems.isEmpty()){
-            LOG.error("PreconditionItemLocations check failed: empty items list.")
+            ILogger.current.error("PreconditionItemLocations check failed: empty items list.")
             return false
         }
         if(requiredRoomForItems == null && requiredContainerForItems == null) {
-            LOG.error("PreconditionItemLocations check failed: neither required roomId nor required containerId provided!.")
+            ILogger.current.error("PreconditionItemLocations check failed: neither required roomId nor required containerId provided!.")
             return false
         }
         for (itemId in requiredItems) {
             val item = gameData.getItemById(itemId)
             if (item == null) {
-                LOG.error("PreconditionItemLocations check failed: Item with id '$itemId' not found.")
+                ILogger.current.error("PreconditionItemLocations check failed: Item with id '$itemId' not found.")
                 return false
             }
         }
         // Only validate requiredRoomForItems if it's a positive room ID (not special location values like 0, -1, -2)
         if (requiredRoomForItems != null && requiredRoomForItems > 0 && gameData.getRoomById(requiredRoomForItems) == null) {
-            LOG.error("PreconditionItemLocations check failed: required roomId '$requiredRoomForItems' not found.")
+            ILogger.current.error("PreconditionItemLocations check failed: required roomId '$requiredRoomForItems' not found.")
             return false
         }
         if (requiredContainerForItems != null && gameData.getItemById(requiredContainerForItems) == null) {
-            LOG.error("PreconditionItemLocations check failed: required containerId '$requiredContainerForItems' not found.")
+            ILogger.current.error("PreconditionItemLocations check failed: required containerId '$requiredContainerForItems' not found.")
             return false
         }
         return true
