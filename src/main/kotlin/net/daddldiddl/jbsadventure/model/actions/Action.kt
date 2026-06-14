@@ -252,8 +252,14 @@ data class TransformIntoItemAction(
             val sourceItem = gameData.getItemById(affectedItemIds[idx]) ?: continue
             val targetItem = gameData.getItemById(transformsIntoItemIds[idx]) ?: continue
             val sourceLocation = sourceItem.location
-            sourceItem.location = FixedLocation.NOT_ASSIGNED.value
-            targetItem.location = sourceLocation
+            val sourceContainer = gameData.getItemContainer(sourceItem.id)
+            if (sourceContainer != null) {
+                sourceContainer.removeItem(sourceItem.id, gameData)
+                sourceContainer.addItem(targetItem.id, gameData)
+            } else {
+                sourceItem.location = FixedLocation.NOT_ASSIGNED.value
+                gameData.setItemLocation(targetItem.id, sourceLocation)
+            }
         }
         logActionExecution()
         outputDescription(description)
