@@ -217,9 +217,6 @@ class Game(private val gameData: GameData) {
                 if (action.checkPreconditions(gameData)) {
                     val executed = action.execute(gameData)
                     LOG.debug("Executed onExamine action '${action.type}' for '${namedEntity.debugName()}', success=$executed, descriptionPresent=${!action.description.isNullOrBlank()}")
-                    if (executed && !action.description.isNullOrBlank()) {
-                        CONSOLE.print(action.description)
-                    }
                 } else {
                     LOG.debug("Skipping onExamine action '${action.type}' for '${namedEntity.debugName()}' because preconditions are not met")
                 }
