@@ -37,6 +37,7 @@ class Exit(
 
     override fun getDescriptiveName(definite: Boolean?): String {
         val lang = LanguageData.current
+        val baseName = name.baseName()
         val state = when {
             blocked -> lang.getStateValueFromKey(Keys.StateValue.blocked)
             isLocked() -> lang.getStateValueFromKey(Keys.StateValue.locked)
@@ -44,7 +45,7 @@ class Exit(
             supportsOpenClose -> lang.getStateValueFromKey(Keys.StateValue.open)
             else -> null
         }
-        val template = when (name.name) {
+        val template = when (baseName) {
             in lang.getAllDirectionAliases() -> {
                 when (state) {
                     null -> lang.getTemplate(Keys.Part.exitShortDescriptionNoNameNoState)
@@ -59,7 +60,7 @@ class Exit(
             }
         }
         return template
-            .replace(Keys.StandIn.name, name.name)
+            .replace(Keys.StandIn.name, baseName)
             .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
             .replace(Keys.StandIn.definiteName, getDefiniteName())
             .replace(Keys.StandIn.direction, lang.getDirectionAliasFromKey(direction))
@@ -69,8 +70,9 @@ class Exit(
 
     override fun getDetailedDescription(): String {
         val lang = LanguageData.current
+        val baseName = name.baseName()
         val desc = if (blocked) blockedDescription else description
-        val template = when (name.name) {
+        val template = when (baseName) {
             in lang.getAllDirectionAliases() -> {
                 when (desc) {
                     null -> lang.getTemplate(Keys.Message.msgExitDetailedNoDescriptionNoName)
@@ -108,10 +110,12 @@ class Exit(
     override fun isOpen(): Boolean = open && !blocked
 
     override fun toString(): String {
-        return if (direction == name.name) direction else "${name.name} (${LanguageData.current.getDirectionAliasFromKey(direction)})"
+        val baseName = name.baseName()
+        return if (direction == baseName) direction else "$baseName (${LanguageData.current.getDirectionAliasFromKey(direction)})"
     }
 
     override fun debugName(): String {
-        return if (!name.name.equals(direction)) "'${name.name}' (<$direction>)" else "<$direction>"
+        val baseName = name.baseName()
+        return if (!baseName.equals(direction)) "'$baseName' (<$direction>)" else "<$direction>"
     }
 }

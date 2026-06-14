@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import net.daddldiddl.jbsadventure.lang.*
 import net.daddldiddl.jbsadventure.model.actions.Action
 import java.text.Normalizer
@@ -12,11 +13,44 @@ import java.text.Normalizer
  */
 @Serializable
 data class Name(
-    val name: String,
+    @SerialName(Keys.NameField.name)
+    val name: String = "",
+    @SerialName(Keys.NameField.definiteName)
+    val definiteName: String? = null,
+    @SerialName(Keys.NameField.indefiniteName)
+    val indefiniteName: String? = null,
+    @SerialName(Keys.NameField.aliases)
     val aliases: List<String> = emptyList(),
+    @SerialName(Keys.NameField.genderKey)
     val genderKey: String = Keys.Pronouns.defaultDefaultPronounGroupKey,
+    @SerialName(Keys.NameField.isPlural)
     val isPlural: Boolean = false
-)
+) {
+    /**
+     * Fallback display name without article, kept backward compatible with legacy `name`.
+     */
+    fun baseName(): String {
+        return firstNonBlank(name, indefiniteName, definiteName)
+    }
+
+    /**
+     * Base name to use with an indefinite article.
+     */
+    fun indefiniteBaseName(): String {
+        return firstNonBlank(indefiniteName, name, definiteName)
+    }
+
+    /**
+     * Base name to use with a definite article.
+     */
+    fun definiteBaseName(): String {
+        return firstNonBlank(definiteName, name, indefiniteName)
+    }
+
+    private fun firstNonBlank(vararg values: String?): String {
+        return values.firstOrNull { !it.isNullOrBlank() }?.trim() ?: ""
+    }
+}
 
 /**
  * Base interface for named, describable game entities with language-aware helpers.
@@ -42,14 +76,14 @@ interface NamedEntity {
 
     /** Replaces `<name>` placeholders with entity-specific values. */
     fun replacePlaceholdersName(msg: String): String {
-        return msg.replace(Keys.StandIn.name, name.name)
+        return msg.replace(Keys.StandIn.name, name.baseName())
             .replace(Keys.StandIn.indefiniteName, getIndefiniteName())
             .replace(Keys.StandIn.definiteName, getDefiniteName())
     }
 
     /** Replaces `<nameTarget>` placeholders with entity-specific values. */
     fun replacePlaceholdersTargetName(msg: String): String {
-        return msg.replace(Keys.StandIn.nameTarget, name.name)
+        return msg.replace(Keys.StandIn.nameTarget, name.baseName())
             .replace(Keys.StandIn.indefiniteNameTarget, getIndefiniteName())
             .replace(Keys.StandIn.definiteNameTarget, getDefiniteName())
     }
@@ -66,12 +100,12 @@ interface NamedEntity {
 
     /** Returns the name in its indefinite form with the appropriate article. */
     fun getIndefiniteName(): String {
-        return trimEmptySpaces("${getArticle(definite = false)} ${name.name}".trim())
+        return trimEmptySpaces("${getArticle(definite = false)} ${name.indefiniteBaseName()}".trim())
     }
 
     /** Returns the name in its definite form with the appropriate article. */
     fun getDefiniteName(): String {
-        return trimEmptySpaces("${getArticle(definite = true)} ${name.name}".trim())
+        return trimEmptySpaces("${getArticle(definite = true)} ${name.definiteBaseName()}".trim())
     }
 
     /** Returns the subject pronoun based on gender. */
@@ -101,7 +135,7 @@ interface NamedEntity {
             return false
         }
 
-        val allNames = sequenceOf(this.name.name) + name.aliases.asSequence()
+        val allNames = sequenceOf(name.baseName(), name.indefiniteBaseName(), name.definiteBaseName()) + name.aliases.asSequence()
         return allNames.any { candidate ->
             val candidateVariants = normalizedNameVariants(candidate)
             lookupVariants.any { it in candidateVariants }

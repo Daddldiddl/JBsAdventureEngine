@@ -92,7 +92,8 @@
                         },
                         "description": "a rusty gate leading to the entrance of the mine.",
                         "direction": "south",
-                        "targetRoomId": 1
+                        "targetRoomId": 1,
+                        "supportsOpenClose": true
                     },
                 {
                     "direction": "east",

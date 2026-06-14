@@ -96,6 +96,18 @@ object Keys {
     }
 
     /**
+     * Defines JSON field keys for [net.daddldiddl.jbsadventure.model.Name].
+     */
+    object NameField {
+        const val name = "name"
+        const val definiteName = "definiteName"
+        const val indefiniteName = "indefiniteName"
+        const val aliases = "aliases"
+        const val genderKey = "genderKey"
+        const val isPlural = "isPlural"
+    }
+
+    /**
      * State-value key constants for open/closed/locked text mappings.
      *
      * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.

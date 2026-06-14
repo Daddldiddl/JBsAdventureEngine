@@ -19,11 +19,12 @@ interface OpenLockEnabledNamedEntity : NamedEntity, OpenLockEnabledEntity {
     override fun getDescriptiveName(definite: Boolean?): String {
         val lang = LanguageData.current
         val definiteArticle = definite == true
+        val descriptiveBaseName = if (definiteArticle) name.definiteBaseName() else name.indefiniteBaseName()
         var template = lang.getTemplate(Keys.Part.descriptiveName)
         template = trimEmptySpaces(
             template
                 .replace(Keys.StandIn.state, getOpenLockState())
-                .replace(Keys.StandIn.name, name.name)
+                .replace(Keys.StandIn.name, descriptiveBaseName)
                 .trim()
         )
         var article = getArticle(definiteArticle)
