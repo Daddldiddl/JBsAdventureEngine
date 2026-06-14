@@ -583,9 +583,9 @@ class Game(private val gameData: GameData) {
             val message = if (exit.blocked) {
                 exit.blockedDescription ?: LANG.getTemplate(Keys.Message.msgExitIsBlocked)
             } else if (exit.isLocked()) {
-                LANG.getTemplate(Keys.Message.msgEntityLocked)
+                LANG.getTemplate(Keys.Message.msgEntityIsLocked)
             } else {
-                LANG.getTemplate(Keys.Message.msgEntityClosed)
+                LANG.getTemplate(Keys.Message.msgEntityIsClosed)
             }
             CONSOLE.print(exit.replacePlaceholdersName(message))
             return

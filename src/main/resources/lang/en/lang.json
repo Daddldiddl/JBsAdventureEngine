@@ -122,6 +122,7 @@
         "msgAlreadyLocked": "<definiteName> is already locked.",
         "msgAlreadyUnlocked": "<definiteName> is already unlocked.",
         "msgEntityIsLocked": "<definiteName> is locked.",
+        "msgEntityIsClosed": "<definiteName> is closed.",
         "msgOpenSuccess": "You open <definiteName>.",
         "msgCloseSuccess": "You close <definiteName>.",
         "msgLockSuccess": "You lock <definiteName>.",

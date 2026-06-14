@@ -189,6 +189,7 @@ object Keys {
         const val msgEntityAlreadyLocked = "msgAlreadyLocked"
         const val msgEntityOpened = "msgOpenSuccess"
         const val msgEntityClosed = "msgCloseSuccess"
+        const val msgEntityIsClosed = "msgEntityIsClosed"
         const val msgEntityLocked = "msgLockSuccess"
         const val msgEntityUnlocked = "msgUnlockSuccess"
         const val msgNoDoorOrContainerFound = "msgNoDoorOrContainerFound"
