@@ -15,8 +15,6 @@ import net.daddldiddl.jbsadventure.model.GameData
 object GlobalContext {
     private var _log: ILogger? = null
     private var _console: IConsole? = null
-    @Volatile
-    var repairInputDebug: Boolean = false
 
     /**
      * Structured logger for file and console output.
@@ -95,7 +93,6 @@ object GlobalContext {
     fun reset() {
         _log = null
         _console = null
-        repairInputDebug = false
     }
 }
 

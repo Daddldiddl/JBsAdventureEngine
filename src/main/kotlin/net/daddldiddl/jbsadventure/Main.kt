@@ -2,8 +2,6 @@ package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.tools.*
 import java.io.File
-import java.io.PrintStream
-import java.nio.charset.Charset
 
 
 /**
@@ -15,16 +13,6 @@ import java.nio.charset.Charset
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 fun main(args: Array<String>) {
-    // Detect the terminal's native charset so input and output are encoded consistently.
-    // System.console()?.charset() is the most reliable source (Java 17+); it reads the
-    // OS/terminal setting and will return UTF-8 in WSL/Linux/macOS and the active code
-    // page on Windows (e.g. Cp1252 or Cp437).  Fall back to UTF-8 when there is no
-    // attached console (piped / redirected I/O).
-    val terminalCharset: Charset = System.console()?.charset() ?: Charsets.UTF_8
-    // Re-wrap System.out so that Kotlin's println() and ConsoleOutput both encode output
-    // with the terminal's charset instead of the JVM default.
-    System.setOut(PrintStream(System.out, true, terminalCharset))
-
     // need to show help?
     if(args.contains("--help") || args.contains("-h") || args.contains("-?")) {
         printCommandLineHelp()
@@ -54,9 +42,8 @@ fun main(args: Array<String>) {
         effectiveConfig.logLevel = LogLevel.INFO
     }
     if (args.contains("--lang")) {
-        effectiveConfig.languageCode = args.getOrNull(args.indexOf("--lang") + 1)?.takeIf { it.isNotBlank() }?.lowercase() ?: effectiveConfig.languageCode
+        effectiveConfig.languageCode = args.getOrNull(args.indexOf("--lang") + 1) ?: effectiveConfig.languageCode
     }
-    val repairInput = args.contains("--repairInput")
 
     val dataFilePath = if (args.contains("--data")) args.getOrNull(args.indexOf("--data") + 1) else null
 
@@ -92,18 +79,16 @@ fun main(args: Array<String>) {
     LOG.info("Game data for ${gameData.title} loaded successfully, starting game loop")
 
     // initialize and run the game
-    GlobalContext.repairInputDebug = repairInput
     val game = Game(gameData)
     game.printWelcome()
-    val consoleReader = System.console()
-    val fallbackReader = if (consoleReader == null) System.`in`.bufferedReader(terminalCharset) else null
+    val reader = System.`in`.bufferedReader()
 
     // main game loop
     while (game.isRunning()) {
         game.currentStateDebug()
         print("${ConsoleColor.LIGHTCYAN}> ${ConsoleColor.RESET}")
         System.out.flush()
-        val line = if (consoleReader != null) consoleReader.readLine() else fallbackReader?.readLine() ?: break
+        val line = reader.readLine() ?: break
         game.processCommand(line)
     }
 
@@ -138,9 +123,8 @@ fun printCommandLineHelp() {
     println("  ${ConsoleColor.LIGHTYELLOW}--info           ${ConsoleColor.WHITE}Set logging to INFO level (default)")
     println("  ${ConsoleColor.LIGHTYELLOW}--warn           ${ConsoleColor.WHITE}Set logging to WARN level (issues only)")
     println("  ${ConsoleColor.LIGHTYELLOW}--data ${ConsoleColor.LIGHTCYAN}<path>    ${ConsoleColor.WHITE}Load game data from the specified JSON file instead of the bundled data.json")
-    println("  ${ConsoleColor.LIGHTYELLOW}--lang ${ConsoleColor.LIGHTCYAN}<code>    ${ConsoleColor.WHITE}Load language and game data for the specific country code.")
+    println("  ${ConsoleColor.LIGHTYELLOW}--lang ${ConsoleColor.LIGHTCYAN}<code>    ${ConsoleColor.WHITE}Load language data for the specific country code.")
     println("                   Supported codes: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE}, ${ConsoleColor.LIGHTCYAN}de${ConsoleColor.WHITE} (default: ${ConsoleColor.LIGHTCYAN}en${ConsoleColor.WHITE})")
-    println("  ${ConsoleColor.LIGHTYELLOW}--repairInput    ${ConsoleColor.WHITE}Debug only: attempt mojibake repair for piped/non-interactive input")
     println("  ${ConsoleColor.LIGHTYELLOW}--help -h -?     ${ConsoleColor.WHITE}Show this help message")
     println("${ConsoleColor.RESET}")
 }

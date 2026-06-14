@@ -236,7 +236,7 @@ class Game(private val gameData: GameData) {
     fun handleOpenClose(parts: List<String>) {
         LOG.debug("Handling open/close command with parts: $parts")
         val part0: String = parts[0].lowercase()
-        val cmd = LANG.getCommandFromAlias(part0) ?: ""
+        val cmd = LANG.getCommandFromAlias(part0)
         val itemName = parts.drop(1).joinToString(" ").trim()
         if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.open, Keys.Command.close)) {
             CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
@@ -286,7 +286,7 @@ class Game(private val gameData: GameData) {
     fun handleLockUnlock(parts: List<String>) {
         LOG.debug("Handling (un)lock command with parts: $parts")
         val part0: String = parts[0].lowercase()
-        val cmd = LANG.getCommandFromAlias(part0) ?: ""
+        val cmd = LANG.getCommandFromAlias(part0)
         val itemName = parts.drop(1).joinToString(" ").trim()
         if(cmd.isEmpty() || itemName.isEmpty() || cmd !in listOf(Keys.Command.lock, Keys.Command.unlock)) {
             CONSOLE.print(LANG.getTemplate(Keys.Message.msgCommandWhat)
@@ -389,7 +389,6 @@ class Game(private val gameData: GameData) {
         if (usage == null) {
             val entity: OpenLockEnabledNamedEntity ?= isUsableKey(item)
             if(entity != null){
-                // use the key as expected with the appropriate lock/unlock command
                 if(entity.isLocked()) {
                     CONSOLE.print(item.replacePlaceholdersName(entity.replacePlaceholdersTargetName(
                         LANG.getTemplate(Keys.Message.msgTryUseItemToUnlock)
@@ -669,5 +668,4 @@ class Game(private val gameData: GameData) {
         CONSOLE.print(sb.toString())
     }
 }
-
 
