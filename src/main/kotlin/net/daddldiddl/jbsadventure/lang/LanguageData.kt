@@ -145,7 +145,7 @@ data class LanguageData(
      * Returns the list of aliases for the given command, or an empty list if the command is not defined.
      */
     fun getCommandAliases(commandKey: String): List<String> {
-        return commands[commandKey]?.aliases ?: emptyList()
+        return commands[commandKey]?.aliases?.map { it.lowercase() } ?: emptyList()
     }
 
     /**
@@ -159,12 +159,13 @@ data class LanguageData(
      * Checks if the given string is a valid command (or direction in place of a GO command).
      */
     fun getCommandFromAlias(input: String): String {
+        val normalizedInput = input.lowercase()
         for(key in commands.keys) {
-            if(commands[key]?.aliases?.contains(input) ?: false) {
+            if(commands[key]?.aliases?.any { it.equals(normalizedInput, ignoreCase = true) } ?: false) {
                 return key
             }
         }
-        if(getAllDirectionAliases().contains(input)) {
+        if(getAllDirectionAliases().contains(normalizedInput)) {
             return Keys.Command.go
         }
         return ""
@@ -183,7 +184,7 @@ data class LanguageData(
     fun getAllDirectionAliases(): List<String> {
         val allDirections = mutableListOf<String>()
         for (aliases in directions.values) {
-            allDirections.addAll(aliases)
+            allDirections.addAll(aliases.map { it.lowercase() })
         }
         return allDirections.distinct()
     }
@@ -192,8 +193,9 @@ data class LanguageData(
      * Returns the internal representation of a direction based on its alias.
      */
     fun getDirectionKeyFromAlias(input: String): String? {
+        val normalizedInput = input.lowercase()
         for ((directionKey, aliases) in directions) {
-            if (aliases.contains(input)) {
+            if (aliases.any { it.equals(normalizedInput, ignoreCase = true) }) {
                 return directionKey
             }
         }

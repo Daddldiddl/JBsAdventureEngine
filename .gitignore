@@ -33,3 +33,4 @@ target/*
 savegame.json
 /.idea
 /AGENTS.md
+/config.json
