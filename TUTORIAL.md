@@ -6,19 +6,19 @@
 1. [Getting Started](#getting-started)
 2. [Basic Structure](#basic-structure)
 3. [Tutorial: Common Game Features](#tutorial-common-game-features)
-   - [Creating a Locked Treasure Chest](#tutorial-locked-treasure-chest)
-   - [Creating Single-Use Keys](#tutorial-single-use-keys)
-   - [Clearing a Blocked Passage](#tutorial-clearing-blocked-passage)
-   - [Making a Simple Container](#tutorial-simple-container)
-   - [Creating Driveable Items](#tutorial-driveable-items)
-   - [Using State-Dependent Items](#tutorial-state-dependent-items)
+   - [Creating a Locked Treasure Chest](#tutorial-creating-a-locked-treasure-chest)
+   - [Creating Single-Use Keys](#tutorial-creating-single-use-keys)
+   - [Clearing a Blocked Passage](#tutorial-clearing-a-blocked-passage)
+   - [Making a Simple Container](#tutorial-making-a-simple-container)
+   - [Creating Driveable Items](#tutorial-creating-driveable-items)
+   - [Using State-Dependent Items](#tutorial-using-state-dependent-items)
    - [Item Transformations](#tutorial-item-transformations)
-   - [Hidden Items with onExamine](#tutorial-onexamine-actions)
+   - [Hidden Items with onExamine](#tutorial-hidden-items-with-onexamine)
    - [Multi-Use Items](#tutorial-multi-use-items)
    - [Message Actions](#tutorial-message-actions)
-   - [Using onUse Action Lists](#tutorial-onuse-actions)
-   - [Interactive Containers with Action Lists](#tutorial-container-actions)
-   - [Player-Based Preconditions](#tutorial-player-preconditions)
+   - [Using onUse Action Lists](#tutorial-using-onuse-action-lists)
+   - [Interactive Containers with Action Lists](#tutorial-interactive-containers-with-action-lists)
+   - [Player-Based Preconditions](#tutorial-player-based-preconditions)
 
 ### Part 2: Technical Reference
 - [Architecture & Key Files](#architecture--key-files)
@@ -42,7 +42,7 @@
 ## Getting Started
 
 ### Project Overview
-**JB's Adventure Engine** is a data-driven, text-based adventure game engine written in **Kotlin 2.3.21** / **Java 21**, built with Maven.  
+**JB's Adventure Engine** is a data-driven, text-based adventure game engine written in **Kotlin 2.4.0** / **Java 21**, built with Maven.  
 Game content is defined entirely in **JSON** – no code changes required to create a new adventure.
 
 **Key dependency:** `kotlinx-serialization-json:1.11.0` – all JSON serialization uses this library with custom surrogate serializers for polymorphic types.
@@ -69,11 +69,16 @@ java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar
 # Run with your own adventure data file
 java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --data ./my-adventure.json
 
-# Run with debug output to console
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --consoleDebug
+# Enable console logging
+java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --consoleLog
 
-# Run with file logging (creates timestamped log files like JBsBigAdventure_240605123045.log)
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --log --logDebug
+# Enable file logging and debug output
+java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --fileLog --debug
+
+# Alternative log levels
+java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --info
+java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --warn
+java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --noLog
 
 # Set language (default: en)
 java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --lang en
@@ -95,9 +100,9 @@ Every adventure is defined in a single JSON file with this structure:
     "title": "Your Adventure Title",
     "introductionMessage": "Welcome message shown at game start",
     "exitMessage": "Goodbye message shown when player quits",
-    "Rooms": [ /* array of room objects */ ],
-    "Items": [ /* array of item objects */ ],
-    "States": [ /* array of game state variables */ ]
+    "Rooms": [],
+    "Items": [],
+    "States": []
 }
 ```
 
@@ -146,7 +151,7 @@ Every adventure is defined in a single JSON file with this structure:
 
 ## Tutorial: Common Game Features
 
-The following tutorials use real examples from the bundled adventure (see `src/main/resources/data.json`). Each section shows the complete JSON pattern you need.
+The following tutorials use real examples from the bundled adventure (see `src/main/resources/lang/<code>/data.json`). Each section shows the complete JSON pattern you need.
 
 <a name="tutorial-locked-treasure-chest"></a>
 ### Tutorial: Creating a Locked Treasure Chest
@@ -429,7 +434,7 @@ Use `consumeKeyOnLock: true` for doors that can be permanently sealed:
             "blockedDescription": "A passage leading east that was previously blocked by the cave-in."
         }
     ],
-    "itemUsages": [ /* see Step 3 */ ]
+    "itemUsages": []
 }
 ```
 
@@ -589,7 +594,7 @@ You take the fuse pack.
     "name": { "name": "underground lake", "aliases": [] },
     "description": "You have reached an underground lake.\nThere is a small boat at the shore.",
     "exits": [],
-    "itemUsages": [ /* see Step 3 */ ]
+    "itemUsages": []
 }
 ```
 
@@ -599,7 +604,7 @@ You take the fuse pack.
     "name": { "name": "small island", "aliases": [] },
     "description": "You have reached a small island in the middle of the underground lake.\nThere is a wooden pier at the shore.",
     "exits": [],
-    "itemUsages": [ /* will mirror the boat usage */ ]
+    "itemUsages": []
 }
 ```
 
@@ -617,20 +622,21 @@ You take the fuse pack.
     "location": 6
 }
 ```
-
-**Key fields explained:**
-
-- `driveable: true` – marks item as usable for transportation
-- `location: 6` – boat starts at the lake shore
-
-**Step 3: Add ItemUsage to enable transport**
-
-Add to room 6's `itemUsages`:
-
-```json
-{
-    "itemId": 1,
-    "actions": [
+[
+    {
+        "stateKey": "GEM_EXAMINED_ONCE",
+        "description": "You had a first look at the gem.",
+        "possibleValues": ["true", "false"],
+        "currentValue": "false"
+    },
+    {
+        "stateKey": "GEM_EXAMINED_TWICE",
+        "description": "You have thoroughly examined the gem.",
+        "possibleValues": ["true", "false"],
+        "currentValue": "false"
+    }
+]
+```
         {
             "type": "MoveTo",
             "description": "You untie the boat and step into it. You use the boat to\ncross the underground lake to reach the island on the other side.",
@@ -818,18 +824,20 @@ The elevator is now on this level.
 **Step 1: Define tracking states**
 
 ```json
-{
-    "stateKey": "GEM_EXAMINED_ONCE",
-    "description": "You had a first look at the gem.",
-    "possibleValues": ["true", "false"],
-    "currentValue": "false"
-},
-{
-    "stateKey": "GEM_EXAMINED_TWICE",
-    "description": "You have thoroughly examined the gem.",
-    "possibleValues": ["true", "false"],
-    "currentValue": "false"
-}
+[
+    {
+        "stateKey": "GEM_EXAMINED_ONCE",
+        "description": "You had a first look at the gem.",
+        "possibleValues": ["true", "false"],
+        "currentValue": "false"
+    },
+    {
+        "stateKey": "GEM_EXAMINED_TWICE",
+        "description": "You have thoroughly examined the gem.",
+        "possibleValues": ["true", "false"],
+        "currentValue": "false"
+    }
+]
 ```
 
 **Step 2: Create the initial item**
@@ -844,7 +852,7 @@ The elevator is now on this level.
     "description": "A shiny gem that sparkles in the light. It looks valuable.",
     "carriable": true,
     "location": -2,
-    "onExamine": [ /* see Step 4 */ ]
+    "onExamine": []
 }
 ```
 
@@ -868,53 +876,67 @@ Note: `location: 0` means it doesn't exist until the transformation happens.
 **Step 4: Add onExamine actions to the gem**
 
 ```json
-"onExamine": [
-    {
-        "type": "ChangeState",
-        "description": "As you quickly examine the gem, it seems familiar. But you can't seem to remember where you could know it from...",
-        "changedStateKey": "GEM_EXAMINED_ONCE",
-        "newStateValue": "true",
-        "preconditions": [
-            {
-                "requiredStateKey": "GEM_EXAMINED_ONCE",
-                "requiredStateValues": ["false"]
-            }
-        ]
+{
+    "id": 9,
+    "name": {
+        "name": "shiny gem",
+        "aliases": ["gem", "jewel", "treasure"]
     },
-    {
-        "type": "ChangeState",
-        "description": "As you continue to examine the gem, you realize that this is the famous Eye Of Bengal.",
-        "changedStateKey": "GEM_EXAMINED_TWICE",
-        "newStateValue": "true",
-        "preconditions": [
-            {
-                "requiredStateKey": "GEM_EXAMINED_ONCE",
-                "requiredStateValues": ["true"]
-            },
-            {
-                "requiredStateKey": "GEM_EXAMINED_TWICE",
-                "requiredStateValues": ["false"]
-            }
-        ]
-    },
-    {
-        "type": "TransformIntoItem",
-        "description": "This is an enormous treasure! It looks like your expedition has actually been worth it...",
-        "affectedItemIds": [9],
-        "transformsIntoItemIds": [10],
-        "preconditions": [
-            {
-                "requiredStateKey": "GEM_EXAMINED_TWICE",
-                "requiredStateValues": ["true"]
-            },
-            {
-                "type": "PreconditionItemsLocation",
-                "requiredItems": [10],
-                "requiredRoomForItems": 0
-            }
-        ]
-    }
-]
+    "description": "A shiny gem that sparkles in the light. It looks valuable.",
+    "carriable": true,
+    "location": -2,
+    "onExamine": [
+        {
+            "type": "ChangeState",
+            "description": "As you quickly examine the gem, it seems familiar. But you can't seem to remember where you could know it from...",
+            "changedStateKey": "GEM_EXAMINED_ONCE",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "GEM_EXAMINED_ONCE",
+                    "requiredStateValues": ["false"]
+                }
+            ]
+        },
+        {
+            "type": "ChangeState",
+            "description": "As you continue to examine the gem, you realize that this is the famous Eye Of Bengal.",
+            "changedStateKey": "GEM_EXAMINED_TWICE",
+            "newStateValue": "true",
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "GEM_EXAMINED_ONCE",
+                    "requiredStateValues": ["true"]
+                },
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "GEM_EXAMINED_TWICE",
+                    "requiredStateValues": ["false"]
+                }
+            ]
+        },
+        {
+            "type": "TransformIntoItem",
+            "description": "This is an enormous treasure! It looks like your expedition has actually been worth it...",
+            "affectedItemIds": [9],
+            "transformsIntoItemIds": [10],
+            "preconditions": [
+                {
+                    "type": "PreconditionState",
+                    "requiredStateKey": "GEM_EXAMINED_TWICE",
+                    "requiredStateValues": ["true"]
+                },
+                {
+                    "type": "PreconditionItemsLocation",
+                    "requiredItems": [10],
+                    "requiredRoomForItems": 0
+                }
+            ]
+        }
+    ]
+}
 ```
 
 **Key concepts:**
@@ -1343,6 +1365,7 @@ Containers and Exits support four action lists:
     "locked": true,
     "keyId": 8,
     "containedItems": [19],
+    "onUnlock": [
         {
             "type": "ChangeState",
             "description": "As you turn the key, you hear a soft *click* followed by a loud SNAP! A poisoned needle shoots out from the lock mechanism!\nLuckily, you saw the scratches and were prepared. You carefully remove the needle.",
@@ -1584,35 +1607,35 @@ You step through the scanner. *BEEEEP!* Red lights flash! The scanner detected c
 | Game controller | `Game.kt` | Parses input, dispatches all player commands |
 | Runtime state | `model/GameData.kt` | Central runtime model (rooms, items, states, containers) |
 | Data model | `model/Room.kt`, `model/Item.kt`, `model/Exit.kt`, `model/Container.kt` | Core game entities |
-| Actions | `model/Actions/Action.kt` | `ActionType` enum + all action `data class`es |
-| Item interaction | `model/Actions/ItemUsage.kt` | Links item IDs to lists of `Action`s within a room |
-| Preconditions | `model/Actions/Precondition.kt` | Polymorphic precondition hierarchy (`model.actions` package) |
+| Actions | `model/actions/Action.kt` | `ActionType` enum + all action `data class`es |
+| Item interaction | `model/actions/ItemUsage.kt` | Links item IDs to lists of `Action`s within a room |
+| Preconditions | `model/actions/Precondition.kt` | Polymorphic precondition hierarchy (`model.actions` package) |
 | Serialization | `tools/serializers/` | Custom surrogate serializers for all polymorphic types |
 | Persistence | `tools/SaveManager.kt` | Saves/loads `savegame.json` in the working directory |
 | Validation | `tools/DataValidator.kt` | Validates game data integrity (rooms, items, actions, preconditions) on load |
 | i18n | `lang/LanguageData.kt`, `lang/Keys.kt` | All user-facing text via keyed templates |
 | Config | `tools/Config.kt`, `config.json` | Log level / language persisted in `config.json` in working directory |
-| Game data | `src/main/resources/data.json` | Bundled example adventure |
-| Language data | `src/main/resources/lang/en.json` | English strings, command aliases, pronoun groups |
+| Game data | `src/main/resources/lang/<code>/data.json` | Bundled example adventure |
+| Language data | `src/main/resources/lang/<code>/lang.json` | Strings, command aliases, pronoun groups |
 
 ### Package Note
 `Action.kt` and `Precondition.kt` live in the `model/actions/` folder and correctly declare `package net.daddldiddl.jbsadventure.model.actions`.  
-`ItemUsage.kt` lives in the same `model/actions/` folder but declares `package net.daddldiddl.jbsadventure.model` (misplaced but functional). On Windows the folder is case-insensitive (`Actions/` == `actions/`).
+`ItemUsage.kt` lives in the same `model/actions/` folder but declares `package net.daddldiddl.jbsadventure.model` (misplaced but functional). On Windows the folder is case-insensitive.
 
 ---
 
 ## Global Singletons
 
-Declared in `Main.kt`:
+Initialized during startup via `GlobalContext`:
 
 ```kotlin
-LOG: SimpleFileLog   // structured logger; creates timestamped log files (e.g., JBsBigAdventure_240605123045.log)
-CONSOLE: ConsoleOutput
-LANG: LanguageData   // all i18n text; access via LANG.getTemplate(Keys.Message.*)
-DATA: GameData       // runtime game state; DATA.currentRoom tracks player position
+val LOG: ILogger = ILogger.current
+val CONSOLE: IConsole = GlobalContext.console
+val LANG: LanguageData = LanguageData.current
+val DATA: GameData = GameData.current
 ```
 
-These `lateinit var` globals are accessible from any file in the package.
+These convenience accessors delegate to `ILogger.current`, `GlobalContext.console`, `LanguageData.current`, and `GameData.current`.
 
 ### Config Initialization Pattern
 
@@ -1620,11 +1643,29 @@ These `lateinit var` globals are accessible from any file in the package.
 
 ```kotlin
 val effectiveConfig = Config.current.copy()  // Load persisted config
-if (args.contains("--consoleDebug")) {
+if (args.contains("--consoleLog")) {
     effectiveConfig.writeLogToConsole = true
+}
+if (args.contains("--fileLog")) {
+    effectiveConfig.writeFileLog = true
+}
+if (args.contains("--debug")) {
     effectiveConfig.logLevel = LogLevel.DEBUG
 }
-// ... other overrides ...
+if (args.contains("--info")) {
+    effectiveConfig.logLevel = LogLevel.INFO
+}
+if (args.contains("--warn")) {
+    effectiveConfig.logLevel = LogLevel.WARN
+}
+if (args.contains("--noLog")) {
+    effectiveConfig.writeFileLog = false
+    effectiveConfig.writeLogToConsole = false
+    effectiveConfig.logLevel = LogLevel.INFO
+}
+if (args.contains("--lang")) {
+    effectiveConfig.languageCode = args.getOrNull(args.indexOf("--lang") + 1) ?: effectiveConfig.languageCode
+}
 Config.current = effectiveConfig
 Config.save()  // Persist for next run
 ```
@@ -1647,7 +1688,8 @@ All message key constants live in `Keys.Message` and `Keys.Part`.
 
 ### Name and NamedEntity
 
-The `Name` class holds localizable name metadata (`name`, `aliases`, `genderKey`, `isPlural`) for game entities.  
+The `Name` class holds localizable name metadata (`name`, optional `definiteName`, optional `indefiniteName`, `aliases`, `genderKey`, `isPlural`) for game entities.  
+If `definiteName` / `indefiniteName` are omitted, `name` is used as a fallback for both forms. That is useful for English, while languages with adjective inflection can provide dedicated forms.
 `NamedEntity` interface provides language-aware helpers for articles, pronouns, and formatted names:
 
 - `getArticle(definite)` – returns definite/indefinite article based on gender
@@ -1685,7 +1727,7 @@ Always use `GameData.setItemLocation()` – it keeps container membership lists 
 - `exitStates` – mutable open/locked/blocked/visible flags per room+direction
 - `roomStates` – mutable name/description for rooms (when changed at runtime)
 
-Only divergence from `data.json` defaults is saved, making save files compact and human-readable.
+Only divergence from the bundled `data.json` defaults is saved, making save files compact and human-readable.
 
 ---
 
@@ -1709,7 +1751,7 @@ Different entities support various action lists that trigger automatically:
 - `onExamine` – Executes when the entity is examined
 
 **Items** (including Containers):
-- `onUse` – Executes whenever the item is used (location-independent)
+- `onUse` – Executes whenever the item is used (location-independent, after any room-specific `ItemUsage` actions)
 
 **Containers and Exits** (`OpenLockEnabledNamedEntity`):
 - `onOpen` – Executes when opened
@@ -1729,6 +1771,7 @@ These action lists allow you to create dynamic, reactive game elements that resp
 | `TransformIntoItem` | `affectedItemIds`, `transformsIntoItemIds` | Transforms items into other items |
 | `ModifyExit` | `roomId`, `direction`, `open?`, `locked?`, `blocked?`, `visible?`, `newName?` | Changes exit properties |
 | `ModifyContainer` | `containerId`, `open?`, `locked?` | Changes container state |
+| `Message` | (none) | Displays text without changing game state |
 
 All actions support optional `preconditions`, `delayInMillis`, `description` (shown to player), and `comment` (ignored at runtime).
 
@@ -1754,7 +1797,7 @@ The `@Serializable(PreconditionSerializer::class)` annotation belongs **only on 
 
 ## Adding a New Action Type
 
-1. Add the enum value to `ActionType` in `model/Actions/Action.kt`.
+1. Add the enum value to `ActionType` in `model/actions/Action.kt`.
 2. Create a `data class FooAction(...) : Action(type = ActionType.Foo, ...)` in the same file with `override fun execute(gameData: GameData): Boolean`.
 3. Register both `deserialize` and `serialize` branches in `tools/serializers/ActionSerializer.kt`.
 
@@ -1762,7 +1805,7 @@ The `@Serializable(PreconditionSerializer::class)` annotation belongs **only on 
 
 ## Adding a New Precondition Type
 
-1. Add the enum value to `PreconditionType` in `model/Actions/Precondition.kt`.
+1. Add the enum value to `PreconditionType` in `model/actions/Precondition.kt`.
 2. Create `class FooPrecondition(...) : Precondition()` (no `@Serializable` annotation on the subclass) with `override fun isSatisfied(gameData: GameData): Boolean` and `override fun validate(gameData: GameData): Boolean`.
 3. Add the required fields to `PreconditionSurrogate` in `tools/serializers/PreconditionSerializer.kt`.
 4. Register both `deserialize` and `serialize` branches in `PreconditionSerializer`.
@@ -1793,11 +1836,12 @@ Validation warnings are logged but **do not prevent the game from loading** – 
 
 `GameLoader.loadLanguageData` searches in this order:
 
-1. `./lang/<code>.json` (filesystem, relative to working directory)
+1. `./lang.json` (filesystem, relative to working directory)
 2. `./<code>.json` (filesystem)
-3. `/lang/<code>.json` (classpath / bundled in JAR)
+3. `./<code>/lang.json` (filesystem)
+4. `/lang/<code>/lang.json` (classpath / bundled in JAR)
 
-Custom language files placed next to the JAR override the bundled ones.
+The bundled `data.json` is also language-specific and loaded from `/lang/<languageKey>/data.json` on the classpath. External data files are loaded directly from the path given via `--data`.
 
 ---
 
