@@ -1,1 +1,1 @@
-java -jar ./target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --consoleLog --lang en
+java -jar ./engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --consoleLog --lang en

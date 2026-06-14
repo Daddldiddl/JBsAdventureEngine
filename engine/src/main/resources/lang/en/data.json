@@ -1,0 +1,860 @@
+{
+    "title": "JB's Small Adventure",
+    "introductionMessage": "This is an example adventure showcasing the possibilities of JB's Adventure Engine.\nEnjoy exploring the mine and discovering its secrets - then build your own adventure!",
+    "exitMessage": "Thank you for playing JB's Small Adventure!\nWe hope you enjoyed exploring the mine.\nSee you next time!",
+    "Rooms": [
+        {
+            "id": 1,
+            "name": {
+                "name": "mine entrance",
+                "aliases": []
+            },
+            "description": "You are standing at the entrance of a dark mine.\nThe air is damp and you can hear the faint sound of dripping water echoing from within.",
+            "exits": [
+                {
+                    "name": {
+                        "name": "rusty gate",
+                        "aliases": ["gate"]
+                    },
+                    "description": "A rusty gate leading into the depths of the mine.",
+                    "direction": "north",
+                    "targetRoomId": 2,
+                    "supportsOpenClose": true,
+                    "open": false,
+                    "supportsLockUnlock": true,
+                    "locked": true,
+                    "keyId": 18,
+                    "consumeKeyOnUnlock": true,
+                    "onUnlock": [
+                        {
+                            "type": "Message",
+                            "description": "Unfortunately the key breaks in the lock as you turn it, but the gate is now unlocked and swings open."
+                        },
+                        {
+                            "type": "ModifyExit",
+                            "roomId": 1,
+                            "direction": "north",
+                            "locked": false,
+                            "open": true,
+                            "delayInMillis": 500,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 1,
+                                    "direction": "north",
+                                    "locked": false,
+                                    "open": false
+                                }
+                            ]
+                        }
+                    ],
+                    "onClose": [
+                        {
+                            "type": "Message",
+                            "description": "The gate swings shut, blocking the entrance to the mine.",
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionPlayer",
+                                    "location": 1
+                                }
+                            ]
+                        }
+                    ],
+                    "onOpen": [
+                        {
+                            "type": "Message",
+                            "description": "The gate creaks open, allowing you to enter the mine.",
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionPlayer",
+                                    "location": 1
+                                }
+                            ]
+                        }
+                    ]
+
+                }
+            ],
+            "itemUsages": [ ]
+        },
+        {
+            "id": 2,
+            "name": {
+                "name": "mine tunnel",
+                "aliases": []
+            },
+            "description": "You have entered the mine tunnel.\nThe walls are lined with wooden supports, and the ground is uneven.\nYou can see faint daylight coming from the south.",
+            "exits": [
+                    {
+                        "name": {
+                            "name": "rusty gate",
+                            "aliases": ["gate"]
+                        },
+                        "description": "a rusty gate leading to the entrance of the mine.",
+                        "direction": "south",
+                        "targetRoomId": 1,
+                        "supportsOpenClose": true
+                    },
+                {
+                    "direction": "east",
+                    "targetRoomId": 3
+                },
+                {
+                    "direction": "west",
+                    "targetRoomId": 4
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": {
+                "name": "mine chamber",
+                "aliases": []
+                },
+            "description": "You have reached a large chamber within the mine.\nThe ceiling is high, and there are piles of rocks scattered around.\nIn the center of the chamber, you see a glowing crystal emitting a soft light.\nBehind the crystal there is a wide crack in the ground that seems bottomless.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 2
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": {
+                "name": "mine shaft",
+                "aliases": []
+            },
+            "description": "You have entered a narrow mine shaft.\nThe walls are close together, and the air is thick with dust.\nYou can hear the sound of machinery coming from the north.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 2
+                },
+                {
+                    "direction": "west",
+                    "targetRoomId": 5
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "name": {
+                "name": "mine machinery room",
+                "aliases": []
+            },
+            "description": "You have entered a room filled with old mining machinery.\nThe machines are covered in rust, and the air is filled with the smell of oil.\nYou can see a control panel on the wall.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 4
+                },
+                {
+                    "direction": "north",
+                    "targetRoomId": 10
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 16,
+                    "actions": [
+                        {
+                            "type": "ModifyContainer",
+                            "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
+                            "containerId": 15,
+                            "locked": false,
+                            "open": true,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionItem",
+                                    "itemId": 16,
+                                    "location": -1
+                                },
+                                {
+                                    "type": "PreconditionContainer",
+                                    "itemId": 15,
+                                    "locked": true
+                                }
+                            ]
+                        }
+                    ],
+                    "consumeUsedItem": false
+                },{
+                    "itemId": 14,
+                    "actions": [
+                        {
+                            "type": "ModifyContainer",
+                            "description": "You use the crowbar to pry open the box of explosives.\nInside, you find some sticks of dynamite.",
+                            "containerId": 15,
+                            "locked": false,
+                            "open": true,
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionItem",
+                                    "itemId": 16,
+                                    "location": -1
+                                },
+                                {
+                                    "type": "PreconditionContainer",
+                                    "itemId": 15,
+                                    "locked": true
+                                }
+                             ]
+                        }
+                    ]
+                },
+                {
+                    "itemId": 2,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You step into the elevator and pull the lever.\nThe elevator descends smoothly down to the underground lake level.",
+                            "moveToRoomId": 6
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 3,
+                    "actions": [
+                        {
+                            "type": "SetItemRoom",
+                            "description": "You push the button on the control panel.\nThe elevator is now on this level.",
+                            "affectedItemIds": [
+                                2
+                            ],
+                            "moveToRoomIdForItems": 5
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 7,
+                    "actions": [
+                        {
+                            "type": "ChangeState",
+                            "description": "You plug the fuse into the socket on the elevator's panel.\nThe panel springs to life. You can now call the elevator to this level.",
+                            "changedStateKey": "ELEVATORPANEL_STATE",
+                            "newStateValue": "operational",
+                            "preconditions": [
+                                {
+                                    "requiredStateKey": "ELEVATORPANEL_STATE",
+                                    "requiredStateValues": [
+                                        "broken"
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "becomesUsable": true,
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "name": {
+                "name": "mine underground lake",
+                "aliases": []
+            },
+            "description": "You have reached an underground lake within the mine.\nThe water is dark and still, and you can see the reflection of a lone torch marking the entrance to a dark tunnel.\nThere is a small moat at the shore.",
+            "exits": [
+                {
+                    "direction": "east",
+                    "targetRoomId": 7
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 1,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You untie the boat and step into it. You use the boat to\ncross the underground lake to reach the island on the other side.",
+                            "moveToRoomId": 9
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 2,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You step into the elevator and pull the lever.\nThe elevator ascends smoothly up to the entrance level.",
+                            "moveToRoomId": 5
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 4,
+                    "actions": [
+                        {
+                            "type": "SetItemRoom",
+                            "description": "You push the button on the control panel.\nThe elevator is now on this level.",
+                            "affectedItemIds": [
+                                2
+                            ],
+                            "moveToRoomIdForItems": 6
+                        }
+                    ],
+                    "becomesUsable": false,
+                    "consumeUsedItem": false
+                },
+                {
+                    "itemId": 7,
+                    "actions": [
+                        {
+                            "type": "ChangeState",
+                            "description": "You plug the fuse into the socket on the elevator's panel.\nThe panel springs to life. You can now call the elevator to this level.",
+                            "changedStateKey": "ELEVATORPANEL2_STATE",
+                            "newStateValue": "operational",
+                            "preconditions": [
+                                {
+                                    "requiredStateKey": "ELEVATORPANEL2_STATE",
+                                    "requiredStateValues": [
+                                        "broken"
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "becomesUsable": true,
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "name": {
+                "name": "mine drainage tunnel",
+                "aliases": []
+            },
+            "description": "You have entered a narrow drainage tunnel within the mine.\nThe walls are damp, and the sound of dripping water echoes through the tunnel.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 6
+                },
+                {
+                    "direction": "east",
+                    "targetRoomId": 8
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "name": {
+                "name": "mine cave-in site",
+                "aliases": []
+            },
+            "description": "You have reached a site where a cave-in has occurred.\nThere is a faint glow visible through a crack far above.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 7
+                },
+                {
+                    "direction": "east",
+                    "name": {
+                        "name": "caved-in passage",
+                        "aliases": ["tunnel", "passage"]
+                    },
+                    "description": "A former passage leading east is blocked by the cave-in.",
+                    "targetRoomId": 11,
+                    "blocked": true,
+                    "visible": true,
+                    "blockDescription": "A passage leading east that was previously blocked the cave-in."
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 14,
+                    "actions": [
+                        {
+                            "type": "ModifyExit",
+                            "description": "You place the stick of dynamite among the rubble, light the fuse and quickly take cover.\nAfter a moment, the dynamite explodes, blasting away the rubble and clearing the passage to the east.",
+                            "direction": "east",
+                            "roomId": 8,
+                            "blocked": false,
+                            "newName": {
+                                "name": "passage leading east",
+                                "aliases": ["tunnel", "passage"]
+                            },
+                            "preconditions": [
+                                {
+                                    "type": "PreconditionExit",
+                                    "roomId": 8,
+                                    "direction": "east",
+                                    "blocked": true
+                                }
+                            ]
+                        }
+                    ],
+                    "consumeUsedItem": true
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "name": {
+                "name": "small lake island",
+                "aliases": []
+            },
+            "description": "You have reached a small island in the middle of the underground lake.\nThe island is covered with moss and small plants.\nThere is a wooden pier at the shore.",
+            "exits": [],
+            "itemUsages": [
+                {
+                    "itemId": 1,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You untie the boat and step into it.\nYou use the boat to cross the underground lake back to the shore.",
+                            "moveToRoomId": 6
+                        }
+                    ]
+                },
+                {
+                    "itemId": 5,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You climb the ladder to reach the higher level.",
+                            "moveToRoomId": 10
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "name": {
+                "name": "mine ladder shaft",
+                "aliases": []
+            },
+            "description": "You have entered a narrow shaft within the mine.\nA sturdy wooden ladder leads downwards to lower levels.",
+            "exits": [
+                {
+                    "direction": "south",
+                    "targetRoomId": 5
+                }
+            ],
+            "itemUsages": [
+                {
+                    "itemId": 6,
+                    "actions": [
+                        {
+                            "type": "MoveTo",
+                            "description": "You climb the ladder to reach the lower level.",
+                            "moveToRoomId": 9
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id":11,
+            "name": {
+                "name": "previously blocked cave",
+                "aliases": ["cave", "hidden cave"]
+            },
+            "description": "You have entered a hidden cave previously blocked by the rubble of the cave-in.\nThe cave is small and dimly lit.",
+            "exits": [
+                {
+                    "direction": "west",
+                    "targetRoomId": 8
+                }
+            ]
+        }
+    ],
+    "Items": [
+        {
+            "comment": "the boat between location 6 (underground lake location) and location 9 (island location)",
+            "id": 1,
+            "name": {
+                "name": "boat",
+                "aliases": [
+                    "boat",
+                    "small boat"
+                ]
+            },
+            "description": "A small wooden boat, suitable for crossing the underground lake.",
+            "driveable": true,
+            "location": 6
+        },
+        {
+            "comment": "the elevator between location 5 (upper level machine room) and location 6 (underground lake location)",
+            "id": 2,
+            "name": {
+                "name": "elevator",
+                "aliases": [
+                    "elevator",
+                    "lift"
+                ]
+            },
+            "description": "A sturdy looking elevator cage suitable for transporting mining\nequipment or people between levels.",
+            "driveable": true,
+            "location": 6
+        },
+        {
+            "comment": "the elevator controls located in location 5 (upper level machine room)",
+            "id": 3,
+            "name": {
+                "name": "control panel",
+                "aliases": [
+                    "panel",
+                    "controls",
+                    "button"
+                ]
+            },
+            "description": "A sturdy looking control panel with a button to call the elevator up.\nThere is a fuse socket on the side of the panel.",
+            "location": 5,
+            "stateKey": "ELEVATORPANEL_STATE"
+        },
+        {
+            "comment": "the elevator controls located in location 6 (underground lake location)",
+            "id": 4,
+            "name": {
+                "name": "control panel",
+                "aliases": [
+                    "panel",
+                    "controls",
+                    "button"
+                ]
+            },
+            "description": "A sturdy looking control panel with a button to call the elevator down.\nThere is a fuse socket on the side of the panel.",
+            "location": 6,
+            "stateKey": "ELEVATORPANEL2_STATE"
+        },
+        {
+            "comment": "the ladder located in location 9 (island location)",
+            "id": 5,
+            "name": {
+                "name": "ladder",
+                "aliases": [
+                    "ladder",
+                    "wooden ladder"
+                ]
+            },
+            "description": "A sturdy wooden ladder, suitable for climbing to higher levels.",
+            "location": 9
+        },
+        {
+            "comment": "the ladder located in location 10 (corridor above island location)",
+            "id": 6,
+            "name": {
+                "name": "ladder",
+                "aliases": [
+                    "wooden ladder"
+                ]
+            },
+            "description": "A sturdy wooden ladder, suitable for climbing to lower levels.",
+            "location": 10
+        },
+        {
+            "comment": "a fuse pack found in the mine, located in location 3 (mine chamber)",
+            "id": 7,
+            "name": {
+                "name": "fuse pack",
+                "aliases": [
+                    "fuse",
+                    "fuses",
+                    "pack"
+                ]
+            },
+            "description": "A small pack of fuses, useful for repairing electrical equipment.\nThere are <numberOfUses> fuses left.",
+            "carriable": true,
+            "numberOfUses": 2,
+            "location": -2
+        },
+        {
+            "comment": "a key found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 8,
+            "name": {
+                "name": "rusty key",
+                "aliases": [
+                    "key",
+                    "rusty key"
+                ]
+            },
+            "description": "A small rusty key, it looks like it could open a simple lock.",
+            "carriable": true,
+            "location": 0
+        },
+        {
+            "comment": "a treasure item found in the mine, located in location 8 (mine cavein) inside a locked chest",
+            "id": 9,
+            "name": {
+                "name": "shiny gem",
+                "aliases": [
+                    "gem",
+                    "jewel",
+                    "treasure"
+                ]
+            },
+            "description": "A shiny gem that sparkles in the light. It looks valuable.",
+            "onExamine": [
+                {
+                    "type": "ChangeState",
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_ONCE",
+                            "requiredStateValues": [
+                                "true"
+                            ]
+                        },
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_TWICE",
+                            "requiredStateValues": [
+                                "false"
+                            ]
+                        }
+                    ],
+                    "description": "As you continue to examine the gem, you realize that this is the famous Eye Of Bengal.",
+                    "changedStateKey": "GEM_EXAMINED_TWICE",
+                    "newStateValue": "true"
+                },
+                {
+                    "type": "ChangeState",
+                    "description": "As you quickly examine the gem, it seems familiar. But you can't seem to remember where you could know it from...",
+                    "changedStateKey": "GEM_EXAMINED_ONCE",
+                    "newStateValue": "true",
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_ONCE",
+                            "requiredStateValues": [
+                                "false"
+                            ]
+                        }
+                    ]
+                },{
+                    "type": "TransformIntoItem",
+                    "description": "This is an enormous treasure! It looks like your expedition has actually been worth it...",
+                    "affectedItemIds": [9],
+                    "transformsIntoItemIds": [10],
+                    "preconditions": [
+                        {
+                            "requiredStateKey": "GEM_EXAMINED_TWICE",
+                            "requiredStateValues": [
+                                "true"
+                            ]
+                        }, {
+                            "type": "PreconditionItemsLocation",
+                            "requiredItems": [10],
+                            "requiredRoomForItems": 0
+                        }
+
+                    ]
+                }
+            ],
+            "carriable": true,
+            "location": -2
+        },
+        {
+            "comment": "replaces the 'shiny gem' when that item is examined",
+            "id": 10,
+            "name": {
+                "name": "Eye Of Bengal",
+                "aliases": [
+                    "eye",
+                    "eye of bengal",
+                    "jewel",
+                    "treasure",
+                    "gem",
+                    "shiny gem"
+                ]
+            },
+            "description": "A beautiful gem known as the Eye Of Bengal. It is said to be worth a fortune.",
+            "carriable": true,
+            "location": 0
+        },
+        {
+            "comment": "a crate located in location 3 (mine chamber) that contains a fuse pack",
+            "id": 11,
+            "name": {
+                "name": "wooden crate",
+                "aliases": [
+                    "crate",
+                    "box"
+                ]
+            },
+            "description": "A wooden crate that seems to have been left behind by the miners.",
+            "carriable": false,
+            "location": 3,
+            "containedItems": [
+                7
+            ],
+            "isContainer": true
+        },
+        {
+            "comment": "a treasure chest located in location 9 (lake island) that contains a shiny gem",
+            "id": 12,
+            "name": {
+                "name": "treasure chest",
+                "aliases": [
+                    "chest",
+                    "box"
+                ]
+            },
+            "description": "A sturdy looking treasure chest with intricate carvings on its surface.\nIt seems to be locked.",
+            "carriable": false,
+            "location": 9,
+            "containedItems": [
+                9
+            ],
+            "isContainer": true,
+            "supportsLockUnlock": true,
+            "open": false,
+            "locked": true,
+            "keyId": 8
+        },
+        {
+            "comment": "a stick of dynamite located in the machinery room (location 5) that can be used to blast through the cave-in in location 8",
+            "id": 14,
+            "name": {
+                "name": "sticks of dynamite",
+                "isPlural": true,
+                "aliases": [
+                    "dynamite",
+                    "sticks",
+                    "explosives",
+                    "explosive"
+                ]
+            },
+            "description": "A few sticks of dynamite, it looks like they could be used to blast through something.",            "carriable": true,
+            "location": -2
+        },{
+            "comment": "a box of explosives located in the machinery room (location 5) that contains a sticks of dynamite that can be used to blast through the cave-in in location 8",
+            "id": 15,
+            "name": {
+                "name": "box of explosives",
+                "aliases": [
+                    "box"
+                ]
+            },
+            "description": "A box of explosives.",
+            "carriable": false,
+            "location": 5,
+            "containedItems": [14],
+            "isContainer": true,
+            "open": false,
+            "locked": true,
+            "supportsLockUnlock": true
+        },
+        {
+            "comment": "crowbar which can be used to open the box of explosives located in the machinery room (location 5)",
+            "id": 16,
+            "name": {
+                "name": "crowbar",
+                "aliases": [
+                    "crowbar",
+                    "bar",
+                    "lever"
+                ]
+            },
+            "description": "A sturdy crowbar, useful for prying things open.",
+            "carriable": true,
+            "location": 4
+        },{
+            "comment": "a mummified miner found in the hidden cave (location 11) that can be examined",
+            "id": 17,
+            "name": {
+                "name": "mummified miner",
+                "aliases": [
+                    "miner",
+                    "corpse",
+                    "mummy",
+                    "body"
+                ],
+                "genderKey": "male"
+            },
+            "description": "The mummified remains of a miner who seems to have been trapped here when the exit collapsed.",
+            "carriable": false,
+            "location": 11,
+            "onExamine": [
+                {
+                    "type": "SetItemRoom",
+                    "description": "As you examine the mummified miner, you find a rusty key hidden in his pocket.\nYou stash it in your pockets - who knows where it might fit!",
+                    "preconditions": [
+                        {
+                            "type": "PreconditionItemsLocation",
+                            "requiredItems": [8],
+                            "requiredRoomForItems": 0
+                        }
+                    ],
+                    "affectedItemIds": [8],
+                    "moveToRoomIdForItems": -1
+                 }
+             ]
+        },{
+            "comment": "the key to the locked gate blocking the entrance to the mine in location 1 (mine entrance)",
+            "id": 18,
+            "name": {
+                "name": "mine key",
+                "aliases": [
+                    "key"
+                ]
+            },
+            "description": "The key to the mine entrance gate. It looks old and rusty, but it should still work.",
+            "carriable": true,
+            "location": -1
+        }
+    ],
+    "States": [
+        {
+            "comment": "the state of the elevator panel leading down to the lake, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL_STATE",
+            "description": "The elevator panel's fuse looks <currentValue>.",
+            "possibleValues": [
+                "operational",
+                "broken"
+            ],
+            "currentValue": "broken"
+        },
+        {
+            "comment": "the state of the elevator panel leading up to the upper level, which can be either 'operational' or 'broken'",
+            "stateKey": "ELEVATORPANEL2_STATE",
+            "description": "The elevator panel's fuse looks <currentValue>.",
+            "possibleValues": [
+                "operational",
+                "broken"
+            ],
+            "currentValue": "broken"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_ONCE",
+            "description": "You had a first look at the gem.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        },
+        {
+            "comment": "the state of whether the gem has been examined or not, which can be either 'true' or 'false'",
+            "stateKey": "GEM_EXAMINED_TWICE",
+            "description": "You have thoroughly examined the gem.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        },
+        {
+            "comment": "discovered the previously blocked exit to the east in location 8 (cave-in location)",
+            "stateKey": "CAVEIN_CLEARED",
+            "description": "You have discovered a previously blocked exit behind the cavein.",
+            "possibleValues": [
+                "true",
+                "false"
+            ],
+            "currentValue": "false"
+        }
+    ]
+}

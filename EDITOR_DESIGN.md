@@ -1123,10 +1123,12 @@ Delete Room 5?
 ```powershell
 # Windows
 Start-Process powershell -ArgumentList "-NoExit", "-Command", `
-  "java -jar engine.jar --data temp.json --consoleDebug"
+  "java -jar engine.jar --data temp.json --consoleLog --debug"
+```
 
-# Linux/macOS  
-gnome-terminal -- java -jar engine.jar --data temp.json --consoleDebug
+```bash
+# Linux/macOS
+gnome-terminal -- java -jar engine.jar --data temp.json --consoleLog --debug
 ```
 
 ---

@@ -64,27 +64,27 @@ If `mvn clean` fails, close any running game instances first (they lock the JAR 
 
 ```bash
 # Run with the bundled example adventure
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 # Run with your own adventure data file
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --data ./my-adventure.json
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --data ./my-adventure.json
 
 # Enable console logging
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --consoleLog
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --consoleLog
 
 # Enable file logging and debug output
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --fileLog --debug
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --fileLog --debug
 
 # Alternative log levels
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --info
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --warn
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --noLog
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --info
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --warn
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --noLog
 
 # Set language (default: en)
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --lang en
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --lang en
 
 # Show help
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --help
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --help
 ```
 
 **Tip:** Command-line options override persisted settings in `config.json`, which is saved in the working directory.
@@ -151,7 +151,7 @@ Every adventure is defined in a single JSON file with this structure:
 
 ## Tutorial: Common Game Features
 
-The following tutorials use real examples from the bundled adventure (see `src/main/resources/lang/<code>/data.json`). Each section shows the complete JSON pattern you need.
+The following tutorials use real examples from the bundled adventure (see `engine/src/main/resources/lang/<code>/data.json`). Each section shows the complete JSON pattern you need.
 
 <a name="tutorial-locked-treasure-chest"></a>
 ### Tutorial: Creating a Locked Treasure Chest
@@ -1615,8 +1615,8 @@ You step through the scanner. *BEEEEP!* Red lights flash! The scanner detected c
 | Validation | `tools/DataValidator.kt` | Validates game data integrity (rooms, items, actions, preconditions) on load |
 | i18n | `lang/LanguageData.kt`, `lang/Keys.kt` | All user-facing text via keyed templates |
 | Config | `tools/Config.kt`, `config.json` | Log level / language persisted in `config.json` in working directory |
-| Game data | `src/main/resources/lang/<code>/data.json` | Bundled example adventure |
-| Language data | `src/main/resources/lang/<code>/lang.json` | Strings, command aliases, pronoun groups |
+| Game data | `engine/src/main/resources/lang/<code>/data.json` | Bundled example adventure |
+| Language data | `engine/src/main/resources/lang/<code>/lang.json` | Strings, command aliases, pronoun groups |
 
 ### Package Note
 `Action.kt` and `Precondition.kt` live in the `model/actions/` folder and correctly declare `package net.daddldiddl.jbsadventure.model.actions`.  

@@ -9,57 +9,56 @@ Game content is defined entirely in JSON – no code changes required to create 
 ## Build & Run
 
 ```bash
-mvn -DskipTests package                                                          # fat JAR (standard)
-mvn -DskipTests -Pdocs package                                                   # + KDoc via Dokka
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar                          # bundled adventure
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --data ./data.json       # external data file
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --consoleLog             # enable console logging
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --fileLog --debug        # debug logging to file
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --lang en                # language (default: en)
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --help                   # show help (-h, -? also work)
+mvn -DskipTests package                                                          # build parent + modules
+mvn -DskipTests -Pdocs package                                                   # + KDoc via Dokka (engine profile)
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar                          # bundled adventure
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --data ./data.json       # external data file
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --consoleLog             # enable console logging
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --fileLog --debug        # debug logging to file
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --lang en                # language (default: en)
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --help                   # show help (-h, -? also work)
 ```
 
 No automated tests exist; `mvn -DskipTests package` is the standard workflow.
 
 **Windows note:** When a command must be run with Bash, execute it via WSL on Windows (for example: `wsl bash ./testEN.sh`).
 
-**Note:** A visual editor (Jetpack Compose Desktop) is planned. This will require refactoring into three modules:
+**Note:** The project is already split into two Maven modules:
 - `model-lib` (Maven): Shared data models and serializers
-- `engine` (Maven): Game runtime (current code, refactored)
-- `editor` (Gradle): Visual editor for data.json
+- `engine` (Maven): Game runtime (CLI, loop, save/config/logging)
 
-See `EDITOR_DESIGN.md` and `REFACTORING_GUIDE.md` for details. Until then, the engine remains a single Maven module.
+The `editor` module (Gradle / Compose Desktop) is still planned.
+
+See `EDITOR_DESIGN.md` and `REFACTORING_GUIDE.md` for details.
 
 ## Architecture & Key Files
 
-| Layer | File(s) | Role |
-|---|---|---|
-| Entry point | `Main.kt` | Wires globals, CLI args, game loop |
-| Game controller | `Game.kt` | Parses input, dispatches all player commands |
-| Runtime state | `model/GameData.kt` | Central runtime model (rooms, items, states, containers) |
-| Data model | `model/Room.kt`, `model/Item.kt`, `model/Exit.kt`, `model/Container.kt`, `model/State.kt` | Core game entities |
-| Actions | `model/actions/Action.kt` | `ActionType` enum + all action `data class`es |
-| Item interaction | `model/actions/ItemUsage.kt` | Links item IDs to lists of `Action`s within a room |
-| Preconditions | `model/actions/Precondition.kt` | Polymorphic precondition hierarchy (`model.actions` package) |
-| Serialization | `tools/serializers/` | Custom surrogate serializers for all polymorphic types |
-| Persistence | `tools/SaveManager.kt` | Saves/loads `savegame.json` in the working directory |
-| Validation | `tools/DataValidator.kt` | Validates game data integrity (rooms, items, actions, preconditions) on load |
-| i18n | `lang/LanguageData.kt`, `lang/Keys.kt` | All user-facing text via keyed templates |
-| Config | `tools/Config.kt`, `config.json` | Log level / language persisted in `config.json` in working directory |
-| Game data | `src/main/resources/lang/<code>/data.json` | Bundled adventure per language |
-| Language data | `src/main/resources/lang/<code>/lang.json` | Strings, command aliases, pronoun groups per language |
+- Entry point: `engine/src/main/kotlin/net/daddldiddl/jbsadventure/Main.kt` (CLI args, startup wiring, game loop)
+- Game controller: `engine/src/main/kotlin/net/daddldiddl/jbsadventure/Game.kt` (command parsing and dispatch)
+- Runtime state: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/GameData.kt`
+- Core entities: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/` (`Room`, `Item`, `Exit`, `Container`, `State`)
+- Actions: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/actions/Action.kt`
+- Preconditions: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/actions/Precondition.kt`
+- Item interaction: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/actions/ItemUsage.kt`
+- Serializers: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/tools/serializers/`
+- Persistence: `engine/src/main/kotlin/net/daddldiddl/jbsadventure/tools/SaveManager.kt`
+- Validation: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/tools/DataValidator.kt`
+- i18n: `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/lang/`
+- Config: `engine/src/main/kotlin/net/daddldiddl/jbsadventure/tools/Config.kt` and `config.json`
+- Game data: `engine/src/main/resources/lang/<code>/data.json`
+- Language data: `engine/src/main/resources/lang/<code>/lang.json`
 
 ## Package Note
 `Action.kt` and `Precondition.kt` live in the `model/actions/` folder and correctly declare `package net.daddldiddl.jbsadventure.model.actions`.  
-`ItemUsage.kt` lives in the same `model/actions/` folder but declares `package net.daddldiddl.jbsadventure.model` (misplaced but functional). On Windows the folder is case-insensitive (`Actions/` == `actions/`).
+`ItemUsage.kt` lives in the same `model/actions/` folder but declares `package net.daddldiddl.jbsadventure.model` (structurally misplaced, but functional). On Windows, the folder is case-insensitive (`Actions/` == `actions/`).
 
 ## Global Singletons (accessors in `GlobalContext.kt`)
 
 ```kotlin
-LOG: ILogger         // typically backed by SimpleFileLog
-CONSOLE: ConsoleOutput
-LANG: LanguageData   // all i18n text; access via LANG.getTemplate(Keys.Message.*)
-DATA: GameData       // runtime game state; DATA.currentRoom tracks player position
+val LOG: ILogger = ILogger.current         // typically backed by SimpleFileLog
+val CONSOLE: ConsoleOutput = GlobalContext.console
+val LANG: LanguageData = LanguageData.current   // all i18n text; access via LANG.getTemplate(Keys.Message.*)
+val DATA: GameData = GameData.current       // runtime game state; DATA.currentRoom tracks player position
 ```
 
 These are convenience accessors declared in `GlobalContext.kt`:
@@ -73,8 +72,8 @@ They are initialized during startup via `GlobalContext.initLog(...)`, `GlobalCon
 ## Content Parity Rule (DE/EN)
 
 When changing gameplay-relevant JSON content, mirror the change in both language datasets:
-- `src/main/resources/lang/de/data.json`
-- `src/main/resources/lang/en/data.json`
+- `engine/src/main/resources/lang/de/data.json`
+- `engine/src/main/resources/lang/en/data.json`
 
 This includes (at minimum) exits, containers, item usages/actions, preconditions, and state transitions so behavior stays aligned across languages.
 
@@ -113,7 +112,7 @@ Config.current = effectiveConfig
 Config.save()  // Persist for next run
 ```
 
-This pattern ensures user preferences persist across runs while allowing per-launch overrides.
+This pattern keeps user preferences across runs while still allowing per-launch overrides.
 
 **Config fields:**
 - `writeFileLog` – enable file logging
@@ -264,13 +263,13 @@ The `@Serializable(PreconditionSerializer::class)` annotation belongs **only on 
 
 ## Adding a New Action Type
 
-1. Add the enum value to `ActionType` in `model/Actions/Action.kt`.
+1. Add the enum value to `ActionType` in `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/actions/Action.kt`.
 2. Create a `data class FooAction(...) : Action(type = ActionType.Foo, ...)` in the same file with `override fun execute(gameData: GameData): Boolean`.
 3. Register both `deserialize` and `serialize` branches in `tools/serializers/ActionSerializer.kt`.
 
 ## Adding a New Precondition Type
 
-1. Add the enum value to `PreconditionType` in `model/Actions/Precondition.kt`.
+1. Add the enum value to `PreconditionType` in `model-lib/src/main/kotlin/net/daddldiddl/jbsadventure/model/actions/Precondition.kt`.
 2. Create `class FooPrecondition(...) : Precondition()` (no `@Serializable` annotation on the subclass) with `override fun isSatisfied(gameData: GameData): Boolean` and `override fun validate(gameData: GameData): Boolean`.
 3. Add the required fields to `PreconditionSurrogate` in `tools/serializers/PreconditionSerializer.kt`.
 4. Register both `deserialize` and `serialize` branches in `PreconditionSerializer`.
@@ -291,7 +290,7 @@ The `@Serializable(PreconditionSerializer::class)` annotation belongs **only on 
 - Item usages with invalid target room IDs or item IDs
 - Action preconditions referencing non-existent entities
 
-Validation warnings are logged but **do not prevent the game from loading** – this allows for rapid iteration during development. Check the log output for potential data issues.
+Validation warnings are logged but **do not prevent the game from loading**. This supports rapid iteration during development; check log output for potential data issues.
 
 ## Language File Lookup Order (`GameLoader.loadLanguageData`)
 
