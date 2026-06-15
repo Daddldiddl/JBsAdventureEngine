@@ -2,6 +2,8 @@ package net.daddldiddl.jbsadventure.editor.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.daddldiddl.jbsadventure.editor.io.EditorPersistence
 import net.daddldiddl.jbsadventure.editor.io.FileDialogs
@@ -39,6 +43,7 @@ import net.daddldiddl.jbsadventure.editor.model.ActionDraft
 import net.daddldiddl.jbsadventure.editor.model.EditorSession
 import net.daddldiddl.jbsadventure.editor.model.ExitDraft
 import net.daddldiddl.jbsadventure.editor.model.ItemDraft
+import net.daddldiddl.jbsadventure.editor.model.NameDraft
 import net.daddldiddl.jbsadventure.editor.model.PreconditionDraft
 import net.daddldiddl.jbsadventure.editor.model.RoomDraft
 import net.daddldiddl.jbsadventure.editor.model.StateDraft
@@ -50,8 +55,7 @@ private enum class Section {
     ITEMS,
     EXITS,
     STATES,
-    ACTIONS,
-    PRECONDITIONS
+    ACTIONS
 }
 
 private enum class ValidationSeverity {
@@ -66,17 +70,26 @@ private data class ValidationIssue(
     val roomId: Int? = null
 )
 
-private val canonicalDirections = listOf("north", "south", "east", "west", "up", "down")
+private val canonicalDirections = listOf(
+    "north", "south", "east", "west",
+    "northeast", "northwest", "southeast", "southwest",
+    "up", "down"
+)
 
 private val directionAliasesToCanonical = mapOf(
-    // English aliases
+    // English cardinal
     "n" to "north",
     "s" to "south",
     "e" to "east",
     "w" to "west",
     "u" to "up",
     "d" to "down",
-    // German aliases
+    // English intercardinal
+    "ne" to "northeast",
+    "nw" to "northwest",
+    "se" to "southeast",
+    "sw" to "southwest",
+    // German cardinal
     "norden" to "north",
     "sueden" to "south",
     "süden" to "south",
@@ -85,8 +98,33 @@ private val directionAliasesToCanonical = mapOf(
     "oben" to "up",
     "hoch" to "up",
     "unten" to "down",
-    "runter" to "down"
+    "runter" to "down",
+    // German intercardinal
+    "nordost" to "northeast",
+    "nordosten" to "northeast",
+    "nordwest" to "northwest",
+    "nordwesten" to "northwest",
+    "suedost" to "southeast",
+    "südost" to "southeast",
+    "suedosten" to "southeast",
+    "südosten" to "southeast",
+    "suedwest" to "southwest",
+    "südwest" to "southwest",
+    "suedwesten" to "southwest",
+    "südwesten" to "southwest"
 )
+
+private fun normalizeDirection(input: String): String {
+    val key = input.trim().lowercase()
+    if (key.isEmpty()) {
+        return ""
+    }
+    return directionAliasesToCanonical[key] ?: key
+}
+
+private fun formatValidationIssue(locale: Locale, issue: ValidationIssue): String {
+    return Messages.format(locale, issue.messageKey, *issue.messageArgs.toTypedArray())
+}
 
 @Composable
 fun EditorApp() {
@@ -96,11 +134,10 @@ fun EditorApp() {
     var currentFilePath by remember { mutableStateOf<String?>(null) }
     val session = remember {
         EditorSession(
-            rooms = mutableListOf(RoomDraft(1, "Starting Room", "")),
-            items = mutableListOf(ItemDraft(100, "Rusty Key", "")),
-            states = mutableListOf(StateDraft("gate_state", "closed", "open,closed,locked")),
-            actions = mutableListOf(ActionDraft("Message", "")),
-            preconditions = mutableListOf(PreconditionDraft("PreconditionState", ""))
+            rooms = mutableStateListOf(RoomDraft(1, "Starting Room", "")),
+            items = mutableStateListOf(ItemDraft(100, "Rusty Key", "")),
+            states = mutableStateListOf(StateDraft("gate_state", "closed", "open,closed,locked")),
+            actions = mutableStateListOf(ActionDraft("Message", ""))
         )
     }
 
@@ -126,7 +163,6 @@ fun EditorApp() {
                         session.items.clear()
                         session.states.clear()
                         session.actions.clear()
-                        session.preconditions.clear()
                         currentFilePath = null
                         statusText = t("status.newAdventure")
                     },
@@ -189,8 +225,7 @@ fun EditorApp() {
                             Section.ITEMS to t("section.items"),
                             Section.EXITS to t("section.exits"),
                             Section.STATES to t("section.states"),
-                            Section.ACTIONS to t("section.actions"),
-                            Section.PRECONDITIONS to t("section.preconditions")
+                            Section.ACTIONS to t("section.actions")
                         )
                     )
 
@@ -228,18 +263,24 @@ private fun TopBar(
     onEnglish: () -> Unit,
     onGerman: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = appTitle,
+            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Button(onClick = onNew) { Text(text = newLabel) }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = onOpen) { Text(text = openLabel) }
@@ -251,6 +292,7 @@ private fun TopBar(
             Button(onClick = onEnglish) { Text(text = englishLabel) }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = onGerman) { Text(text = germanLabel) }
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
@@ -314,7 +356,6 @@ private fun DetailsPanel(
             Section.EXITS -> ExitsEditor(session, validationIssues, locale)
             Section.STATES -> StatesEditor(session, locale)
             Section.ACTIONS -> ActionsEditor(session, locale)
-            Section.PRECONDITIONS -> PreconditionsEditor(session, locale)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -389,12 +430,7 @@ private fun RoomsEditor(session: EditorSession, locale: Locale) {
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text(tf(locale, "ui.roomTitle", room.id), fontWeight = FontWeight.SemiBold)
-                        OutlinedTextField(
-                            value = room.name,
-                            onValueChange = { room.name = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(t(locale, "field.name")) }
-                        )
+                        NameEditor(room.nameDraft, locale, nameRequired = true)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = room.description,
@@ -402,7 +438,57 @@ private fun RoomsEditor(session: EditorSession, locale: Locale) {
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(t(locale, "field.description")) }
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        RoomItemUsagesEditor(room, session, locale)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TriggerListEditor(t(locale, "trigger.onExamine"), room.onExamine, locale)
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RoomItemUsagesEditor(room: RoomDraft, session: EditorSession, locale: Locale) {
+    var expanded by remember { mutableStateOf(false) }
+    Button(onClick = { expanded = !expanded }) {
+        Text(t(locale, "section.itemUsages") + " (${room.itemUsages.size})")
+    }
+
+    if (expanded) {
+        Spacer(modifier = Modifier.height(6.dp))
+        Button(onClick = {
+            val firstItemId = session.items.firstOrNull()?.id ?: 0
+            room.itemUsages.add(net.daddldiddl.jbsadventure.editor.model.ItemUsageDraft(itemId = firstItemId))
+        }) { Text(t(locale, "button.addItemUsage")) }
+
+        room.itemUsages.forEachIndexed { index, usage ->
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("#${index + 1}", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                        Button(onClick = { room.itemUsages.removeAt(index) }) { Text("✕") }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = usage.itemId.toString(),
+                        onValueChange = { usage.itemId = it.toIntOrNull() ?: 0 },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(t(locale, "field.itemId")) }
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row {
+                        Button(onClick = { usage.becomesUsable = !usage.becomesUsable }) {
+                            Text(tf(locale, "button.toggleBecomesUsable", usage.becomesUsable))
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { usage.consumeUsedItem = !usage.consumeUsedItem }) {
+                            Text(tf(locale, "button.toggleConsumeUsedItem", usage.consumeUsedItem))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    TriggerListEditor(t(locale, "section.actions"), usage.actions, locale)
                 }
             }
         }
@@ -426,12 +512,7 @@ private fun ItemsEditor(session: EditorSession, locale: Locale) {
                 Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text(tf(locale, "ui.itemTitle", item.id), fontWeight = FontWeight.SemiBold)
-                        OutlinedTextField(
-                            value = item.name,
-                            onValueChange = { item.name = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(t(locale, "field.name")) }
-                        )
+                        NameEditor(item.nameDraft, locale, nameRequired = true)
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
                             value = item.description,
@@ -439,6 +520,45 @@ private fun ItemsEditor(session: EditorSession, locale: Locale) {
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(t(locale, "field.description")) }
                         )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = item.location.toString(),
+                            onValueChange = { item.location = it.toIntOrNull() ?: 0 },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(t(locale, "field.itemLocation")) }
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = item.stateKey,
+                            onValueChange = { item.stateKey = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(t(locale, "field.stateKey")) }
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = item.numberOfUses.toString(),
+                            onValueChange = { item.numberOfUses = it.toIntOrNull() ?: 0 },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(t(locale, "field.numberOfUses")) }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row {
+                            Button(onClick = { item.carriable = !item.carriable }) {
+                                Text(tf(locale, "button.toggleCarriable", item.carriable))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(onClick = { item.usable = !item.usable }) {
+                                Text(tf(locale, "button.toggleUsable", item.usable))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(onClick = { item.driveable = !item.driveable }) {
+                                Text(tf(locale, "button.toggleDriveable", item.driveable))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TriggerListEditor(t(locale, "trigger.onExamine"), item.onExamine, locale)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TriggerListEditor(t(locale, "trigger.onUse"), item.onUse, locale)
                     }
                 }
             }
@@ -547,13 +667,14 @@ private fun ExitRow(room: RoomDraft, exit: ExitDraft, index: Int, roomIds: List<
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-
             Row {
                 Button(onClick = { exit.visible = !exit.visible }) { Text(tf(locale, "button.toggleVisible", exit.visible)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = { exit.open = !exit.open }) { Text(tf(locale, "button.toggleOpen", exit.open)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(onClick = { exit.locked = !exit.locked }) { Text(tf(locale, "button.toggleLocked", exit.locked)) }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = { exit.blocked = !exit.blocked }) { Text(tf(locale, "button.toggleBlocked", exit.blocked)) }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -566,6 +687,40 @@ private fun ExitRow(room: RoomDraft, exit: ExitDraft, index: Int, roomIds: List<
                     Text(tf(locale, "button.toggleSupportsLockUnlock", exit.supportsLockUnlock))
                 }
             }
+
+            Spacer(modifier = Modifier.height(6.dp))
+            OutlinedTextField(
+                value = if (exit.keyId > 0) exit.keyId.toString() else "",
+                onValueChange = { exit.keyId = it.toIntOrNull() ?: 0 },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(t(locale, "field.exitKeyId")) }
+            )
+            if (exit.supportsLockUnlock) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row {
+                    Button(onClick = { exit.consumeKeyOnLock = !exit.consumeKeyOnLock }) {
+                        Text(tf(locale, "button.toggleConsumeKeyOnLock", exit.consumeKeyOnLock))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { exit.consumeKeyOnUnlock = !exit.consumeKeyOnUnlock }) {
+                        Text(tf(locale, "button.toggleConsumeKeyOnUnlock", exit.consumeKeyOnUnlock))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            NameEditor(exit.nameDraft, locale, nameRequired = false)
+
+            Spacer(modifier = Modifier.height(8.dp))
+            TriggerListEditor(t(locale, "trigger.onExamine"), exit.onExamine, locale)
+            Spacer(modifier = Modifier.height(4.dp))
+            TriggerListEditor(t(locale, "trigger.onOpen"), exit.onOpen, locale)
+            Spacer(modifier = Modifier.height(4.dp))
+            TriggerListEditor(t(locale, "trigger.onClose"), exit.onClose, locale)
+            Spacer(modifier = Modifier.height(4.dp))
+            TriggerListEditor(t(locale, "trigger.onLock"), exit.onLock, locale)
+            Spacer(modifier = Modifier.height(4.dp))
+            TriggerListEditor(t(locale, "trigger.onUnlock"), exit.onUnlock, locale)
 
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
@@ -595,14 +750,13 @@ private fun replaceSessionContent(target: EditorSession, source: EditorSession) 
 
     target.actions.clear()
     target.actions.addAll(source.actions)
-
-    target.preconditions.clear()
-    target.preconditions.addAll(source.preconditions)
 }
 
 private fun collectValidationIssues(session: EditorSession): List<ValidationIssue> {
     val issues = mutableListOf<ValidationIssue>()
     val roomIds = session.rooms.map { it.id }.toSet()
+    val itemIds = session.items.map { it.id }.toSet()
+    val stateKeys = session.states.map { it.key }.toSet()
 
     session.rooms.forEach { room ->
         val directionGroups = room.exits.groupBy { normalizeDirection(it.direction) }
@@ -661,26 +815,599 @@ private fun collectValidationIssues(session: EditorSession): List<ValidationIssu
                 )
             }
         }
+
+        room.itemUsages.forEachIndexed { usageIndex, usage ->
+            val usageLabel = "room ${room.id} itemUsage #${usageIndex + 1}"
+            if (!itemIds.contains(usage.itemId)) {
+                issues.add(
+                    ValidationIssue(
+                        ValidationSeverity.ERROR,
+                        "validation.preconditionItemUnknown",
+                        listOf(usageLabel, usage.itemId)
+                    )
+                )
+            }
+            usage.actions.forEachIndexed { actionIndex, action ->
+                validateAction(
+                    issues,
+                    action,
+                    "$usageLabel action #${actionIndex + 1}",
+                    roomIds,
+                    itemIds,
+                    stateKeys,
+                    session,
+                    checkBinding = false
+                )
+            }
+        }
+
+        room.onExamine.forEachIndexed { index, action ->
+            validateAction(issues, action, "room ${room.id} onExamine #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+        }
+    }
+
+    session.items.forEach { item ->
+        item.onExamine.forEachIndexed { index, action ->
+            validateAction(issues, action, "item ${item.id} onExamine #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+        }
+        item.onUse.forEachIndexed { index, action ->
+            validateAction(issues, action, "item ${item.id} onUse #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+        }
+    }
+
+    session.rooms.forEach { room ->
+        room.exits.forEach { exit ->
+            val exitLabel = "room ${room.id} exit ${normalizeDirection(exit.direction)}"
+            exit.onExamine.forEachIndexed { index, action ->
+                validateAction(issues, action, "$exitLabel onExamine #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+            }
+            exit.onOpen.forEachIndexed { index, action ->
+                validateAction(issues, action, "$exitLabel onOpen #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+            }
+            exit.onClose.forEachIndexed { index, action ->
+                validateAction(issues, action, "$exitLabel onClose #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+            }
+            exit.onLock.forEachIndexed { index, action ->
+                validateAction(issues, action, "$exitLabel onLock #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+            }
+            exit.onUnlock.forEachIndexed { index, action ->
+                validateAction(issues, action, "$exitLabel onUnlock #${index + 1}", roomIds, itemIds, stateKeys, session, false)
+            }
+        }
+    }
+
+    session.actions.forEachIndexed { index, action ->
+        validateAction(
+            issues = issues,
+            action = action,
+            indexLabel = index + 1,
+            roomIds = roomIds,
+            itemIds = itemIds,
+            stateKeys = stateKeys,
+            session = session,
+            checkBinding = true
+        )
     }
 
     return issues.distinctBy { "${it.severity}:${it.roomId}:${it.messageKey}:${it.messageArgs.joinToString("|")}" }
 }
 
-private fun normalizeDirection(raw: String): String {
-    val normalized = raw.trim().lowercase()
-    if (normalized.isBlank()) {
-        return ""
+private fun validateAction(
+    issues: MutableList<ValidationIssue>,
+    action: ActionDraft,
+    indexLabel: Any,
+    roomIds: Set<Int>,
+    itemIds: Set<Int>,
+    stateKeys: Set<String>,
+    session: EditorSession,
+    checkBinding: Boolean
+) {
+    if (action.type.isBlank()) {
+        issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionMissingType", listOf(indexLabel)))
     }
-    return directionAliasesToCanonical[normalized] ?: normalized
+
+    if (checkBinding) {
+        when (action.bindingScope) {
+            "Room" -> if (!roomIds.contains(action.bindingTargetId)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionBindingRoomMissing", listOf(indexLabel, action.bindingTargetId)))
+            }
+            "Item", "Container" -> if (!itemIds.contains(action.bindingTargetId)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionBindingItemMissing", listOf(indexLabel, action.bindingTargetId)))
+            }
+            "Exit" -> {
+                val room = session.rooms.firstOrNull { it.id == action.bindingRoomId }
+                if (room == null) {
+                    issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionBindingExitRoomMissing", listOf(indexLabel, action.bindingRoomId)))
+                } else if (room.exits.none { normalizeDirection(it.direction) == normalizeDirection(action.bindingDirection) }) {
+                    issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionBindingExitMissing", listOf(indexLabel, action.bindingDirection, action.bindingRoomId)))
+                }
+            }
+        }
+        if (action.bindingScope.isNotBlank() && action.bindingScope !in setOf("Global", "Room", "Item", "Container", "Exit")) {
+            issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionBindingScopeUnknown", listOf(indexLabel, action.bindingScope)))
+        }
+    }
+
+    when (action.type.trim()) {
+        "ChangeState" -> {
+            if (action.changedStateKey.isBlank()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionChangeStateKeyMissing", listOf(indexLabel)))
+            } else if (!stateKeys.contains(action.changedStateKey)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionChangeStateKeyUnknown", listOf(indexLabel, action.changedStateKey)))
+            }
+        }
+        "MoveTo" -> if (!roomIds.contains(action.moveToRoomId)) {
+            issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionMoveRoomUnknown", listOf(indexLabel, action.moveToRoomId)))
+        }
+        "SetItemRoom" -> {
+            val affected = parseCsvInts(action.affectedItemIdsCsv)
+            if (affected.isEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionAffectedItemsMissing", listOf(indexLabel)))
+            }
+            val unknown = affected.filterNot { itemIds.contains(it) }
+            if (unknown.isNotEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionAffectedItemsUnknown", listOf(indexLabel, unknown.joinToString(","))))
+            }
+            if (!roomIds.contains(action.moveToRoomIdForItems)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionMoveItemsRoomUnknown", listOf(indexLabel, action.moveToRoomIdForItems)))
+            }
+        }
+        "TransformIntoItem" -> {
+            val affected = parseCsvInts(action.affectedItemIdsCsv)
+            val target = parseCsvInts(action.transformsIntoItemIdsCsv)
+            if (affected.isEmpty() || target.isEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionTransformListsMissing", listOf(indexLabel)))
+            }
+            val unknown = (affected + target).filterNot { itemIds.contains(it) }
+            if (unknown.isNotEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionTransformItemsUnknown", listOf(indexLabel, unknown.joinToString(","))))
+            }
+        }
+        "ModifyExit" -> {
+            val room = session.rooms.firstOrNull { it.id == action.modifyExitRoomId }
+            if (room == null) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionModifyExitRoomUnknown", listOf(indexLabel, action.modifyExitRoomId)))
+            } else if (room.exits.none { normalizeDirection(it.direction) == normalizeDirection(action.modifyExitDirection) }) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionModifyExitUnknown", listOf(indexLabel, action.modifyExitDirection, action.modifyExitRoomId)))
+            }
+            if (!isOptionalBooleanText(action.modifyExitOpen)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyExitOpen", action.modifyExitOpen)))
+            }
+            if (!isOptionalBooleanText(action.modifyExitLocked)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyExitLocked", action.modifyExitLocked)))
+            }
+            if (!isOptionalBooleanText(action.modifyExitBlocked)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyExitBlocked", action.modifyExitBlocked)))
+            }
+            if (!isOptionalBooleanText(action.modifyExitVisible)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyExitVisible", action.modifyExitVisible)))
+            }
+        }
+        "ModifyContainer" -> {
+            if (!itemIds.contains(action.modifyContainerId)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.actionModifyContainerUnknown", listOf(indexLabel, action.modifyContainerId)))
+            }
+            if (!isOptionalBooleanText(action.modifyContainerOpen)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyContainerOpen", action.modifyContainerOpen)))
+            }
+            if (!isOptionalBooleanText(action.modifyContainerLocked)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionInvalidTriStateBoolean", listOf(indexLabel, "modifyContainerLocked", action.modifyContainerLocked)))
+            }
+        }
+    }
+    if (action.type.isNotBlank() && action.type.trim() !in setOf("MoveTo", "SetItemRoom", "ChangeState", "TransformIntoItem", "ModifyExit", "ModifyContainer", "Message")) {
+        issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.actionUnknownType", listOf(indexLabel, action.type.trim())))
+    }
+
+    action.preconditions.forEachIndexed { preIndex, precondition ->
+        validatePrecondition(
+            issues,
+            precondition,
+            "$indexLabel precondition #${preIndex + 1}",
+            roomIds,
+            itemIds,
+            stateKeys,
+            session
+        )
+    }
 }
 
-private fun formatValidationIssue(locale: Locale, issue: ValidationIssue): String {
-    return Messages.format(locale, issue.messageKey, *issue.messageArgs.toTypedArray())
+private fun validatePrecondition(
+    issues: MutableList<ValidationIssue>,
+    precondition: PreconditionDraft,
+    indexLabel: Any,
+    roomIds: Set<Int>,
+    itemIds: Set<Int>,
+    stateKeys: Set<String>,
+    session: EditorSession
+) {
+    when (precondition.type.trim()) {
+        "PreconditionState" -> {
+            if (precondition.requiredStateKey.isBlank()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionStateKeyMissing", listOf(indexLabel)))
+            } else if (!stateKeys.contains(precondition.requiredStateKey)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionStateKeyUnknown", listOf(indexLabel, precondition.requiredStateKey)))
+            }
+        }
+        "PreconditionItem" -> if (!itemIds.contains(precondition.itemId)) {
+            issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionItemUnknown", listOf(indexLabel, precondition.itemId)))
+        }
+        "PreconditionContainer" -> {
+            if (!itemIds.contains(precondition.containerItemId)) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionContainerUnknown", listOf(indexLabel, precondition.containerItemId)))
+            }
+            if (!isOptionalBooleanText(precondition.containerOpen)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidTriStateBoolean", listOf(indexLabel, "containerOpen", precondition.containerOpen)))
+            }
+            if (!isOptionalBooleanText(precondition.containerLocked)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidTriStateBoolean", listOf(indexLabel, "containerLocked", precondition.containerLocked)))
+            }
+        }
+        "PreconditionExit" -> {
+            val room = session.rooms.firstOrNull { it.id == precondition.exitRoomId }
+            if (room == null) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionExitRoomUnknown", listOf(indexLabel, precondition.exitRoomId)))
+            } else if (room.exits.none { normalizeDirection(it.direction) == normalizeDirection(precondition.exitDirection) }) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionExitUnknown", listOf(indexLabel, precondition.exitDirection, precondition.exitRoomId)))
+            }
+            if (!isOptionalBooleanText(precondition.exitOpen)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidTriStateBoolean", listOf(indexLabel, "exitOpen", precondition.exitOpen)))
+            }
+        }
+        "PreconditionItemsLocation" -> {
+            val required = parseCsvInts(precondition.requiredItemsCsv)
+            if (required.isEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionItemsLocationMissingItems", listOf(indexLabel)))
+            }
+            val unknown = required.filterNot { itemIds.contains(it) }
+            if (unknown.isNotEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionItemsLocationUnknownItems", listOf(indexLabel, unknown.joinToString(","))))
+            }
+            if (!isOptionalIntegerText(precondition.requiredRoomForItems)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidOptionalInteger", listOf(indexLabel, "requiredRoomForItems", precondition.requiredRoomForItems)))
+            }
+            if (!isOptionalIntegerText(precondition.requiredContainerForItems)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidOptionalInteger", listOf(indexLabel, "requiredContainerForItems", precondition.requiredContainerForItems)))
+            }
+        }
+        "PreconditionPlayer" -> {
+            val has = parseCsvInts(precondition.playerHasItemsCsv)
+            val not = parseCsvInts(precondition.playerDoesntHaveItemsCsv)
+            val unknown = (has + not).filterNot { itemIds.contains(it) }
+            if (unknown.isNotEmpty()) {
+                issues.add(ValidationIssue(ValidationSeverity.ERROR, "validation.preconditionPlayerUnknownItems", listOf(indexLabel, unknown.joinToString(","))))
+            }
+            if (!isOptionalIntegerText(precondition.playerLocation)) {
+                issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidOptionalInteger", listOf(indexLabel, "playerLocation", precondition.playerLocation)))
+            }
+        }
+    }
+
+    if (precondition.type.trim() == "PreconditionItem") {
+        if (!isOptionalIntegerText(precondition.location)) {
+            issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidOptionalInteger", listOf(indexLabel, "location", precondition.location)))
+        }
+        if (!isOptionalBooleanText(precondition.usable)) {
+            issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidTriStateBoolean", listOf(indexLabel, "usable", precondition.usable)))
+        }
+        if (!isOptionalBooleanText(precondition.carriable)) {
+            issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionInvalidTriStateBoolean", listOf(indexLabel, "carriable", precondition.carriable)))
+        }
+    }
+    if (precondition.type.isNotBlank() && precondition.type.trim() !in setOf("PreconditionState", "PreconditionItem", "PreconditionContainer", "PreconditionExit", "PreconditionItemsLocation", "PreconditionPlayer")) {
+        issues.add(ValidationIssue(ValidationSeverity.WARNING, "validation.preconditionUnknownType", listOf(indexLabel, precondition.type.trim())))
+    }
+}
+
+private fun parseCsvInts(input: String): List<Int> {
+    return input.split(",")
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .mapNotNull { it.toIntOrNull() }
+}
+
+private fun isOptionalBooleanText(value: String): Boolean {
+    if (value.isBlank()) {
+        return true
+    }
+    return value.equals("true", ignoreCase = true) || value.equals("false", ignoreCase = true)
+}
+
+private fun isOptionalIntegerText(value: String): Boolean {
+    if (value.isBlank()) {
+        return true
+    }
+    return value.toIntOrNull() != null
 }
 
 @Composable
-private fun StatesEditor(session: EditorSession, locale: Locale) {
-    Column {
+private fun NameEditor(draft: NameDraft, locale: Locale, nameRequired: Boolean) {
+    var expanded by remember { mutableStateOf(false) }
+
+    if (nameRequired) {
+        OutlinedTextField(
+            value = draft.name,
+            onValueChange = { draft.name = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(t(locale, "field.name")) }
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+    }
+
+    Button(onClick = { expanded = !expanded }) {
+        Text(
+            if (expanded) t(locale, "section.nameAdvancedCollapse")
+            else tf(locale, "section.nameAdvanced", if (!nameRequired && draft.name.isNotBlank()) draft.name else "")
+        )
+    }
+
+    if (expanded) {
+        Spacer(modifier = Modifier.height(6.dp))
+        if (!nameRequired) {
+            OutlinedTextField(
+                value = draft.name,
+                onValueChange = { draft.name = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(t(locale, "field.name")) }
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+        OutlinedTextField(
+            value = draft.definiteName,
+            onValueChange = { draft.definiteName = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(t(locale, "field.definiteName")) }
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = draft.indefiniteName,
+            onValueChange = { draft.indefiniteName = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(t(locale, "field.indefiniteName")) }
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = draft.aliases,
+            onValueChange = { draft.aliases = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(t(locale, "field.aliases")) }
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = draft.genderKey,
+            onValueChange = { draft.genderKey = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(t(locale, "field.genderKey")) }
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(onClick = { draft.isPlural = !draft.isPlural }) {
+                Text(tf(locale, "field.isPlural", draft.isPlural))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TriggerListEditor(
+    label: String,
+    actions: androidx.compose.runtime.snapshots.SnapshotStateList<ActionDraft>,
+    locale: Locale
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Button(onClick = { expanded = !expanded }) {
+        Text("$label (${actions.size})")
+    }
+
+    if (expanded) {
+        Column(modifier = Modifier.padding(start = 12.dp, top = 4.dp)) {
+            Button(onClick = { actions.add(ActionDraft("Message", "")) }) {
+                Text(t(locale, "button.addAction"))
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            actions.forEachIndexed { index, action ->
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("#${index + 1}", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                            Button(onClick = { actions.removeAt(index) }) { Text("✕") }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        InlineTriggerActionEditor(action, locale)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InlineTriggerActionEditor(action: ActionDraft, locale: Locale) {
+    val allowedTypes = listOf("MoveTo", "SetItemRoom", "ChangeState", "TransformIntoItem", "ModifyExit", "ModifyContainer", "Message")
+    var typeExpanded by remember { mutableStateOf(false) }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Button(onClick = { typeExpanded = true }) {
+            Text(action.type.ifBlank { t(locale, "field.actionType") })
+        }
+        DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
+            allowedTypes.forEach { at ->
+                DropdownMenuItem(text = { Text(at) }, onClick = {
+                    action.type = at
+                    typeExpanded = false
+                })
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(4.dp))
+    OutlinedTextField(
+        value = action.description,
+        onValueChange = { action.description = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(t(locale, "field.description")) }
+    )
+
+    when (action.type.trim()) {
+        "ChangeState" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.changedStateKey, onValueChange = { action.changedStateKey = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.changedStateKey")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.newStateValue, onValueChange = { action.newStateValue = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.newStateValue")) })
+        }
+        "MoveTo" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.moveToRoomId.toString(), onValueChange = { action.moveToRoomId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.moveToRoomId")) })
+        }
+        "SetItemRoom" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.affectedItemIdsCsv, onValueChange = { action.affectedItemIdsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.affectedItemIdsCsv")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.moveToRoomIdForItems.toString(), onValueChange = { action.moveToRoomIdForItems = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.moveToRoomIdForItems")) })
+        }
+        "TransformIntoItem" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.affectedItemIdsCsv, onValueChange = { action.affectedItemIdsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.affectedItemIdsCsv")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.transformsIntoItemIdsCsv, onValueChange = { action.transformsIntoItemIdsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.transformsIntoItemIdsCsv")) })
+        }
+        "ModifyExit" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitRoomId.toString(), onValueChange = { action.modifyExitRoomId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.exitRoomId")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitDirection, onValueChange = { action.modifyExitDirection = normalizeDirection(it) }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.exitDirection")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitOpen, onValueChange = { action.modifyExitOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalOpen")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitLocked, onValueChange = { action.modifyExitLocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalLocked")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitBlocked, onValueChange = { action.modifyExitBlocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalBlocked")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyExitVisible, onValueChange = { action.modifyExitVisible = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalVisible")) })
+        }
+        "ModifyContainer" -> {
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyContainerId.toString(), onValueChange = { action.modifyContainerId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.containerId")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyContainerOpen, onValueChange = { action.modifyContainerOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalOpen")) })
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(value = action.modifyContainerLocked, onValueChange = { action.modifyContainerLocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.booleanOptionalLocked")) })
+        }
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+    InlinePreconditionsEditor(action.preconditions, locale)
+}
+
+@Composable
+private fun InlinePreconditionsEditor(
+    preconditions: androidx.compose.runtime.snapshots.SnapshotStateList<PreconditionDraft>,
+    locale: Locale
+) {
+    val allowedTypes = listOf("PreconditionState", "PreconditionItem", "PreconditionContainer", "PreconditionExit", "PreconditionItemsLocation", "PreconditionPlayer")
+    var expanded by remember { mutableStateOf(false) }
+
+    Button(onClick = { expanded = !expanded }) {
+        Text(t(locale, "section.preconditions") + " (${preconditions.size})")
+    }
+
+    if (expanded) {
+        Spacer(modifier = Modifier.height(4.dp))
+        Button(onClick = { preconditions.add(PreconditionDraft("PreconditionState", "")) }) {
+            Text(t(locale, "button.addPrecondition"))
+        }
+        preconditions.forEachIndexed { index, precondition ->
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("#${index + 1}", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                        Button(onClick = { preconditions.removeAt(index) }) { Text("✕") }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    var typeExpanded by remember { mutableStateOf(false) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Button(onClick = { typeExpanded = true }) {
+                            Text(precondition.type.ifBlank { t(locale, "field.preconditionType") })
+                        }
+                        DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
+                            allowedTypes.forEach { pt ->
+                                DropdownMenuItem(text = { Text(pt) }, onClick = {
+                                    precondition.type = pt
+                                    typeExpanded = false
+                                })
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = precondition.summary,
+                        onValueChange = { precondition.summary = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(t(locale, "field.summary")) }
+                    )
+
+                    when (precondition.type.trim()) {
+                        "PreconditionState" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.requiredStateKey, onValueChange = { precondition.requiredStateKey = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.requiredStateKey")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.requiredStateValuesCsv, onValueChange = { precondition.requiredStateValuesCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.requiredStateValuesCsv")) })
+                        }
+                        "PreconditionItem" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.itemId.toString(), onValueChange = { precondition.itemId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.itemId")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.location, onValueChange = { precondition.location = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.locationOptional")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.usable, onValueChange = { precondition.usable = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.usableTriState")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.carriable, onValueChange = { precondition.carriable = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.carriableTriState")) })
+                        }
+                        "PreconditionContainer" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.containerItemId.toString(), onValueChange = { precondition.containerItemId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.containerItemId")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.containerOpen, onValueChange = { precondition.containerOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.openTriState")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.containerLocked, onValueChange = { precondition.containerLocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.lockedTriState")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.containerContainsItemsCsv, onValueChange = { precondition.containerContainsItemsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.containsItemsCsv")) })
+                        }
+                        "PreconditionExit" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.exitRoomId.toString(), onValueChange = { precondition.exitRoomId = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.exitRoomId")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.exitDirection, onValueChange = { precondition.exitDirection = normalizeDirection(it) }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.exitDirection")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.exitOpen, onValueChange = { precondition.exitOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.openTriState")) })
+                        }
+                        "PreconditionItemsLocation" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.requiredItemsCsv, onValueChange = { precondition.requiredItemsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.requiredItemIdsCsv")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.requiredRoomForItems, onValueChange = { precondition.requiredRoomForItems = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.requiredRoomIdOptional")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.requiredContainerForItems, onValueChange = { precondition.requiredContainerForItems = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.requiredContainerIdOptional")) })
+                        }
+                        "PreconditionPlayer" -> {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.playerLocation, onValueChange = { precondition.playerLocation = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.playerLocationOptional")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.playerHasItemsCsv, onValueChange = { precondition.playerHasItemsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.playerHasItemsCsv")) })
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(value = precondition.playerDoesntHaveItemsCsv, onValueChange = { precondition.playerDoesntHaveItemsCsv = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.playerDoesntHaveItemsCsv")) })
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatesEditor(session: EditorSession, locale: Locale) {    Column {
         Button(onClick = {
             session.states.add(StateDraft("state_${session.states.size + 1}", "", ""))
         }) {
@@ -721,6 +1448,7 @@ private fun StatesEditor(session: EditorSession, locale: Locale) {
 @Composable
 private fun ActionsEditor(session: EditorSession, locale: Locale) {
     val allowedTypes = listOf("MoveTo", "SetItemRoom", "ChangeState", "TransformIntoItem", "ModifyExit", "ModifyContainer", "Message")
+    val bindingScopes = listOf("Global", "Room", "Item", "Container", "Exit")
 
     Column {
         Button(onClick = { session.actions.add(ActionDraft("Message", "")) }) {
@@ -739,55 +1467,145 @@ private fun ActionsEditor(session: EditorSession, locale: Locale) {
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         OutlinedTextField(
+                            value = action.bindingScope,
+                            onValueChange = { action.bindingScope = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(t(locale, "field.bindingScope")) }
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        if (action.bindingScope == "Exit") {
+                            OutlinedTextField(
+                                value = action.bindingRoomId.toString(),
+                                onValueChange = { action.bindingRoomId = it.toIntOrNull() ?: 0 },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(t(locale, "field.bindingRoomId")) }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(
+                                value = action.bindingDirection,
+                                onValueChange = { action.bindingDirection = normalizeDirection(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(t(locale, "field.bindingExitDirection")) }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        } else {
+                            OutlinedTextField(
+                                value = action.bindingTargetId.toString(),
+                                onValueChange = { action.bindingTargetId = it.toIntOrNull() ?: 0 },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(t(locale, "field.bindingTargetId")) }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                        OutlinedTextField(
                             value = action.description,
                             onValueChange = { action.description = it },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(t(locale, "field.description")) }
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(tf(locale, "ui.validationKey", allowedTypes.joinToString()))
-                    }
-                }
-            }
-        }
-    }
-}
 
-@Composable
-private fun PreconditionsEditor(session: EditorSession, locale: Locale) {
-    val allowedTypes = listOf(
-        "PreconditionState",
-        "PreconditionItem",
-        "PreconditionContainer",
-        "PreconditionExit",
-        "PreconditionItemsLocation",
-        "PreconditionPlayer"
-    )
+                        when (action.type.trim()) {
+                            "ChangeState" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.changedStateKey,
+                                    onValueChange = { action.changedStateKey = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.changedStateKey")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.newStateValue,
+                                    onValueChange = { action.newStateValue = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.newStateValue")) }
+                                )
+                            }
+                            "MoveTo" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.moveToRoomId.toString(),
+                                    onValueChange = { action.moveToRoomId = it.toIntOrNull() ?: 0 },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.moveToRoomId")) }
+                                )
+                            }
+                            "SetItemRoom" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.affectedItemIdsCsv,
+                                    onValueChange = { action.affectedItemIdsCsv = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.affectedItemIdsCsv")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.moveToRoomIdForItems.toString(),
+                                    onValueChange = { action.moveToRoomIdForItems = it.toIntOrNull() ?: 0 },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.moveToRoomIdForItems")) }
+                                )
+                            }
+                            "TransformIntoItem" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.affectedItemIdsCsv,
+                                    onValueChange = { action.affectedItemIdsCsv = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.affectedItemIdsCsv")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.transformsIntoItemIdsCsv,
+                                    onValueChange = { action.transformsIntoItemIdsCsv = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.transformsIntoItemIdsCsv")) }
+                                )
+                            }
+                            "ModifyExit" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.modifyExitRoomId.toString(),
+                                    onValueChange = { action.modifyExitRoomId = it.toIntOrNull() ?: 0 },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.exitRoomId")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.modifyExitDirection,
+                                    onValueChange = { action.modifyExitDirection = normalizeDirection(it) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.exitDirection")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyExitOpen, onValueChange = { action.modifyExitOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.openTriState")) })
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyExitLocked, onValueChange = { action.modifyExitLocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.lockedTriState")) })
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyExitBlocked, onValueChange = { action.modifyExitBlocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.blockedTriState")) })
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyExitVisible, onValueChange = { action.modifyExitVisible = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.visibleTriState")) })
+                            }
+                            "ModifyContainer" -> {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(
+                                    value = action.modifyContainerId.toString(),
+                                    onValueChange = { action.modifyContainerId = it.toIntOrNull() ?: 0 },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(t(locale, "field.containerId")) }
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyContainerOpen, onValueChange = { action.modifyContainerOpen = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.openTriState")) })
+                                Spacer(modifier = Modifier.height(6.dp))
+                                OutlinedTextField(value = action.modifyContainerLocked, onValueChange = { action.modifyContainerLocked = it }, modifier = Modifier.fillMaxWidth(), label = { Text(t(locale, "field.lockedTriState")) })
+                            }
+                        }
 
-    Column {
-        Button(onClick = { session.preconditions.add(PreconditionDraft("PreconditionState", "")) }) {
-            Text(t(locale, "button.addPrecondition"))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn {
-            items(session.preconditions) { precondition ->
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        OutlinedTextField(
-                            value = precondition.type,
-                            onValueChange = { precondition.type = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(t(locale, "field.preconditionType")) }
-                        )
                         Spacer(modifier = Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = precondition.summary,
-                            onValueChange = { precondition.summary = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(t(locale, "field.summary")) }
-                        )
+                        InlinePreconditionsEditor(action.preconditions, locale)
+
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(tf(locale, "ui.validationKey", allowedTypes.joinToString()))
+                        Text(tf(locale, "ui.validationKey", "types=${allowedTypes.joinToString()} | scopes=${bindingScopes.joinToString()}"))
                     }
                 }
             }

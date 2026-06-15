@@ -850,9 +850,9 @@
                 "genderKey": "male",
                  "aliases": [
                     "Schlüssel",
-                    "Schluessel",
+                    "schluessel",
                     "Minenschlüssel",
-                    "Minenschluessel"
+                    "minenschluessel"
                 ]
             },
             "description": "Der Schlüssel zum Tor des Mineneingangs. Er sieht alt und rostig aus, sollte aber noch funktionieren.",

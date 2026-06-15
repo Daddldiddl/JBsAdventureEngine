@@ -18,6 +18,7 @@ dependencies {
     implementation(compose.desktop.windows_x64)
     implementation(compose.material3)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    runtimeOnly("org.jetbrains.skiko:skiko-awt-runtime-windows-arm64:0.8.4")
 
     // Fast MVP integration strategy: consume local model-lib output JAR.
     implementation(files("../model-lib/target/jbs-adventure-model-1.0-SNAPSHOT.jar"))
