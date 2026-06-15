@@ -7,7 +7,7 @@ This guide describes the **current** architecture after the split into `model-li
 - Split is complete for Maven modules `model-lib` and `engine`
 - Root `pom.xml` is now a parent reactor (`packaging = pom`)
 - `engine` depends on `model-lib`
-- `editor` is still planned (Gradle/Compose Desktop), not implemented yet
+- `editor` implementation has started as an independent Gradle/Compose Desktop module
 
 ## Current Repository Structure
 ```text
@@ -85,25 +85,32 @@ java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.
 4. Continue using language templates (`LANG.getTemplate(...)`) for player-facing text.
 5. Keep DE/EN gameplay data in sync (`engine/src/main/resources/lang/de|en/data.json`).
 
-## Verification Checklist
-- [ ] `mvn -DskipTests package` succeeds at root
-- [ ] Fat JAR is produced under `engine/target/`
-- [ ] Game starts from fat JAR with bundled data
-- [ ] `--data` loading still works
-- [ ] Save/load still works with unchanged save format expectations
-- [ ] No new `engine` coupling introduced in `model-lib`
+## Completed Verification (2026-06-15)
+- [x] `mvn -DskipTests package` succeeds at root
+- [x] Fat JAR is produced under `engine/target/`
+- [x] Game starts from fat JAR with bundled data
+- [x] `--data` loading still works
+- [x] Save/load still works with unchanged save format expectations
+- [x] No new `engine` coupling introduced in `model-lib`
+
+## Active Verification For Editor Track
+- [ ] `editor` Gradle module builds after root Maven build (`model-lib` JAR available)
+- [ ] Editor can open/save a minimal adventure JSON compatible with engine loader
+- [ ] Actions and preconditions edited in editor serialize to engine-compatible JSON
+- [ ] EN/DE UI resource bundles load correctly in editor runtime
 
 ## Next Refactoring Steps
-1. **Documentation consistency:** keep all docs on module-aware paths and commands.
-2. **Warning cleanup:** remove or justify remaining compiler warnings in utility classes.
-3. **Editor bootstrap:** create `editor/` Gradle module and wire it to consume `model-lib`.
+1. **Warning cleanup:** remove or justify remaining compiler warnings in utility classes.
+2. **Editor bootstrap:** keep `editor/` as independent Gradle project and consume local `model-lib` JAR (`../model-lib/target/jbs-adventure-model-1.0-SNAPSHOT.jar`).
+3. **Editor MVP delivery:** implement metadata, rooms, items, exits, states, actions, and preconditions with baseline validation and JSON round-trip.
 4. **Boundary hardening (optional):** gradually reduce companion-singleton coupling where practical.
 
 ## Editor Module (Planned)
-When starting the editor implementation:
-- Create `editor/` as independent Gradle project
-- Consume `model-lib` artifact (local Maven or direct composite setup)
+When continuing editor implementation:
+- Keep `editor/` as independent Gradle project
+- Use local JAR dependency strategy for MVP (`../model-lib/target/jbs-adventure-model-1.0-SNAPSHOT.jar`)
 - Keep editor-only UI concerns out of `engine` and `model-lib`
+- Start with EN+DE UI resource bundles from day one
 
 ## Notes
 - This guide replaces the old pre-implementation migration plan.

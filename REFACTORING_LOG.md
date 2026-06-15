@@ -1,6 +1,6 @@
 ﻿# Refactoring Log - Model/Engine Separation
-**Date:** 2026-06-14  
-**Goal:** Completed split to `model-lib` + `engine`, keep follow-up steps visible.
+**Date:** 2026-06-15  
+**Goal:** Track post-split status, completed closure work, and active follow-ups.
 
 ## Current Status
 - Maven reactor is active at root (`pom.xml`, packaging `pom`) with modules `model-lib` and `engine`
@@ -15,10 +15,14 @@
 - Updated serializers/loaders for module separation
 - Updated parent/module POMs and validated reactor build flow
 
+## Completed Since Split
+1. Documentation alignment completed for module-aware paths and commands in `AGENTS.md`, `README.md`, and `TUTORIAL.md`.
+2. Refactoring status docs updated to reflect the split as done and move completed tasks out of active follow-ups.
+
 ## Open Follow-Ups
-1. Keep docs aligned with the split (`README.md`, `TUTORIAL.md`, `AGENTS.md`, `REFACTORING_GUIDE.md`)
-2. Optionally clean remaining non-critical compiler warnings in engine utility classes
-3. Start `editor` module implementation (Gradle + Compose Desktop) once scope is fixed
+1. Optionally clean remaining non-critical compiler warnings in engine utility classes.
+2. Continue `editor` module implementation (Gradle + Compose Desktop) with local `model-lib` JAR integration.
+3. Revisit optional boundary hardening (reduce companion-singleton coupling) only if it improves maintainability without cross-module regression.
 
 ## Notes
 - `editor` is still planned and intentionally not part of the Maven reactor.

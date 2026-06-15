@@ -1,9 +1,9 @@
 # JB's Adventure Editor – Design Document
 
-**Version:** 1.0  
-**Date:** 2026-06-08  
+**Version:** 1.1  
+**Date:** 2026-06-15  
 **Target Platform:** Desktop (Windows, Linux, macOS)  
-**Technology:** Jetpack Compose for Desktop, Kotlin
+**Technology:** Jetpack Compose for Desktop, Kotlin 
 
 ---
 
@@ -25,7 +25,7 @@ The **JB's Adventure Editor** is a visual tool for creating and editing adventur
 - **UI**: Jetpack Compose for Desktop (modern, declarative)
 - **Build**: Maven (engine + model) + Gradle (editor) hybrid approach
 - **Architecture**: Three-module structure with shared model library
-- **Languages**: Kotlin 2.3.21, Java 21
+- **Languages**: Kotlin 2.4.0, Java 21
 - **Localization**: German + English editor UI
 
 ### Critical Features
@@ -94,7 +94,7 @@ The **JB's Adventure Editor** is a visual tool for creating and editing adventur
 | Component | Technology | Justification |
 |---|---|---|
 | UI Framework | Jetpack Compose for Desktop 1.6+ | Modern declarative UI, excellent Kotlin integration |
-| Language | Kotlin 2.3.21 | Consistency with engine, native support for Compose |
+| Language | Kotlin 2.4.0 | Consistency with engine, native support for Compose |
 | Build Tool (Engine) | Maven 3.9+ | Existing engine build system, familiar to maintainer |
 | Build Tool (Editor) | Gradle 8.5+ | Better Compose Desktop support, easier packaging |
 | Build Tool (Model) | Maven 3.9+ | Shared with engine for consistency |
@@ -1856,7 +1856,7 @@ Ctrl+D         Duplicate Selected Entity
     </modules>
     
     <properties>
-        <kotlin.version>2.3.21</kotlin.version>
+        <kotlin.version>2.4.0</kotlin.version>
         <java.version>21</java.version>
         <serialization.version>1.11.0</serialization.version>
     </properties>
@@ -1993,9 +1993,9 @@ rootProject.name = "jbs-adventure-editor"
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("jvm") version "2.3.21"
+    kotlin("jvm") version "2.4.0"
     id("org.jetbrains.compose") version "1.6.0"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("plugin.serialization") version "2.4.0"
 }
 
 group = "net.daddldiddl"

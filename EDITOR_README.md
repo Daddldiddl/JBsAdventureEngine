@@ -2,17 +2,26 @@
 
 Visual editor for creating and editing adventures for JB's Adventure Engine.
 
+## Status
+
+- Development stage: Phase 0/1 bootstrap in progress
+- Initial implementation scope: metadata, rooms, items, exits, states, actions, preconditions, file open/save/new, baseline validation
+- UI localization target: English and German from first runnable version
+
 ## Quick Start
 
 ### Prerequisites
 
 - Java 21 or newer
-- Gradle 8.5+ (wrapper included)
+- Gradle 8.5+ (or Gradle wrapper once generated)
 - Built `model-lib` module (from parent project)
 
 ### Build
 
 ```bash
+# From project root (builds model-lib + engine JARs):
+mvn -DskipTests package
+
 # From editor directory:
 gradle build
 
@@ -32,21 +41,19 @@ java -jar build/compose/jars/jbs-adventure-editor-1.0-SNAPSHOT.jar
 
 ## Features
 
-✨ **Visual Editing**
-- Create and edit rooms, items, exits, containers, states
-- Drag-and-drop room graph
-- Action and precondition builders
+✨ **Initial Editing Scope**
+- Create and edit adventure metadata, rooms, items, exits, and states
+- Action and precondition builders (MVP scope)
+- Item usage editing baseline
 
-🔧 **Smart Tools**
+🔧 **Validation First**
 - Three-level validation (Error/Warning/Info)
-- Quick Fix buttons for common issues
-- Auto-save every 3 minutes
-- Undo/Redo support
+- Save blocking for errors only
+- Warning/info surfacing in editor panels
 
-🧪 **Integrated Testing**
-- Launch game directly from editor (F5)
-- Auto-save before testing
-- Separate console window
+🧪 **Compatibility Workflow**
+- Save JSON from editor
+- Load and run JSON with engine to validate compatibility
 
 🌍 **Localization**
 - German and English UI
@@ -69,7 +76,7 @@ The editor is built with Gradle for optimal Jetpack Compose Desktop support:
 ```kotlin
 // Key dependencies:
 - Jetpack Compose Desktop 1.6.0
-- Kotlin 2.3.21
+- Kotlin 2.4.0
 - kotlinx-serialization-json 1.11.0
 - model-lib (from Maven build)
 ```
@@ -152,12 +159,10 @@ The editor uses a three-level validation system:
 - Suggestions and best practices
 - Example: Consider adding aliases
 
-## Auto-Save
+## MVP Notes
 
-Automatic backups are saved every 3 minutes to `.autosave/` folder:
-- Keeps last 10 auto-saves
-- Recovery dialog on crash detection
-- Manual recovery via File → Restore from Auto-Save
+- Graph view, advanced quick-fix automation, deep undo/redo, and full autosave recovery workflow are planned for post-MVP iterations.
+- Initial success criteria: author minimal adventure in editor, save JSON, run it in engine without structural errors.
 
 ## Configuration
 
@@ -219,5 +224,5 @@ MIT License - See LICENSE file in project root.
 
 **Version:** 1.0-SNAPSHOT  
 **Status:** In Development  
-**Last Updated:** 2026-06-08
+**Last Updated:** 2026-06-15
 
