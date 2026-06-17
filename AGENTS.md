@@ -332,3 +332,6 @@ Both `Exit` and `Container` support four optional action lists that trigger afte
 - `Container` has `supportsOpenClose = true` (always) and accepts `supportsLockUnlock` from JSON (mapped to internal `configuredSupportsLockUnlock`)
 - All four action lists are `List<Action>?` (nullable) – serialize to `null` when empty for compact JSON
 
+## System notes
+- on linux all coreutils are available
+- on Windows check if coreutils are available via WSL or installed in PowerShell (usage "coreutils <command>" and "coreutils --list" - the latter gives a list of available commands if installed)
