@@ -10,27 +10,32 @@ import java.lang.Thread.sleep
 
 /**
  * Enum representing the different types of actions that can be performed in the game.
- * 
+ *
  * Copyright (c) 2026 Jochen Brinkmann. Licensed under the MIT License.
  */
 @Serializable
 enum class ActionType {
     /** Teleports the player to the room specified by [MoveToAction.moveToRoomId]. */
     MoveTo,
+
     /** Moves items to the room specified by [SetItemRoomAction.moveToRoomId]. */
     SetItemRoom,
+
     /** Changes a global game state. */
     ChangeState,
+
     /** Transforms one or multiple items into other items. */
     TransformIntoItem,
+
     /** Changes lock/open/blocked state of an exit. */
     ModifyExit,
+
     /** Changes lock/open/blocked state of an exit. */
     ModifyContainer,
+
     /** Output a message to Console */
     Message
 }
-
 
 
 /**
@@ -58,10 +63,7 @@ abstract class Action(
      * @return `true` if the action can be executed (i.e., conditions are met or no conditions specified); `false` otherwise.
      */
     fun checkPreconditions(gameData: GameData): Boolean {
-        if (preconditions.isEmpty()) {
-            return true // No preconditions, action can be executed
-        }
-        return preconditions.all { precondition ->
+        return preconditions.isEmpty() || preconditions.all { precondition ->
             precondition.isSatisfied(gameData)
         }
     }
@@ -79,7 +81,7 @@ abstract class Action(
     /** Validates the action's preconditions */
     fun validatePreconditions(gameData: GameData): Boolean {
         var valid = true
-        for(precondition in preconditions) {
+        for (precondition in preconditions) {
             valid = precondition.validate(gameData) && valid
         }
         return valid
@@ -121,9 +123,6 @@ data class ChangeStateAction(
     }
 }
 
-/**
- *
- */
 /**
  * Action representing the movement of the player to a different room.
  */
@@ -300,21 +299,21 @@ data class ModifyExitAction(
 
         // if open/close is combined with lock/unlock, then unlock goes first
         if (locked != null && exit.locked && !locked) {
-            if(!exit.unlock()){
+            if (!exit.unlock()) {
                 return false
-            } else if(exit.consumeKeyOnUnlock && exit.keyId != null){
+            } else if (exit.consumeKeyOnUnlock && exit.keyId != null) {
                 val key = gameData.getItemById(exit.keyId) ?: return false
                 key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
 
         if (open != null) {
-            if(open && exit.isClosed()){
-                if(!exit.open()){
+            if (open && exit.isClosed()) {
+                if (!exit.open()) {
                     return false
                 }
-            } else if (!open && exit.isOpen()){
-                if(!exit.close()){
+            } else if (!open && exit.isOpen()) {
+                if (!exit.close()) {
                     return false
                 }
             }
@@ -322,9 +321,9 @@ data class ModifyExitAction(
 
         // if open/close is combined with lock/unlock, then lock goes last
         if (locked != null && !exit.locked && locked) {
-            if(!exit.lock()){
+            if (!exit.lock()) {
                 return false
-            } else if(exit.consumeKeyOnLock && exit.keyId != null){
+            } else if (exit.consumeKeyOnLock && exit.keyId != null) {
                 val key = gameData.getItemById(exit.keyId) ?: return false
                 key.location = FixedLocation.NOT_ASSIGNED.value
             }
@@ -400,21 +399,21 @@ data class ModifyContainerAction(
 
         // if open/close is combined with lock/unlock, then unlock goes first
         if (locked != null && container.locked && !locked) {
-            if(!container.unlock()){
+            if (!container.unlock()) {
                 return false
-            } else if(container.consumeKeyOnUnlock && container.keyId != null){
+            } else if (container.consumeKeyOnUnlock && container.keyId != null) {
                 val key = gameData.getItemById(container.keyId) ?: return false
                 key.location = FixedLocation.NOT_ASSIGNED.value
             }
         }
 
         if (open != null) {
-            if(open && container.isClosed()){
-                if(!container.open()){
+            if (open && container.isClosed()) {
+                if (!container.open()) {
                     return false
                 }
-            } else if (!open && container.isOpen()){
-                if(!container.close()){
+            } else if (!open && container.isOpen()) {
+                if (!container.close()) {
                     return false
                 }
             }
@@ -422,9 +421,9 @@ data class ModifyContainerAction(
 
         // if open/close is combined with lock/unlock, then lock goes last
         if (locked != null && !container.locked && locked) {
-            if(!container.lock()){
+            if (!container.lock()) {
                 return false
-            } else if(container.consumeKeyOnLock && container.keyId != null){
+            } else if (container.consumeKeyOnLock && container.keyId != null) {
                 val key = gameData.getItemById(container.keyId) ?: return false
                 key.location = FixedLocation.NOT_ASSIGNED.value
             }
@@ -433,13 +432,13 @@ data class ModifyContainerAction(
     }
 }
 
-data class MessageAction (
+data class MessageAction(
     val configuredPreconditions: List<Precondition> = emptyList(),
     val configuredDescription: String? = null,
     val configuredComment: String? = null,
     val configuredActionDebug: String? = null,
     val configuredDelayInMillis: Long? = null
-): Action(
+) : Action(
     type = ActionType.Message,
     preconditions = configuredPreconditions,
     description = configuredDescription,
@@ -448,7 +447,7 @@ data class MessageAction (
         configuredDescription
     }'",
     delayInMillis = configuredDelayInMillis
-){
+) {
     override fun execute(gameData: GameData): Boolean {
         if (!checkPreconditions(gameData) || description.isNullOrBlank()) {
             return false
