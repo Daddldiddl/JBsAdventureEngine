@@ -1,7 +1,7 @@
 # JBsAdventureEngine
 
 ## Introduction
-This Adventure Game Engine (which sounds way too impressive already) is just a small fun project I setup for learning to program Kotlin - its simplistic, but you can actually create adventures by creating a JSON file and pointing the game engine towards it. **No coding required!**
+This Adventure Game Engine (which sounds way too impressive already) is a small, fun learning project I set up while learning Kotlin. It is intentionally simple, but you can still create full adventures by writing a JSON file and pointing the engine to it. **No coding required!**
 
 **📖 Want to build your own adventure?** Check out **[TUTORIAL.md](TUTORIAL.md)** for a comprehensive tutorial guide with step-by-step examples!
 
@@ -17,10 +17,16 @@ The guide includes tutorials for:
 Have fun expanding this yourself or building adventures for it!
 
 ### Some notes to limit expectations:
-It's a learning project for me and my first work on an text adventure engine (except for that 'Write Adventures in BASIC' book I read once in the 80s), so expect there to be non-optimal solutions as I now come from a mainly Java 8 background with little Kotlin knowledge. But then I'm not aiming to write the best adventure engine ever - I'm trying to learn the language and have fun doing so, and if everything works out I'll end up with a usable engine.
+This is my first text adventure engine project (except for reading *Write Adventures in BASIC* back in the 80s), so expect a few non-optimal solutions. I mostly come from a Java 8 background and started this to learn Kotlin while building something fun and usable.
 
 ### Regarding AI use
-I used Copilot to setup the base project (I can't be arsed to write a pom.xml, sorry!), as well as using AI-based code-completion and debugging throughout the development and for refactoring. Also the guides were AI generated/translated. The rest is my own stupidity, of which there is plenty to go around.
+I used Copilot to set up the base project, plus AI-assisted completion and debugging during development and refactoring. Parts of the guides were AI-generated/translated. Any remaining mistakes are mine.
+
+## Project Structure
+
+- `pom.xml` (root): Maven parent with modules `model-lib` and `engine`
+- `model-lib/`: Shared model, i18n, loader/validator, serializers
+- `engine/`: Runtime, CLI loop, save/config/logging, bundled language resources
 
 ## Running Adventures
 
@@ -40,39 +46,46 @@ mvn -DskipTests -Pdocs package
 
 ### Running the Game
 
-Requires **Java 21 or newer** to run (all dependencies are included in the JAR).
+Requires **Java 21 or newer** (all dependencies are included in the JAR).
 
 **Run with bundled example adventure:**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
 **Run with your own adventure data file:**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --data ./path/to/my-adventure.json
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --data ./path/to/my-adventure.json
 ```
 
-**Enable debug output to console:**
+**Enable console logging:**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --consoleDebug
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --consoleLog
 ```
 
-**Enable file logging (creates timestamped log files):**
+**Enable file logging with debug level (creates timestamped log files):**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --log --logDebug
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --fileLog --debug
+```
+
+**Alternative log levels:**
+```bash
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --info
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --warn
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --noLog
 ```
 
 **Set language (default: en):**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --lang en
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --lang en
 ```
 
 **Show help:**
 ```bash
-java -jar target/jbs-adventure-engine-1.0-SNAPSHOT.jar --help
+java -jar engine/target/jbs-adventure-engine-1.0-SNAPSHOT-jar-with-dependencies.jar --help
 ```
 
-You can combine command line parameters as needed. Command-line options override persisted settings in `config.json`.
+You can combine command-line parameters as needed. CLI options override persisted settings in `config.json`.
 
 ## Implemented Features
 
@@ -104,21 +117,5 @@ What may be coming in the future:
 - 💭 NPCs as additional object category with dialog options
 - 💭 Stats and combat system for roleplay-like experiences
 
-These are basic ideas – this is not going to be a continuous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more features for elaborate puzzles and stories.
+These are just ideas. This is not a continuous major effort, but I plan to expand it bit by bit whenever I have time, mainly to support more elaborate puzzles and stories.
 
-
-- basic i8n support is in - commands, directions, help page etc. already work, but there's no support for localized data files yet - the data file is simply in the language its written in.
-- allow item on item usage - this is possible if the second item is in the room or inventory, but there'scurrently  no possibility to explicitely state which item to use another one on.
-- item usages and named entities (rooms, items, exits, containers) can have multiple actions, each with its own set of preconditions
-- exits are separate entities and can be hidden, locked/unlocked and open/closed
-- various action types available
-- states can be modified by actions and be queried by preconditions
-- containers are special items, can contain other items and support being locked/unlocked and open/closed
-- item states are reflected in an items descriptive name
-
-What may be coming in the far future:
-
-- maybe add NPCs as additional object cathegory with dialog options?
-- add a stats (and combat?) system to allow for a 'roleplay-like' experience
-
-These are the basic ideas - this is not going to be a continous major effort, but I'd like to expand it bit by bit whenever I have the time. The idea is to provide more and more features required for more elaborate puzzles and stories. The included 'adventure' is really just there to serve as a testbed for the implemented features and more an example for implementing them yourself in an actual game. There is no treasure to be found (yet!) and the texts are (apart from some corrections and guidance) just Copilot's code completion proposals when editing the data.json.
