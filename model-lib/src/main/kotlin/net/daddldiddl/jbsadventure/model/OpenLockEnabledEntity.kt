@@ -2,6 +2,7 @@ package net.daddldiddl.jbsadventure.model
 
 import net.daddldiddl.jbsadventure.lang.Keys
 import net.daddldiddl.jbsadventure.lang.LanguageData
+import net.daddldiddl.jbsadventure.IActionOutput
 import net.daddldiddl.jbsadventure.model.actions.Action
 
 /**
@@ -59,11 +60,23 @@ interface OpenLockEnabledEntity {
     fun isClosed(): Boolean = !open
     fun isLocked(): Boolean = locked
 
+    /** Executes triggered actions and prints their descriptions when they succeed. */
+    private fun runTriggeredActions(actions: List<Action>) {
+        actions.forEach { action ->
+            if (action.checkPreconditions(GameData.current)) {
+                val executed = action.execute(GameData.current)
+                if (executed && !action.description.isNullOrBlank()) {
+                    IActionOutput.current.print(action.description)
+                }
+            }
+        }
+    }
+
     /** Attempts to open the entity and returns success state. */
     fun open(): Boolean {
         if (!isOpen() && !isLocked()) {
             open = true
-            if (onOpen.isNotEmpty()) onOpen.forEach { it.execute(GameData.current) }
+            if (onOpen.isNotEmpty()) runTriggeredActions(onOpen)
             return isOpen()
         }
         return false
@@ -73,7 +86,7 @@ interface OpenLockEnabledEntity {
     fun close(): Boolean {
         if (isOpen() && !isLocked()) {
             open = false
-            if (onClose.isNotEmpty()) onClose.forEach { it.execute(GameData.current) }
+            if (onClose.isNotEmpty()) runTriggeredActions(onClose)
             return !isOpen()
         }
         return false
@@ -83,7 +96,7 @@ interface OpenLockEnabledEntity {
     fun lock(): Boolean {
         if (!isLocked()) {
             locked = true
-            if (onLock.isNotEmpty()) onLock.forEach { if (it.checkPreconditions(GameData.current)) it.execute(GameData.current) }
+            if (onLock.isNotEmpty()) runTriggeredActions(onLock)
             return isLocked()
         }
         return false
@@ -93,7 +106,7 @@ interface OpenLockEnabledEntity {
     fun unlock(): Boolean {
         if (isLocked()) {
             locked = !isLocked()
-            if (onUnlock.isNotEmpty()) onUnlock.forEach { if (it.checkPreconditions(GameData.current)) it.execute(GameData.current) }
+            if (onUnlock.isNotEmpty()) runTriggeredActions(onUnlock)
             return !isLocked()
         }
         return false

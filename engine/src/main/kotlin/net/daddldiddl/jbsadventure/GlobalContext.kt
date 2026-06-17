@@ -1,6 +1,7 @@
 package net.daddldiddl.jbsadventure
 
 import net.daddldiddl.jbsadventure.lang.LanguageData
+import net.daddldiddl.jbsadventure.IActionOutput
 import net.daddldiddl.jbsadventure.model.GameData
 
 /**
@@ -62,6 +63,11 @@ object GlobalContext {
         _console = console
         ILogger.current = log
         LanguageData.current = lang
+        IActionOutput.current = object : IActionOutput {
+            override fun print(message: String?) {
+                console.print(message)
+            }
+        }
     }
 
     /**

@@ -5,6 +5,8 @@ plugins {
     id("org.jetbrains.compose") version "1.6.11"
 }
 
+import org.gradle.api.tasks.JavaExec
+
 group = "net.daddldiddl"
 version = "1.0-SNAPSHOT"
 
@@ -26,6 +28,10 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+}
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 
 tasks.register("verifyModelLibJar") {
